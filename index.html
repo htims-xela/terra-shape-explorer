@@ -74,6 +74,7 @@ details.grp>:not(summary){margin-left:2px;margin-right:2px}
 .seg2{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;flex:none}
 .seg2 button{border:none;border-radius:0;padding:1px 7px;font-size:10.5px;background:transparent;color:var(--muted)}
 .seg2 button.act{background:var(--accent);color:var(--accent-ink)}
+.seg3{display:flex;flex:1;border:1px solid var(--line);border-radius:7px;overflow:hidden}.seg3 button{flex:1;border:none;border-radius:0;padding:5px 4px;font-size:12px;background:transparent;color:var(--muted)}.seg3 button+button{border-left:1px solid var(--line)}.seg3 button.act{background:var(--accent);color:var(--accent-ink);font-weight:600}
 .seg2.lang{margin-right:8px}.seg2.lang button{padding:3px 9px;font-size:12px}
 .lockb{padding:0 6px;font-size:12px;line-height:18px}
 .lockb.locked{color:var(--lock);border-color:var(--lock)}
@@ -234,8 +235,7 @@ textarea{width:100%;height:220px;font:11px/1.35 ui-monospace,Menlo,monospace;bac
     <h3>Balance</h3>
     <div class="row"><label><input type="checkbox" id="tCog" checked> Show centre of gravity</label></div>
     <div class="kv" id="stats"></div>
-    <div class="mini"><div><canvas id="lnBig"></canvas>Lunar lander · big cup</div><div><canvas id="lnSmall"></canvas>Lunar lander · small cup</div></div>
-    <p class="pnote">Lunar lander: the cup sits over the tama hole. The ken settles where its centre of gravity is directly above the tama centre; the angle is the spike's angle above or below horizontal.</p>
+    <div class="mini"><div><canvas id="lnBig"></canvas>Big cup lunar</div><div><canvas id="lnSmall"></canvas>Small cup lunar</div></div>
     <h3>Iterations</h3>
     <div class="row"><input type="text" id="snapName" placeholder="Iteration name"><button id="bSnap">Save iteration</button></div>
     <div id="snapList"></div>
@@ -343,7 +343,7 @@ const JA={
 "Added": "追加",
 "added": "追加",
 "ADDED": "追加",
-"= not on the reference sheet. Values are limited automatically so the shape always stays buildable.": "＝ 元の仕様書にない項目。値は自動的に制限され、常に製作可能な形状に保たれます。",
+"Values are limited automatically so the shape always stays buildable.": "値は自動的に制限され、常に製作可能な形状に保たれます。",
 "mm": "mm",
 "Down # mm": "# mm 減らす",
 "Up # mm": "# mm 増やす",
@@ -472,12 +472,12 @@ const JA={
 "Swoop, big cup side ellipse, depth": "スウープ（大皿側）楕円・深さ",
 "Swoop, big cup side ellipse, centre shift along sarado": "スウープ（大皿側）楕円・皿胴方向の中心移動",
 "Swoop, big cup side ellipse, centre shift in/out": "スウープ（大皿側）楕円・中心の内外移動",
-"Bird ridge to swoop radius, small cup side": "バードリッジからスウープへの角R（小皿側）",
+"Small cup bird ridge rounding": "小皿バードリッジの丸み",
 "Used when the small cup bird ridge has no step.": "小皿のバードリッジに段差がないときに使います。",
-"Bird ridge to swoop radius, big cup side": "バードリッジからスウープへの角R（大皿側）",
+"Big cup bird ridge rounding": "大皿バードリッジの丸み",
 "Used when the big cup bird ridge has no step.": "大皿のバードリッジに段差がないときに使います。",
-"Bird ridge to swoop radius, small cup side: only R# fits here.": "バードリッジからスウープへの角R（小皿側）：ここには R# までしか入りません。",
-"Bird ridge to swoop radius, big cup side: only R# fits here.": "バードリッジからスウープへの角R（大皿側）：ここには R# までしか入りません。",
+"Small cup bird ridge rounding: only R# fits here.": "小皿バードリッジの丸み：ここには R# までしか入りません。",
+"Big cup bird ridge rounding: only R# fits here.": "大皿バードリッジの丸み：ここには R# までしか入りません。",
 "Sarado string holes": "皿胴の糸穴",
 "Front and back (mirrored)": "表と裏（対称）",
 "Front only": "表のみ",
@@ -565,6 +565,12 @@ const JA={
 "On spike": "けん先に刺す",
 "Stilt": "スティルト",
 "Menu": "メニュー",
+"Small cup lunar": "小皿ルナ",
+"Big cup lunar": "大皿ルナ",
+"Lefty only": "左利き用のみ",
+"Righty only": "右利き用のみ",
+"Both sides": "両側",
+"String holes": "糸穴",
 "Ellipses": "楕円",
 "Clear the ellipses shown now. A curve's ellipse comes back when you change that curve or pick it to draw; tick Ellipses again to show them all.": "今表示されている楕円を消します。曲線を変更するか、描く対象に選ぶと、その曲線の楕円がまた表示されます。「楕円」をもう一度チェックすると全て表示されます。",
 "Clear ellipses": "楕円を消す",
@@ -880,6 +886,7 @@ const GROUPS=[
  {id:'small',title:'Small cup'},
  {id:'big',title:'Big cup'},
  {id:'tama',title:'Tama'},
+ {id:'str',title:'String holes'},
  {id:'mat',title:'Materials & tolerances'}];
 const P=[];
 const def=(k,label,group,val,min,max,o={})=>P.push(Object.assign({k,label,group,val,min,max,step:0.1,kind:'spec',unit:'mm'},o));
@@ -905,7 +912,6 @@ def('tipMode','Spike tip shape','spike','radius',0,0,{kind:'choice',options:[['r
 def('tipR','Spike tip radius','spike',1,0.2,4,{kind:'added',show:isMode('radius')});
 def('tipEa','Tip ellipse, half-width','spike',2.5,0.2,5.7,{kind:'added',show:isMode('ellipse')});
 def('tipEb','Tip ellipse, length','spike',4,0.2,20,{kind:'added',show:isMode('ellipse')});
-def('kenStr','Ken string hole (below spike bevel)','spike',48.26,2,76.2);
 def('ringHandleRx','Handle ellipse, length','handle',40,5,300,{kind:'added',seg:'ringHandle'});
 def('ringHandleRy','Handle ellipse, depth','handle',16,2,300,{kind:'added',dimBy:'ringHandle'});
 def('ringHandleCx','Handle ellipse, centre shift up/down','handle',0,-30,30,{kind:'added',dimBy:'ringHandle',note:'Positive moves the centre toward the spike tip.'});
@@ -952,15 +958,14 @@ def('swARy','Swoop (one surface) ellipse, depth','sarado',NaN,3,1000,{kind:'adde
   def(pre+'Cx',name+' ellipse, centre shift along sarado','sarado',0,-30,30,{kind:'added',show:is('ellipse'),note:'Positive moves the centre toward the big cup.'});
   def(pre+'Cy',name+' ellipse, centre shift in/out','sarado',0,-30,30,{kind:'added',show:is('ellipse'),note:'Positive moves the centre away from the sarado axis.',info:(p,G)=>ellInfo(G,seg)});};
  sw('swS','Swoop, small cup side','swoopSm','two');sw('swB','Swoop, big cup side','swoopBg','two');}
-def('smFilletR','Bird ridge to swoop radius, small cup side','sarado',1.5,0,10,{kind:'added',show:p=>!(p.smStepH>0),note:'Used when the small cup bird ridge has no step.'});
-def('bgFilletR','Bird ridge to swoop radius, big cup side','sarado',1.5,0,10,{kind:'added',show:p=>!(p.bgStepH>0),note:'Used when the big cup bird ridge has no step.'});
-def('sarStrSides','Sarado string holes','sarado','both',0,0,{kind:'choice',options:[['both','Front and back (mirrored)'],['front','Front only'],['back','Back only']]});
-def('sarStrCount','String holes per side','sarado',1,1,3,{step:1,unit:'',kind:'added'});
+def('sarStrSides','Sarado string holes','str','both',0,0,{kind:'choice',btns:1,options:[['both','Both sides'],['front','Righty only'],['back','Lefty only']]});
+def('sarStrCount','String holes per side','str',1,1,3,{step:1,unit:'',kind:'added'});
 for(let i=1;i<=3;i++){
  const sh=i>1?p=>p.sarStrCount>=i:undefined;
- def('sarStrDepth'+i,`String hole ${i}, below waist top`,'sarado',[3.56,8,12.5][i-1],0.3,30,{kind:i>1?'added':'spec',show:sh});
- def('sarStrOff'+i,`String hole ${i}, off ken axis`,'sarado',0.92,-12,12,{kind:i>1?'added':'spec',show:sh,note:i===1?'Positive = toward the big cup. Mirrored holes sit on the front and back faces of the sarado.':''});
+ def('sarStrDepth'+i,`String hole ${i}, below waist top`,'str',[3.56,8,12.5][i-1],0.3,30,{kind:i>1?'added':'spec',show:sh});
+ def('sarStrOff'+i,`String hole ${i}, off ken axis`,'str',0.92,-12,12,{kind:i>1?'added':'spec',show:sh});
 }
+def('kenStr','Ken string hole (below spike bevel)','str',48.26,2,76.2);
 def('smD','Small cup Ø','small',47.63,30,70);
 def('smBandD','Small cup bird ridge Ø','small',45.85,25,75);
 def('smBandL','Small cup bird ridge width','small',10.67,1,30);
@@ -969,6 +974,7 @@ def('smStepH','Small cup bird ridge step height','small',0,0,8,{kind:'added',not
 def('smStepL','Small cup bird ridge step, ends beyond ridge','small',0,0,10,{kind:'added',note:'How far past the edge of the bird ridge, toward the waist, the step finishes. 0 = a square step.',show:p=>p.smStepH>0});
 def('smStepTopR','Small cup bird ridge step, ridge edge radius','small',0.5,0,5,{kind:'added',show:p=>p.smStepH>0});
 def('smStepInR','Small cup bird ridge step, inner edge radius','small',0.5,0,5,{kind:'added',show:p=>p.smStepH>0});
+def('smFilletR','Small cup bird ridge rounding','small',1.5,0,10,{kind:'added',show:p=>!(p.smStepH>0),note:'Used when the small cup bird ridge has no step.'});
 def('smDepth','Small cup depth','small',8.5,0.3,25,{kind:'added',seg:'smCup'});
 def('smCupR','Small cup radius','small',0,0,0,{kind:'display',fn:p=>sphR(p.smD/2-p.rim,p.smDepth),warn:p=>sphR(p.smD/2-p.rim,p.smDepth)>p.tamaD/2?SHALLOW:'',note:'Set by the cup Ø, rim width and depth.'});
 def('bgD','Big cup Ø','big',50.55,30,75);
@@ -979,6 +985,7 @@ def('bgStepH','Big cup bird ridge step height','big',0,0,8,{kind:'added',note:'H
 def('bgStepL','Big cup bird ridge step, ends beyond ridge','big',0,0,10,{kind:'added',note:'How far past the edge of the bird ridge, toward the waist, the step finishes. 0 = a square step.',show:p=>p.bgStepH>0});
 def('bgStepTopR','Big cup bird ridge step, ridge edge radius','big',0.5,0,5,{kind:'added',show:p=>p.bgStepH>0});
 def('bgStepInR','Big cup bird ridge step, inner edge radius','big',0.5,0,5,{kind:'added',show:p=>p.bgStepH>0});
+def('bgFilletR','Big cup bird ridge rounding','big',1.5,0,10,{kind:'added',show:p=>!(p.bgStepH>0),note:'Used when the big cup bird ridge has no step.'});
 def('bgDepth','Big cup depth','big',9.5,0.3,25,{kind:'added',seg:'bgCup'});
 def('bgCupR','Big cup radius','big',0,0,0,{kind:'display',fn:p=>sphR(p.bgD/2-p.rim,p.bgDepth),warn:p=>sphR(p.bgD/2-p.rim,p.bgDepth)>p.tamaD/2?SHALLOW:'',note:'Set by the cup Ø, rim width and depth.'});
 def('tamaD','Tama Ø','tama',61.49,45,75);
@@ -1263,7 +1270,7 @@ function build(p,curves){
  const cB=stepCorner(mir(gr),mir(wb),mp(bgEnd),mp(bgSE),bgSt?p.bgStepH:0,bgSt?p.bgStepL:0,p.bgStepTopR,p.bgStepInR,p.bgFilletR);
  for(const[c,n,pre]of[[cS,'small','sm'],[cB,'big','bg']]){const N=n==='small'?'Small':'Big';
   if(c.step){if(c.r[0]<p[pre+'StepTopR']-0.01)W.push(`${N} cup bird ridge step, ridge edge: only R${f2(c.r[0])} fits here.`);if(c.r[1]<p[pre+'StepInR']-0.01)W.push(`${N} cup bird ridge step, inner edge: only R${f2(c.r[1])} fits here.`);}
-  else if(c.r[0]<p[pre+'FilletR']-0.01)W.push(`Bird ridge to swoop radius, ${n} cup side: only R${f2(c.r[0])} fits here.`);}
+  else if(c.r[0]<p[pre+'FilletR']-0.01)W.push(`${N} cup bird ridge rounding: only R${f2(c.r[0])} fits here.`);}
  const fS={r:cS.step?0:cS.r[0]},fB={r:cB.step?0:cB.r[0]};
  const sarPts=mono([...cS.pts,...mir(cB.pts)]);
  const swoopR=swAll?[minConcaveR(swAll),minConcaveR(swAll)]:[minConcaveR(ws),minConcaveR(wb)],swoopDia=2*Math.min(...swoopR),fil=[fS.r,fB.r];
@@ -1287,7 +1294,7 @@ function sarSection(G){const sp=G.sarPts;return[...sp.map(([x,r])=>[x,r]),...G.b
 function kenSection(G){const kp=G.kenPts,c=G.bcP;return[...kp.map(([y,r])=>[y,r]),...kp.slice().reverse().map(([y,r])=>[y,-r]),...c.map(([r,d])=>[d,-r]),...c.slice().reverse().map(([r,d])=>[d,r])];}
 // holes are mirrored front/back about the plane through all three cups, so both project to the same spot in the front view
 function stringHoles(p,G){const o=[],top=G.yA+p.waistD/2;for(let i=1;i<=p.sarStrCount;i++)o.push([p['sarStrOff'+i],top-p['sarStrDepth'+i],i,p.sarStrSides]);return o;}
-const strSidesTxt=p=>p.sarStrSides==='front'?'FRONT ONLY':p.sarStrSides==='back'?'BACK ONLY':'FRONT & BACK';
+const strSidesTxt=p=>p.sarStrSides==='front'?'RIGHTY ONLY':p.sarStrSides==='back'?'LEFTY ONLY':'BOTH SIDES';
 
 /* ================= tama positions ================= */
 function mkTama(p){const R=p.tamaD/2,cr=p.tamaCsD/2,hr=p.tamaHoleD/2,yM=Math.sqrt(Math.max(0,R*R-cr*cr)),yJ=yM-p.tamaCsDepth,end=R-p.tamaHoleDepth,sr=TAMA_STR_D/2;
@@ -1356,7 +1363,7 @@ function undo(d){const n=hpos+d;if(n<0||n>=hist.length)return;hpos=n;const s=JSO
 function updUndo(){$('#bUndo').disabled=hpos<=0;$('#bRedo').disabled=hpos>=hist.length-1;}
 const projectData=()=>({app:'kendama-shape-designer',version:2,saved:new Date().toISOString(),meta:S.meta,p:S.p,curves:S.curves,locks:S.locks,snaps:S.snaps,cmp:S.cmp});
 function autosave(){clearTimeout(autosave.t);autosave.t=setTimeout(()=>{try{localStorage.setItem('ksd.autosave',JSON.stringify(projectData()));}catch(e){}},400);}
-function cleanCurves(c){const o={},ren={neckRing:'swoopRing'};if(c&&typeof c==='object')for(const k0 in c){const k=ren[k0]||k0,v=c[k0];if(['waistSm','waistBg','handle','edgeSm','edgeBg'].includes(k0))continue;if(k0==='baseHole'){if(v&&Array.isArray(v.pts)&&v.pts.length>2&&v.pts.every(q=>Array.isArray(q)&&isFinite(q[0])&&isFinite(q[1])))o.baseHole={pts:v.pts.map(q=>[+q[0],+q[1]]),on:v.on!==false};continue;}if(v&&Array.isArray(v.d)&&v.d.length>3&&v.d.every(x=>typeof x==='number'&&isFinite(x)))o[k]={d:v.d,smooth:!!v.smooth,strength:+v.strength||3,bin:+v.bin||0.35,on:v.on!==false};if(v.imp)o[k].imp=true;}return o;}
+function cleanCurves(c){const o={},ren={neckRing:'swoopRing'};if(c&&typeof c==='object')for(const k0 in c){const k=ren[k0]||k0,v=c[k0];if(['waistSm','waistBg','handle','edgeSm','edgeBg'].includes(k0))continue;if((k0==='smCup'||k0==='bgCup')&&v&&v.imp)continue;if(k0==='baseHole'){if(v&&Array.isArray(v.pts)&&v.pts.length>2&&v.pts.every(q=>Array.isArray(q)&&isFinite(q[0])&&isFinite(q[1])))o.baseHole={pts:v.pts.map(q=>[+q[0],+q[1]]),on:v.on!==false};continue;}if(v&&Array.isArray(v.d)&&v.d.length>3&&v.d.every(x=>typeof x==='number'&&isFinite(x)))o[k]={d:v.d,smooth:!!v.smooth,strength:+v.strength||3,bin:+v.bin||0.35,on:v.on!==false};if(v.imp)o[k].imp=true;}return o;}
 function cleanDesign(o){
  const src=Object.assign({},o&&o.p||{});
  if(src.kenH!=null&&src.baseToBevel==null)src.baseToBevel=src.kenH-(src.bevelL!=null?src.bevelL:8.16);
@@ -1386,8 +1393,7 @@ function libDesign(e){
   curves.baseHole={pts:e.hole.slice(i0).map(q=>q.slice()),on:true};}
  const K=e.exact.ken,SX=e.exact.sar,half=SX[SX.length-1][0]/2;
  const exK=s=>interp(K,s),exS=s=>interp(SX,s+half);
- const cupInv=c=>{const q=c.map(([dd,r])=>[r,dd]).sort((a,b)=>a[0]-b[0]);return r=>interp(q,r);};
- const ex={baseRidge:exK,flare:exK,swoopRing:exK,ringHandle:exK,smRidge:exS,swoopSm:exS,swoopBg:exS,bgRidge:exS,smCup:cupInv(e.exact.smCup),bgCup:cupInv(e.exact.bgCup)};
+ const ex={baseRidge:exK,flare:exK,swoopRing:exK,ringHandle:exK,smRidge:exS,swoopSm:exS,swoopBg:exS,bgRidge:exS}; // the cup hollows are one radius each, set by the cup Ø, rim and depth, like the base cup
  const dev=(pts,f)=>{let m=0;for(const[s,v]of pts)m=Math.max(m,Math.abs(v-f(s)));return m;};
  const bestR=(sg,f,convex)=>{let best=null;for(let i=0;i<=80;i++){const R=Math.pow(10,0.3+i*0.035),a=ellArc(sg.s0,sg.v0,sg.s1,sg.v1,R,R,convex,30);if(a.scale>1.002)continue;const m=dev(a.pts,f);if(!best||m<best.m)best={R,m};}return best;};
  let G=build(p,curves);
@@ -1442,13 +1448,13 @@ function setDrawn(id,on){
 }
 function buildParams(){
  const host=$('#params');host.innerHTML='';
- host.append(el('p',{class:'gnote',html:'Type a value or drag the slider. <b>Added</b> = not on the reference sheet. Values are limited automatically so the shape always stays buildable.'}));
+ host.append(el('p',{class:'gnote',html:'Type a value or drag the slider. Values are limited automatically so the shape always stays buildable.'}));
  for(const g of GROUPS){
   const det=el('details',{class:'grp'});det.append(el('summary',{},g.title));
   if(g.id==='spike'){lockNote=el('p',{class:'gnote'});det.append(lockNote);}
   for(const d of P.filter(x=>x.group===g.id)){
    if(d.kind==='locked')continue;
-   const tag=['added'].includes(d.kind)?el('span',{class:'tag'},d.kind):'';
+   const tag='';
    const note=el('div',{class:'pnote'},d.note||''),warn=el('div',{class:'pwarn',style:'display:none'});
    const lab=el('div',{class:'plab'},el('span',{},d.label),tag);
    const ctl=el('div',{class:'pctl'});let num=null,rng=null,sel=null,val=null,tg=null,lock=null,mat=null,pin=null;
@@ -1457,6 +1463,7 @@ function buildParams(){
    else if(d.kind==='choice'){
     sel=el('select');for(const[v,t]of d.options)sel.append(el('option',{value:v},t));if(d.seg)sel.append(el('option',{value:'drawn'},'Hand-drawn'));
     sel.onchange=()=>{if(sel.value==='drawn'){setDrawn(d.seg,true);syncParams();return;}const keep=lockedVals();const old=S.p[d.k];S.p[d.k]=sel.value;const tst=JSON.parse(JSON.stringify(S.p));sanitize(tst);const bad=lockBreak(tst,keep);if(bad){S.p[d.k]=old;toast(`Can’t change this while “${PD[bad].label}” is locked.`);syncParams();return;}if(waistBreak(tst)&&!waistBreak(Object.assign(JSON.parse(JSON.stringify(tst)),{[d.k]:old}))){S.p[d.k]=old;toast('No single swoop radius joins both bird ridges at this waist Ø without undercutting one. Widen the waist, or keep mirrored ellipses.');syncParams();return;}const c=d.seg&&S.curves[d.seg];if(c)c.on=false;refresh();commit();};
+    if(d.btns){const box=el('span',{class:'seg3'});for(const[v,t]of d.options){const b=el('button',{},t);b.dataset.v=v;b.onclick=()=>{if(sel.value===v)return;sel.value=v;sel.onchange();};box.append(b);}sel.style.display='none';sel.bt=box;ctl.append(box);}
     ctl.append(sel);if(tg){tg.remove();tg=null;}
    }else{
     num=el('input',{type:'number',step:d.step});
@@ -1523,7 +1530,7 @@ function syncParams(){
   if(r.rng&&document.activeElement!==r.rng)r.rng.value=d.steps?d.steps.findIndex(q=>Math.abs(q[0]-v)<1e-6):v;
   if(d.steps){const q=snapDrill(v);r.note.textContent=`Drill: ${q[1]}`;}
   if(d.info)r.note.textContent=(d.note||'')+' '+d.info(p,G);
-  if(d.kind==='choice'){const sg=d.seg&&G.segs[d.seg];r.sel.value=sg&&sg.drawn?'drawn':p[k];const od=r.sel.querySelector('option[value=drawn]');if(od)od.textContent=sg&&sg.imp?'Imported (exact)':'Hand-drawn';}
+  if(d.kind==='choice'){const sg=d.seg&&G.segs[d.seg];r.sel.value=sg&&sg.drawn?'drawn':p[k];if(r.sel.bt)for(const b of r.sel.bt.children)b.classList.toggle('act',b.dataset.v===r.sel.value);const od=r.sel.querySelector('option[value=drawn]');if(od)od.textContent=sg&&sg.imp?'Imported (exact)':'Hand-drawn';}
   if(r.mat){const m=MATS.find(q=>Math.abs(q[2]-v)<0.0005);r.mat.value=m?m[0]:'';}
   if(r.pin){const L=!!S.locks[k];r.pin.textContent=L?'🔒':'🔓';r.pin.classList.toggle('on',L);r.pin.title=L?'Locked: other changes cannot move this value. Click to unlock.':'Lock this value so other changes cannot move it';r.row.classList.toggle('pinned',L);r.num.disabled=r.rng.disabled=L;r.row.querySelectorAll('.stp button').forEach(b=>b.disabled=L);}
   if(r.lock){const L=S.meta.tolLocked;r.lock.textContent=L?'🔒':'🔓';r.lock.classList.toggle('locked',L);r.num.disabled=r.rng.disabled=L;r.row.querySelectorAll('.stp button').forEach(b=>b.disabled=L);}
@@ -1949,9 +1956,9 @@ function gStockDefault(){const G=CUR.G,m=$('#gPart').value==='ken'?Math.max(...G
 
 /* ================= right panel ================= */
 function syncStats(){
- const A=CUR.A,G=CUR.G,r=(a,b)=>`<span>${a}</span><b>${b}</b>`,ln=(k,n)=>{const L=A[k];return r(`Lunar lander, ${n}: spike`,elevTxt(L))+r(`CoG above tama centre, ${n}`,L?f1(L.h)+' mm':'n/a');};
+ const A=CUR.A,G=CUR.G,r=(a,b)=>`<span>${a}</span><b>${b}</b>`;
  $('#stats').innerHTML=r('Ken mass',f1(A.kM)+' g')+r('Sarado mass',f1(A.sM)+' g')+r('Ken + sarado',f1(A.M)+' g')+r('Tama mass',f1(A.tM)+' g')+'<div class="sep"></div>'+
-  r('Centre of gravity above base',f1(A.cog.y)+' mm')+r('CoG below sarado axis',f1(G.yA-A.cog.y)+' mm')+r('CoG toward big cup',f2(A.cog.x)+' mm')+r('Ken alone, CoG above base',f1(A.kC)+' mm')+'<div class="sep"></div>'+ln('big','big cup')+ln('small','small cup');
+  r('Centre of gravity above base',f1(A.cog.y)+' mm')+r('CoG below sarado axis',f1(G.yA-A.cog.y)+' mm')+r('CoG toward big cup',f2(A.cog.x)+' mm');
  drawMini('#lnBig',A.big);drawMini('#lnSmall',A.small);
  const w=$('#warns');w.innerHTML='';if(!G.W.length)w.append(el('div',{class:'okmsg'},'No problems found. The profile is continuous and all walls are thick enough.'));G.W.forEach(t=>w.append(el('div',{class:'warn'},t)));
  const im=S.meta.imported;if(im&&im.file){w.append(el('p',{class:'gnote',style:'margin-top:10px'},el('b',{},'Imported from '),im.file));(im.notes||[]).forEach(t=>w.append(el('p',{class:'impnote'},t)));}
