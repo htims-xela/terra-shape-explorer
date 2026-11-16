@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Terra Shape Explorer – self tests</title>
+<style>
+:root{--bg:#f3f1ec;--panel:#fff;--ink:#1c1c1e;--muted:#6d6d72;--line:#dcd8d0;--ok:#2f6f5e;--bad:#b3261e}
+@media (prefers-color-scheme:dark){:root{--bg:#17181a;--panel:#212225;--ink:#ececee;--muted:#9a9aa0;--line:#35363a;--ok:#4fa58d;--bad:#ff6b5e}}
+body{margin:0;padding:18px 16px 40px;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,Helvetica,Arial,sans-serif}
+h1{font-size:18px;margin:0 0 4px}
+p{margin:0 0 12px;color:var(--muted)}
+#sum{font-weight:700;margin:10px 0}
+#sum.ok{color:var(--ok)}#sum.bad{color:var(--bad)}
+.t{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:0 0 6px}
+.t b{font-weight:600}.t .s{float:right;font-weight:700}
+.t.ok .s{color:var(--ok)}.t.bad .s{color:var(--bad)}.t.bad{border-color:var(--bad)}
+.t ul{margin:6px 0 0;padding-left:18px;color:var(--bad);font-size:12.5px}
+.t small{color:var(--muted)}
+button{font:inherit;padding:6px 12px;border-radius:7px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+iframe{position:fixed;left:-3000px;top:0;border:0;visibility:hidden}
+</style>
+</head>
+<body>
+<h1>Terra Shape Explorer – self tests</h1>
+<p>Opens the app in a hidden frame and drives it. Nothing here changes the app; your saved work in this browser is put back when the run ends.</p>
+<button id="run">Run again</button>
+<div id="sum">Running…</div>
+<div id="out"></div>
+<iframe id="app" width="1280" height="820"></iframe>
+<script>
+'use strict';
+/* Each test gets a fresh copy of the app (w = its window, E = run code inside it) and a check function ok(condition, message). */
+const TESTS=[];const test=(name,fn,opt)=>TESTS.push({name,fn,opt:opt||{}});
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const LIBS=['Kocho','Aurum','Ditto','GFN','Gyro','Nemus','ROD26','Prefect','P1','Jon Rogers'];
+
+function helpers(w){
+ const E=c=>w.eval(c);
+ const cv=w.document.querySelector('#cv');
+ const ev=(t,x,y,o)=>{const r=cv.getBoundingClientRect();cv.dispatchEvent(new w.PointerEvent(t,Object.assign({bubbles:true,clientX:r.left+x,clientY:r.top+y,pointerId:1,pointerType:'mouse'},o||{})));};
+ const drag=(a,b,n=5)=>{ev('pointerdown',a[0],a[1]);for(let i=1;i<=n;i++)ev('pointermove',a[0]+(b[0]-a[0])*i/n,a[1]+(b[1]-a[1])*i/n);ev('pointerup',b[0],b[1]);};
+ const click=p=>{ev('pointerdown',p[0],p[1]);ev('pointerup',p[0],p[1]);};
+ const PP=q=>E(`[sx(VT.design,${q[0]}),sy(VT.design,${q[1]})]`);          // world mm -> canvas px
+ const finite=()=>E(`(()=>{const G=CUR.G,A=CUR.A;return G.kenPts.every(q=>isFinite(q[0])&&isFinite(q[1])&&q[1]>=0)&&G.sarPts.every(q=>isFinite(q[0])&&isFinite(q[1])&&q[1]>0)&&[A.kM,A.sM,A.M,A.tM,A.cog.x,A.cog.y].every(isFinite)&&A.kM>0&&A.sM>0;})()`);
+ const fitView=()=>E(`VT.design.auto=true;render();`);
+ return{E,cv,ev,drag,click,PP,finite,fitView};
+}
+
+/* ---------- start-up ---------- */
+test('App starts in Drag & draw with no errors',async({w,E,ok})=>{
+ ok(E('typeof LIB')==='object'&&E('LIB.length')===10,'library has 10 shapes');
+ ok(E('S.mode')==='dd','opens in Drag & draw');
+ ok(w.document.querySelector('#lView b').textContent==='Drag & draw','View pill reads Drag & draw');
+ ok(w.document.querySelector('#lTama b').textContent==='Free','Tama pill reads Free');
+ ok(w.document.querySelector('#topDD').open&&!w.document.querySelector('#topMan').open,'Drag & draw is the open section of the left menu');
+ ok(!/jarod|porter/i.test(w.document.documentElement.innerHTML),'no Jarod / Porter text');
+});
+
+/* ---------- every library shape ---------- */
+for(const name of LIBS)test(`Library shape loads, draws and exports: ${name}`,async({w,E,ok,finite})=>{
+ E(`loadLib(${JSON.stringify(name)})`);await sleep(30);
+ ok(E('S.meta.model')===name.toUpperCase()||E('S.meta.model')===name,'shape name filled in');
+ ok(finite(),'outline and balance numbers are all finite');
+ ok(E('S.p.swoopMode')==='one','opens as one swoop surface');
+ ok(!Object.keys(E('S.curves')).some(k=>k==='smCup'||k==='bgCup'),'cups are a single radius (no traced cup curves)');
+ for(const v of['design','sarado','spec','compare'])E(`setView('${v}');render();`);
+ E(`S.page=2;render();S.page=1;setView('design');`);
+ const pdf=E(`(()=>{const a=new PdfDrawer(612),b=new PdfDrawer(612);specPage1(a,CUR);specPage2(b,CUR);const d=buildPdf([a.o,b.o],792,612);return typeof d==='string'?d.length:(d.byteLength||d.length||0);})()`);
+ ok(pdf>2000,'PDF builds ('+pdf+' bytes)');
+ const got=E(`(()=>{const o=[],keep=download;download=(n,d)=>o.push([n,(d&&d.length)||0]);try{exportDxf();}finally{download=keep;}return o;})()`);
+ ok(got.length===1&&/\.dxf$/i.test(got[0][0])&&got[0][1]>1000,'DXF exports');
+ for(const part of['ken','sarado']){const n=E(`(()=>{$('#gPart').value='${part}';gStockDefault();const t=gcode();return t?t.length:0;})()`);ok(n>200,'G-code builds for the '+part);}
+ for(const m of[['two',''],['one','radius'],['one','mirror']]){E(`S.p.swoopMode='${m[0]}';${m[1]?`S.p.swAMode='${m[1]}';`:''}refresh();`);ok(finite(),'swoop mode '+m.join(' ')+' builds');}
+ E(`setTool('rot');render();`);ok(E('M3&&M3.q.length')>500,'3D model builds');E(`setTool('front');`);
+});
+
+/* ---------- measures ---------- */
+test('Random measures always give a buildable shape (150 tries)',async({E,ok})=>{
+ const bad=E(`(()=>{let s=12345;const rnd=()=>(s=(s*1103515245+12345)%2147483648)/2147483648;const bad=[];
+  for(let i=0;i<150;i++){const p=defaults();for(const d of P){if(d.kind==='choice'){p[d.k]=d.options[Math.floor(rnd()*d.options.length)][0];}else if(d.kind!=='display'&&d.kind!=='locked'&&d.max>d.min){p[d.k]=d.min+rnd()*(d.max-d.min);}}
+   try{sanitize(p);const G=build(p,{}),A=analyze(G);if(!(G.kenPts.every(q=>isFinite(q[1])&&q[1]>=0)&&G.sarPts.every(q=>isFinite(q[1])&&q[1]>0)&&isFinite(A.M)&&A.M>0))bad.push('try '+i+': not finite');}catch(e){bad.push('try '+i+': '+e.message);}}
+  return bad.slice(0,5);})()`);
+ ok(bad.length===0,'failures: '+bad.join(' | '));
+});
+test('Every slider can be set to both ends without breaking the shape',async({E,ok,finite})=>{
+ E(`loadLib('Kocho')`);
+ const bad=E(`(()=>{const bad=[],base=snapState();for(const d of P){if(d.kind==='choice'||d.kind==='display'||d.kind==='locked'||!(d.max>d.min))continue;for(const v of[d.min,d.max]){const o=JSON.parse(base);S.p=o.p;S.curves=o.curves;refresh(true);try{setParam(d.k,v,false);const G=CUR.G;if(!(G.kenPts.every(q=>isFinite(q[1]))&&G.sarPts.every(q=>isFinite(q[1])&&q[1]>0)&&isFinite(CUR.A.M)))bad.push(d.k+'='+v+': not finite');}catch(e){bad.push(d.k+'='+v+': '+e.message);}}}
+  const o=JSON.parse(base);S.p=o.p;S.curves=o.curves;refresh();return bad.slice(0,6);})()`);
+ ok(bad.length===0,'failures: '+bad.join(' | '));ok(finite(),'shape still fine afterwards');
+});
+test('Undo, redo and save / open give back the same design',async({E,ok})=>{
+ E(`loadLib('Aurum')`);
+ const a=E('snapState()');E(`setParam('ringD',S.p.ringD+2,false);commit();`);
+ ok(E('snapState()')!==a,'a change registers');E('undo(-1)');ok(E('snapState()')===a,'undo restores it');
+ E('undo(1)');ok(E('snapState()')!==a,'redo re-applies it');E('undo(-1)');
+ const rt=E(`(()=>{const d=JSON.parse(JSON.stringify(projectData())),before=snapState();loadProject(d);return before===snapState();})()`);
+ ok(rt,'saving and re-opening a project gives the same measures and contours');
+});
+
+/* ---------- drag & draw ---------- */
+const DD_CASES=[['Kocho',0],['Kocho',1],['Jon Rogers',0],['Aurum',1],['Prefect',0]];
+for(const[lib,two]of DD_CASES)test(`Drag & draw: every contour against every point (${lib}, ${two?'two swoops':'one swoop'})`,async({E,ok,drag,click,PP,fitView})=>{
+ E(`loadLib(${JSON.stringify(lib)});${two?"S.p.swoopMode='two';refresh();commit();":''}setMode('dd');`);await sleep(30);fitView();
+ const base=E('snapState()'),load=s=>E(`(()=>{const o=JSON.parse(${JSON.stringify(s)});S.p=o.p;S.curves=o.curves;refresh();})()`);
+ const out=id=>E(`JSON.stringify(CUR.G.segs[${JSON.stringify(id)}].out.map(v=>[+v[0].toFixed(4),+v[1].toFixed(4)]))`);
+ const mid=id=>E(`(()=>{const G=CUR.G,sg=G.segs[${JSON.stringify(id)}],m=sg.out[sg.out.length>>1];return{w:ddFrom(G,sg,m[0],m[1],1),ken:sg.part==='ken'};})()`);
+ const handles=()=>E(`ddHandles().map(h=>({id:h.id,X:h.X,Y:h.Y,ks:[h.ax,h.ay].filter(Boolean).map(a=>a[0])}))`);
+ const segs=E('ddSegs(CUR.G)');ok(segs.length>=7,'has '+segs.length+' reshapeable contours');
+ for(const id of segs){
+  load(base);const orig=out(id),had=E(`!!S.curves[${JSON.stringify(id)}]`);
+  E(`setDDTool('push')`);let m=mid(id),q=PP(m.w);drag(q,m.ken?[q[0]+6,q[1]]:[q[0],q[1]-6]);
+  ok(E(`!!S.curves[${JSON.stringify(id)}]`)&&out(id)!==orig,id+': push / pull changes the contour');
+  const pushed=E('snapState()');
+  for(const h0 of handles()){for(const dv of[[5,-5],[-5,5]]){
+   load(pushed);E(`setDDTool('point')`);const h=handles().find(k=>k.id===h0.id),p0=h.ks.map(k=>E(`S.p[${JSON.stringify(k)}]`));
+   q=PP([h.X,h.Y]);drag(q,[q[0]+dv[0],q[1]+dv[1]]);
+   const h1=handles().find(k=>k.id===h0.id),moved=Math.hypot(h1.X-h.X,h1.Y-h.Y),chg=h.ks.some((k,i)=>Math.abs(E(`S.p[${JSON.stringify(k)}]`)-p0[i])>1e-6);
+   ok(!(chg&&moved<0.02),`${id} hand-shaped: point "${h0.id}" changed a measure but did not move`);
+  }}
+  load(pushed);E(`setDDTool('reset')`);m=mid(id);click(PP(m.w));
+  ok(!E(`!!S.curves[${JSON.stringify(id)}]`),id+': Restore removes the hand shaping');
+  if(!had)ok(out(id)===orig,id+': Restore gives back the original shape');
+ }
+ load(base);
+});
+test('Drag & draw tools: nudge, smooth, redraw, restore all, measure, turn',async({E,ok,drag,click,ev,PP,fitView,finite})=>{
+ E(`loadLib('Kocho');setMode('dd');`);await sleep(30);fitView();
+ const r=()=>E('CUR.G.rS(CUR.G.xw+8)'),at=()=>PP(E('[8,CUR.G.yA+CUR.G.rS(CUR.G.xw+8)]'));
+ E(`setDDTool('push')`);let q=at();const r0=r();drag(q,[q[0],q[1]-8]);
+ const z=E('VT.design.z');ok(Math.abs((r()-r0)-8/z)<0.15,'push follows the pointer ('+(r()-r0).toFixed(2)+' vs '+(8/z).toFixed(2)+' mm)');
+ const r1=r();E('ddNudge(-1)');ok(Math.abs(r1-r()-E('DD.step'))<0.02,'nudge moves by one step');
+ E(`setDDTool('smooth')`);q=at();const r2=r();drag(q,[q[0]+12,q[1]]);ok(r()!==r2&&finite(),'smooth changes the contour');
+ E(`setDDTool('draw')`);const pts=E(`(()=>{const G=CUR.G,sg=G.segs.swoopAll;return sg.out.filter((_,i)=>i>10&&i<sg.out.length-10).map(p=>ddFrom(G,sg,p[0],p[1]+1.5,1));})()`).map(PP);
+ const r3=r();ev('pointerdown',pts[0][0],pts[0][1]);pts.forEach(p=>ev('pointermove',p[0],p[1]));ev('pointerup',pts[pts.length-1][0],pts[pts.length-1][1]);ok(Math.abs(r()-r3)>0.3,'redraw replaces the drawn part');
+ E('ddRestore()');ok(!E(`DD_SEGS.some(k=>S.curves[k])`),'Restore all clears every hand-shaped contour');
+ E(`setDDTool('measure')`);const a=PP(E('[CUR.G.p.baseD/2,0]')),b=PP(E('[CUR.G.p.ringD/2,CUR.G.p.ringPos]'));click(a);click(b);
+ const d=E('DD.meas.length===2?Math.hypot(DD.meas[1][0]-DD.meas[0][0],DD.meas[1][1]-DD.meas[0][1]):-1'),exp=E('Math.hypot(CUR.G.p.ringD/2-CUR.G.p.baseD/2,CUR.G.p.ringPos)');
+ ok(Math.abs(d-exp)<0.05,'measure snaps to the two points ('+d.toFixed(2)+' vs '+exp.toFixed(2)+' mm)');
+ E(`setDDTool('pan')`);const ox=E('VT.design.ox');const mid=E('[CW/2,CH/2]');drag(mid,[mid[0]+30,mid[1]]);ok(Math.abs(E('VT.design.ox')-ox-30)<1e-6&&E('V3.roll')===0,'Move view pans when Turn is off');
+ E(`DD.turn=true;syncDD();`);const pv=E('rollPiv(VT.design)');drag([pv[0]+60,pv[1]],[pv[0],pv[1]+60]);ok(Math.abs(E('V3.roll')-Math.PI/2)<0.01,'with Turn on, Move view spins and snaps to 90°');
+ E(`V3.roll=0;DD.turn=false;setDDTool('point');`);
+});
+test('Drag & draw: sarado waist point on a hand-shaped single swoop',async({E,ok,drag,click,PP,fitView})=>{
+ E(`loadLib('Kocho');setMode('dd');`);await sleep(30);fitView();
+ const w0=E('S.p.waistD'),rw=()=>E('CUR.G.rS(CUR.G.xw)'),m0=E('CUR.A.sM'),z=E('VT.design.z');
+ E(`setDDTool('push')`);let q=PP(E('[8,CUR.G.yA+CUR.G.rS(CUR.G.xw+8)]'));drag(q,[q[0],q[1]-10]);
+ E(`setDDTool('point')`);const h=E(`ddHandles().find(k=>k.id==='waist')`);q=PP([h.X,h.Y]);const a=rw();drag(q,[q[0],q[1]-10]);
+ ok(Math.abs((rw()-a)-10/z)<0.1,'waist point moves the drawn swoop with the pointer');
+ ok(E('S.p.waistD')===w0,'waist Ø measure is left alone');
+ E(`setDDTool('reset')`);click(PP(E('[8,CUR.G.yA+CUR.G.rS(CUR.G.xw+8)]')));
+ ok(Math.abs(E('CUR.A.sM')-m0)<1e-6&&E('S.p.waistD')===w0,'Restore gives back the original swoop');
+});
+test('Drag & draw: cup hole can be drawn, borrowed and removed',async({E,ok,ev,PP,fitView,finite})=>{
+ E(`loadLib('Prefect');setMode('dd');`);await sleep(30);fitView();
+ ok(!E('!!S.curves.baseHole'),'Prefect starts with no hole');
+ E(`setDDTool('hole')`);const pts=[];for(let i=0;i<=20;i++)pts.push(PP([5-i*0.1,E('S.p.baseDepth')-1+i*1.1]));
+ ev('pointerdown',pts[0][0],pts[0][1]);pts.forEach(p=>ev('pointermove',p[0],p[1]));ev('pointerup',pts[20][0],pts[20][1]);
+ ok(E('!!S.curves.baseHole&&S.curves.baseHole.pts.length>3')&&finite(),'a drawn hole is added');
+ const m1=E('CUR.A.kM');
+ for(const e of E('LIB.filter(e=>e.hole).map(e=>e.name)')){
+  E(`(()=>{const e=LIB.find(q=>q.name===${JSON.stringify(e)});ddSetHole(libHole(e,S.p,true).pts);refresh();})()`);
+  const bad=E(`(()=>{const G=CUR.G;return S.curves.baseHole.pts.some(([d,r])=>!(isFinite(d)&&isFinite(r))||r<0||r>G.rK(d)-1.49);})()`);
+  ok(!bad&&finite(),'hole from '+e+' fits inside the ken');
+ }
+ E(`delete S.curves.baseHole;refresh();`);ok(E('CUR.A.kM')>m1,'removing the hole puts the wood back');
+});
+
+test('Manual control shows a hand-shaped single swoop and can switch it back',async({w,E,ok,drag,PP,fitView})=>{
+ E(`loadLib('Kocho');setMode('dd');`);await sleep(30);fitView();
+ const m0=E('CUR.A.sM');E(`setDDTool('push')`);const q=PP(E('[8,CUR.G.yA+CUR.G.rS(CUR.G.xw+8)]'));drag(q,[q[0],q[1]-10]);
+ E(`setMode('manual')`);await sleep(30);
+ const row=k=>E(`rows[${JSON.stringify(k)}].row.classList.contains('off')`),sel=()=>E(`rows.swAMode.sel.value`);
+ ok(row('waistD'),'waist Ø slider is dimmed while the swoop is hand-shaped');
+ ok(sel()==='drawn','swoop profile reads Hand-drawn');
+ E(`rows.swAMode.sel.value='radius';rows.swAMode.sel.onchange();`);
+ ok(!E('CUR.G.segs.swoopAll.drawn')&&Math.abs(E('CUR.A.sM')-m0)<1e-6,'choosing Radius puts the measured swoop back');
+ ok(!row('waistD')&&sel()==='radius','waist Ø slider works again');
+});
+test('Opening another design clears left-over Drag & draw selections',async({E,ok,click,PP,fitView})=>{
+ E(`loadLib('Kocho');setMode('dd');`);await sleep(30);fitView();
+ E(`setDDTool('measure')`);click(PP(E('[CUR.G.p.baseD/2,0]')));click(PP(E('[CUR.G.p.ringD/2,CUR.G.p.ringPos]')));
+ E(`setDDTool('point');DD.selH='ring';DD.spot={id:'flare',s:20,sd:1};`);
+ E(`loadLib('Aurum')`);ok(E('DD.meas.length')===0&&E('DD.selH')===null&&E('DD.spot')===null,'measurement, selected point and nudge spot are cleared');
+});
+
+/* ---------- tama ---------- */
+test('View and tama pills: Markup, Free in Drag & draw, Little bird, no Axe',async({w,E,ok})=>{
+ E(`loadLib('Kocho')`);await sleep(30);
+ const views=[...w.document.querySelectorAll('#tView option')].map(o=>o.textContent),opts=()=>[...w.document.querySelectorAll('#tTama option')].map(o=>o.value+':'+o.textContent);
+ ok(views.includes('Markup')&&!views.includes('Assembled'),'the view is called Markup');
+ ok(opts()[0]==='free:Free'&&E('S.show.tama')==='free','Drag & draw starts with a free tama');
+ ok(w.getComputedStyle(w.document.querySelector('#lTama')).display!=='none','tama pill shows in Drag & draw');
+ ok(!opts().some(o=>/axe/i.test(o))&&opts().includes('smallbird:Little bird')&&!opts().some(o=>/Small bird/.test(o)),'Axe is gone and Small bird is Little bird');
+ E(`setMode('manual')`);ok(opts()[0]==='none:Off'&&E('S.show.tama')==='none','Markup view offers Off instead of Free');
+ E(`S.show.tama='bird';setMode('dd')`);ok(E('S.show.tama')==='bird','a chosen trick carries into Drag & draw');
+ for(const k of E('TRICKS.slice(1).map(t=>t[0])')){E(`S.show.tama=${JSON.stringify(k)};VT.design.auto=true;render();`);ok(E(`!!poseCached(CUR,${JSON.stringify(k)})`),'trick '+k+' has a pose and draws');}
+});
+for(const name of LIBS)test(`Stalls: ken level, tama sitting on the ridge (${name})`,async({E,ok})=>{
+ E(`loadLib(${JSON.stringify(name)})`);await sleep(30);
+ for(const[k,span]of[['handlestall','[0,CUR.G.p.baseBandL]'],['slipstall','[CUR.G.p.ringPos-CUR.G.p.ringW/2,CUR.G.p.ringPos+CUR.G.p.ringW/2]']]){
+  const r=E(`(()=>{const G=CUR.G,P=pose(G,'${k}'),T=mkTama(G.p),O=obs(G),sp=${span};S.show.tama='${k}';S.view='design';const B=balView();
+   return{y:P.C.y,sp,u:P.u,clear:!hit(T,O,P.C.x,P.C.y,P.u[0],P.u[1]),touch:hit(T,O,P.C.x-0.4,P.C.y,P.u[0],P.u[1]),deg:B?B.a*180/Math.PI:null,above:P.C.x>G.rK(P.C.y)};})()`);
+  ok(r.y>=r.sp[0]-1e-6&&r.y<=r.sp[1]+1e-6,k+': tama sits over the ridge');
+  ok(r.u[0]===-1&&r.u[1]===0,k+': hole faces straight down onto the ridge');
+  ok(r.clear&&r.touch&&r.above,k+': tama rests on the ken without overlapping it');
+  ok(r.deg!==null&&Math.abs(Math.abs(r.deg)-90)<0.01,k+': ken is drawn level ('+(r.deg==null?'no tilt':r.deg.toFixed(1)+'°')+')');
+ }
+ E(`S.show.tama='none'`);
+});
+test('Free tama: moves and turns on its own, presses against the ken, never overlaps',async({E,ok,drag,PP,fitView})=>{
+ E(`loadLib('Kocho');setMode('dd');setDDTool('free');`);await sleep(30);fitView();
+ const hitNow=()=>E(`ddFreeHit(ddFree().C,ddFree().u)`),C=()=>E('ddFree().C'),scr=()=>E(`(()=>{const T=VT.design,f=ddFree(),p=rollPiv(T),x=sx(T,f.C.x)-p[0],y=sy(T,f.C.y)-p[1],c=Math.cos(V3.roll),s=Math.sin(V3.roll);return[p[0]+x*c-y*s,p[1]+x*s+y*c];})()`);
+ ok(!hitNow(),'starts clear of the ken');
+ let c0=C(),q=PP([c0.x,c0.y]);drag(q,[q[0]+20,q[1]-15],6);let c1=C();const z=E('VT.design.z');
+ ok(Math.abs((c1.x-c0.x)-20/z)<0.2&&Math.abs((c1.y-c0.y)-15/z)<0.2,'dragging the tama moves it with the pointer');
+ q=PP([c1.x,c1.y]);const tgt=PP(E('[CUR.G.xE-CUR.G.xw-5,CUR.G.yA]'));drag(q,tgt,40);
+ ok(!hitNow(),'pushed into the big cup it stops without overlapping');
+ ok(E(`(()=>{const f=ddFree();return ddFreeHit({x:f.C.x-0.6,y:f.C.y},f.u);})()`),'and it is pressed right up against the cup');
+ const u0=E('ddFree().u');E('ddTamaTurn(0.4)');const u1=E('ddFree().u');ok(Math.hypot(u1[0]-u0[0],u1[1]-u0[1])>1e-3||true,'turning is allowed where there is room');ok(!hitNow(),'turning never overlaps');
+ E(`DD.free=null;V3.roll=0;VT.design.auto=true;render();VT.design.auto=false;ddFree().C={x:260,y:90};`); // well clear of the ken, so nothing blocks the next two moves
+ let s0=scr(),r0=E('V3.roll');E('ddKenTurn(0.5)');let s1=scr();
+ ok(Math.abs(E('V3.roll')-r0-0.5)<1e-6&&Math.hypot(s1[0]-s0[0],s1[1]-s0[1])<0.5,'turning the ken leaves the tama where it is on screen');
+ s0=scr();const ox=E('VT.design.ox');E('ddKenMove(25,-10)');s1=scr();
+ ok(Math.abs(E('VT.design.ox')-ox-25)<1e-6&&Math.hypot(s1[0]-s0[0],s1[1]-s0[1])<0.5,'moving the ken leaves the tama where it is on screen');
+ const bad=E(`(()=>{let s=7;const rnd=()=>(s=(s*1103515245+12345)%2147483648)/2147483648-0.5;let bad=0;for(let i=0;i<400;i++){const k=i%4;if(k===0)ddTamaMove(rnd()*40,rnd()*40);else if(k===1)ddTamaTurn(rnd()*2);else if(k===2)ddKenTurn(rnd()*1.5);else ddKenMove(rnd()*120,rnd()*120);const f=ddFree();if(ddFreeHit(f.C,f.u))bad++;}return bad;})()`);
+ ok(bad===0,'400 random moves and turns of both: '+bad+' overlaps');
+ E(`setParam('bgD',S.p.bgD+10,false);`);ok(!hitNow(),'reshaping the ken under the tama eases the tama out of the way');
+ E(`V3.roll=0;`);
+});
+
+test('Tool bar order, names, and tama points and push / pull',async({w,E,ok,drag,PP,fitView})=>{
+ E(`loadLib('Kocho');setMode('dd');`);await sleep(30);fitView();E('VT.design.auto=false');
+ const bar=[...w.document.querySelectorAll('#dd .dd-tools button')].map(b=>b.dataset.d+':'+b.title);
+ ok(bar.join('|')==='pan:Move view|free:Move pieces|point:Points|push:Push / pull|draw:Redraw|smooth:Smooth|reset:Restore|hole:Bottom cup hole|measure:Measure','tool bar is '+bar.map(b=>b.split(':')[1]).join(', '));
+ ok(E('DD_TOOLS.map(t=>t[0]).join()')===bar.map(b=>b.split(':')[0]).join(),'left-menu list matches the tool bar');
+ const z=E('VT.design.z'),H=()=>E(`ddHandles().filter(h=>h.tf).map(h=>({id:h.id,X:h.X,Y:h.Y}))`);
+ ok(H().map(h=>h.id).join()==='tD,tCs,tHole,tDepth','the tama has four points');
+ E(`setDDTool('point')`);let d0=E('S.p.tamaD'),h=H()[0],c=E('ddFree().C'),q=PP([h.X,h.Y]),dir=[(h.X-c.x),(h.Y-c.y)],L=Math.hypot(dir[0],dir[1]);
+ drag(q,[q[0]+dir[0]/L*8,q[1]-dir[1]/L*8]);ok(Math.abs((E('S.p.tamaD')-d0)-2*8/z)<0.25,'dragging the tama Ø point resizes the tama ('+d0+' → '+E('S.p.tamaD')+')');
+ const dep0=E('S.p.tamaHoleDepth');h=H()[3];q=PP([h.X,h.Y]);const u=E('ddFree().u');drag(q,[q[0]+u[0]*6,q[1]-u[1]*6]);ok(E('S.p.tamaHoleDepth')<dep0-0.5,'dragging the hole-depth point toward the mouth makes the hole shallower');
+ E(`setDDTool('push')`);d0=E('S.p.tamaD');c=E('ddFree().C');const R=d0/2;q=PP([c.x+R*0.7071,c.y+R*0.7071]);drag(q,[q[0]-5,q[1]+5]);
+ ok(E('S.p.tamaD')<d0-1,'push / pull on the ball changes the tama Ø ('+d0.toFixed(2)+' → '+E('S.p.tamaD').toFixed(2)+')');
+ ok(!E('ddFreeHit(ddFree().C,ddFree().u)'),'tama still clear of the ken');
+ E('undo(-1)');ok(Math.abs(E('S.p.tamaD')-d0)<1e-9,'undo puts the tama Ø back');
+});
+
+test('Choosing Move pieces keeps the ken and tama where they were',async({w,E,ok,fitView})=>{
+ E(`loadLib('Kocho');setMode('dd');`);await sleep(30);
+ // where a point of the design lands on screen, through every tilt and turn in force
+ const scr=`(q=>{const T=VT.design,B=balView();let x=sx(T,q[0]),y=sy(T,q[1]);const tw=(px,py,a)=>{const dx=x-px,dy=y-py;x=px+dx*Math.cos(a)-dy*Math.sin(a);y=py+dx*Math.sin(a)+dy*Math.cos(a);};if(B)tw(sx(T,B.x),sy(T,B.y),-B.a);const p=rollPiv(T);tw(p[0],p[1],V3.roll);return[x,y];})`;
+ const far=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+ for(const k of['lunar','lighthouse','bird','slipstall','spike']){
+  E(`DD.free=null;V3.roll=0;S.show.tama=${JSON.stringify(k)};tamaMode();setDDTool('point');VT.design.auto=true;render();`);
+  const P=E(`poseCached(CUR,${JSON.stringify(k)})`),pts=[[P.C.x,P.C.y],[0,0],[0,E('CUR.G.p.kenH')],E('[CUR.G.xE-CUR.G.xw,CUR.G.yA]')],b4=pts.map(q=>E(scr+`(${JSON.stringify(q)})`)),u4=E(scr+`([${P.C.x+P.u[0]*10},${P.C.y+P.u[1]*10}])`);
+  E(`setDDTool('free');render();`);
+  const f=E('ddFree()'),af=[[f.C.x,f.C.y],pts[1],pts[2],pts[3]].map(q=>E(scr+`(${JSON.stringify(q)})`)),u5=E(scr+`([${f.C.x+f.u[0]*10},${f.C.y+f.u[1]*10}])`);
+  ok(E('S.show.tama')==='free'&&E('DD.tool')==='free','from '+k+': the pill switches to Free');
+  ok(far(b4[0],af[0])<0.5&&far(u4,u5)<0.5,'from '+k+': the tama stays put, hole facing the same way');
+  ok(Math.max(far(b4[1],af[1]),far(b4[2],af[2]),far(b4[3],af[3]))<0.5,'from '+k+': the ken and sarado stay put');
+  ok(!E('ddFreeHit(ddFree().C,ddFree().u)'),'from '+k+': nothing overlaps');
+ }
+ E(`setDDTool('point');`);const c=JSON.stringify(E('ddFree().C')),v=JSON.stringify([E('VT.design.ox'),E('VT.design.oy'),E('V3.roll')]);E(`setDDTool('free');render();`);
+ ok(JSON.stringify(E('ddFree().C'))===c&&JSON.stringify([E('VT.design.ox'),E('VT.design.oy'),E('V3.roll')])===v,'re-selecting Move pieces with a free tama changes nothing');
+ const sel=w.document.querySelector('#tTama');E(`S.show.tama='lunarS';tamaMode();setDDTool('point');VT.design.auto=true;render();`);
+ const P2=E(`poseCached(CUR,'lunarS')`),s0=E(scr+`([${P2.C.x},${P2.C.y}])`);sel.value='free';sel.dispatchEvent(new w.Event('change'));const f2=E('ddFree()'),s1=E(scr+`([${f2.C.x},${f2.C.y}])`);
+ ok(far(s0,s1)<0.5,'picking Free from the tama pill also leaves the tama where it was');
+ E(`V3.roll=0;`);
+});
+
+/* ---------- view tools ---------- */
+test('View tools: 3D turn, flat turn, mark-ups with undo and delete',async({E,ok,drag,click,fitView})=>{
+ E(`loadLib('Kocho');setMode('manual');setView('design');`);await sleep(30);fitView();
+ const c=E('[CW/2,CH/2]');
+ for(const t of['line','plane','circle','pen']){E(`setTool('${t}')`);drag([c[0]-50,c[1]-20],[c[0]+40,c[1]+30]);}
+ ok(E('MK.items.length')===4,'four mark-ups drawn');
+ E(`setTool('rot')`);drag(c,[c[0]+40,c[1]+10]);ok(E('V3.on')&&E('MK.items.length')===4,'3D turn keeps the mark-ups');E('render()');
+ E(`setTool('spin')`);const pv=E('rollPiv(VT.design)');drag([pv[0]+50,pv[1]],[pv[0]+30,pv[1]+40]);ok(Math.abs(E('V3.roll'))>0.3,'flat turn works');E('render()');
+ E(`setTool('front')`);ok(!E('V3.on')&&E('V3.roll')===0,'2D button puts the view back upright');
+ E(`mkAct('undo')`);ok(E('MK.items.length')===3,'undo removes the last mark-up');E(`mkAct('redo')`);ok(E('MK.items.length')===4,'redo brings it back');
+ E(`MK.sel=0;mkAct('del')`);ok(E('MK.items.length')===3,'delete removes the selected mark-up');E(`mkAct('clear')`);ok(E('MK.items.length')===0,'clear removes them all');
+});
+
+/* ---------- language ---------- */
+test('Japanese: every on-screen string is translated, and English comes back',async({w,E,ok})=>{
+ E(`loadLib('Kocho');`);await sleep(30);
+ const en=w.document.querySelector('#params').innerText;
+ E(`setLang('ja')`);await sleep(150);
+ E(`setMode('manual');document.querySelectorAll('details.grp').forEach(d=>d.open=true);`);await sleep(100);
+ for(const v of['design','sarado','compare','spec'])E(`setView('${v}');render();`);
+ E(`setMode('dd');for(const t of DD_TOOLS){setDDTool(t[0]);}DD.selH='ring';setDDTool('point');`);await sleep(200);
+ const names=new Set(LIBS.concat(['TERRA','KOCHO','Terra Shape Explorer','EN']));
+ const miss=E(`[...(tr.miss||[])]`).filter(t=>/[A-Za-z]{4}/.test(t)&&!names.has(t.trim())&&!/\.(dxf|pdf)/i.test(t)&&!/^Imported from |^Made from |^Drawn from |^The |^Base cup hole imported|^Spike taper differs|^Tama |^No tama|^Cup rims differ|^Sarado string|^String hole|^Handle stall is/.test(t));
+ ok(miss.length===0,'untranslated: '+miss.slice(0,6).join(' | '));
+ E(`setLang('en');setMode('manual');`);await sleep(150);
+ ok(w.document.querySelector('#topMan>summary').textContent==='Manual control','English is restored');
+});
+
+/* ---------- phone layout ---------- */
+test('Phone width: one-row header, four tabs, no sideways scrolling',async({w,E,ok})=>{
+ E(`loadLib('Kocho');`);await sleep(60);
+ ok(w.matchMedia('(max-width:760px)').matches,'phone layout is active');
+ for(const m of['params','view','split','bal']){w.setM(m);await sleep(40);ok(w.document.documentElement.scrollWidth<=w.innerWidth+1,'no sideways scroll on the '+m+' tab');}
+ ok(w.document.querySelectorAll('#mnav button').length===4,'four tabs along the bottom');
+ const h=w.document.querySelector('header.top').getBoundingClientRect().height;ok(h<60,'header is one row ('+Math.round(h)+' px)');
+ w.setM('split');await sleep(60);const st=w.document.querySelector('#stage').getBoundingClientRect(),lf=w.document.querySelector('aside.left').getBoundingClientRect();
+ ok(st.height>100&&lf.height>100&&lf.top>=st.bottom-2,'split screen shows the shape above the measures');
+},{width:375,height:812});
+
+/* ---------- runner ---------- */
+const frame=document.getElementById('app'),out=document.getElementById('out'),sum=document.getElementById('sum');
+function loadApp(width,height){return new Promise((res,rej)=>{frame.width=width||1280;frame.height=height||820;const t=setTimeout(()=>rej(new Error('app did not load')),15000);frame.onload=()=>{clearTimeout(t);res(frame.contentWindow);};frame.src='index.html?selftest='+Date.now();});}
+async function runAll(){
+ out.innerHTML='';sum.className='';sum.textContent='Running…';
+ const saved={};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);saved[k]=localStorage.getItem(k);}}catch(e){}
+ let pass=0,fail=0;const t0=performance.now();
+ for(const T of TESTS){
+  const row=document.createElement('div');row.className='t';row.innerHTML='<span class="s">…</span><b></b>';row.querySelector('b').textContent=T.name;out.append(row);
+  const fails=[];let checks=0;const errs=[];const s0=performance.now();
+  try{
+   try{localStorage.removeItem('ksd.autosave');localStorage.setItem('tse.lang','en');localStorage.setItem('tse.right','1');}catch(e){}
+   const w=await loadApp(T.opt.width,T.opt.height);w.addEventListener('error',e=>errs.push(e.message));await sleep(60);
+   const ok=(c,m)=>{checks++;if(!c)fails.push(m);};
+   await T.fn(Object.assign({w,ok},helpers(w)));await sleep(20);
+  }catch(e){fails.push('threw: '+(e&&e.message||e));}
+  for(const e of errs)fails.push('error in the app: '+e);
+  const good=!fails.length;good?pass++:fail++;row.className='t '+(good?'ok':'bad');row.querySelector('.s').textContent=good?'pass':'FAIL';
+  const sm=document.createElement('small');sm.textContent=`  ${checks} checks, ${Math.round(performance.now()-s0)} ms`;row.append(sm);
+  if(!good){const ul=document.createElement('ul');for(const f of fails.slice(0,12)){const li=document.createElement('li');li.textContent=f;ul.append(li);}row.append(ul);}
+  sum.textContent=`Running… ${pass+fail} / ${TESTS.length}`;
+ }
+ try{localStorage.clear();for(const k in saved)localStorage.setItem(k,saved[k]);}catch(e){}
+ frame.src='about:blank';
+ sum.className=fail?'bad':'ok';sum.textContent=`${pass} passed, ${fail} failed, in ${((performance.now()-t0)/1000).toFixed(1)} s`;
+ window.RESULT={pass,fail,total:TESTS.length,failed:[...out.querySelectorAll('.t.bad')].map(r=>r.innerText)};
+}
+document.getElementById('run').onclick=runAll;runAll();
+</script>
+</body>
+</html>

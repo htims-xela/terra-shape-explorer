@@ -44,7 +44,7 @@ button.chip.act{border-color:var(--accent);background:color-mix(in srgb,var(--ac
 .vtools button.act{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .vtools #vtTog{width:38px}.vtools:not(.shut) #vtTog{background:color-mix(in srgb,var(--accent) 14%,var(--panel));border-color:var(--accent);color:var(--accent)}
 .dd{display:none;position:absolute;left:50%;bottom:26px;transform:translateX(-50%);flex-direction:column;gap:6px;align-items:center;width:max-content;max-width:calc(100% - 16px);z-index:3;pointer-events:none}
-body.ddmode .dd{display:flex}body.ddmode #drawbar,body.ddmode #vtools,body.ddmode #lTama{display:none!important}
+body.ddmode .dd{display:flex}body.ddmode #drawbar,body.ddmode #vtools{display:none!important}
 .dd>*{pointer-events:auto;background:color-mix(in srgb,var(--panel) 94%,transparent);border:1px solid var(--line);border-radius:11px;box-shadow:0 4px 14px rgba(0,0,0,.14)}
 .dd-tools{display:flex;gap:3px;padding:4px}
 .dd-tools button{display:flex;align-items:center;gap:5px;padding:5px 9px;font-size:12px;border-color:transparent;background:transparent}
@@ -232,7 +232,7 @@ body.r-shut .wrap{grid-template-columns:350px 1fr}body.r-shut aside.right{displa
   <aside class="left" id="params"></aside>
   <main>
     <div class="tabs">
-      <label class="chip" id="lView"><span>View</span><b></b><select id="tView"><option value="design">Assembled</option><option value="dd">Drag &amp; draw</option><option value="sarado">Sarado section</option><option value="spec">Spec sheet</option><option value="compare">Compare</option></select></label>
+      <label class="chip" id="lView"><span>View</span><b></b><select id="tView"><option value="design">Markup</option><option value="dd">Drag &amp; draw</option><option value="sarado">Sarado section</option><option value="spec">Spec sheet</option><option value="compare">Compare</option></select></label>
       <label class="chip" id="lTama"><span>Tama</span><b></b><select id="tTama"></select></label>
       <button class="chip" id="tEll" aria-pressed="false"><span>Ellipses</span><b>Off</b></button>
       <div class="spacer"></div>
@@ -271,7 +271,7 @@ body.r-shut .wrap{grid-template-columns:350px 1fr}body.r-shut aside.right{displa
           <button data-a="clear" title="Delete all mark-ups"><svg viewBox="0 0 16 16"><path d="M3 5h10M6.5 5V3h3v2M4.5 5l.6 8h5.8l.6-8"/></svg></button>
         </div>
       </div>
-      <div class="dd" id="dd"><div class="dd-opts" id="ddOpts"></div><div class="dd-tools"><button data-d="pan" title="Move view"><svg viewBox="0 0 16 16"><path d="M8 2v12M2 8h12M6 4l2-2 2 2M6 12l2 2 2-2M4 6L2 8l2 2M12 6l2 2-2 2"/></svg><span>Move view</span></button><button data-d="point" title="Points"><svg viewBox="0 0 16 16"><path d="M8 5.5a2.5 2.5 0 1 0 0 5a2.5 2.5 0 1 0 0-5M8 1v2.5M8 12.5V15M1 8h2.5M12.5 8H15"/></svg><span>Points</span></button><button data-d="push" title="Push / pull"><svg viewBox="0 0 16 16"><path d="M3 14c3-2 4-6 4-12M9 8h5M12 6l2 2-2 2"/></svg><span>Push / pull</span></button><button data-d="draw" title="Redraw"><svg viewBox="0 0 16 16"><path d="M3 13l1-3.2 7-7 2.2 2.2-7 7z M9.8 4l2.2 2.2"/></svg><span>Redraw</span></button><button data-d="smooth" title="Smooth"><svg viewBox="0 0 16 16"><path d="M1.5 8c2-5 4.5-5 6.5 0s4.5 5 6.5 0"/></svg><span>Smooth</span></button><button data-d="reset" title="Restore"><svg viewBox="0 0 16 16"><path d="M3 8a5 5 0 1 0 1.6-3.7M3 2.2v2.6h2.6"/></svg><span>Restore</span></button><button data-d="hole" title="Cup hole"><svg viewBox="0 0 16 16"><path d="M2 14h3V7a3 3 0 0 1 6 0v7h3M5 14h6"/></svg><span>Cup hole</span></button><button data-d="measure" title="Measure"><svg viewBox="0 0 16 16"><path d="M2 11L11 2l3 3-9 9zM5.2 7.8l1.4 1.4M7.2 5.8l1.4 1.4M9.2 3.8l1.4 1.4"/></svg><span>Measure</span></button><button data-d="spin" title="Turn"><svg viewBox="0 0 16 16"><path d="M13 8a5 5 0 1 1-1.6-3.7M13 2.2v2.6h-2.6"/></svg><span>Turn</span></button></div></div>
+      <div class="dd" id="dd"><div class="dd-opts" id="ddOpts"></div><div class="dd-tools"><button data-d="pan" title="Move view"><svg viewBox="0 0 16 16"><path d="M1.5 8s2.4-4.6 6.5-4.6S14.5 8 14.5 8s-2.4 4.6-6.5 4.6S1.5 8 1.5 8zM8 5.9a2.1 2.1 0 1 0 0 4.2a2.1 2.1 0 1 0 0-4.2"/></svg><span>Move view</span></button><button data-d="free" title="Move pieces"><svg viewBox="0 0 16 16"><path d="M8 2v12M2 8h12M6 4l2-2 2 2M6 12l2 2 2-2M4 6L2 8l2 2M12 6l2 2-2 2"/></svg><span>Move pieces</span></button><button data-d="point" title="Points"><svg viewBox="0 0 16 16"><path d="M8 5.5a2.5 2.5 0 1 0 0 5a2.5 2.5 0 1 0 0-5M8 1v2.5M8 12.5V15M1 8h2.5M12.5 8H15"/></svg><span>Points</span></button><button data-d="push" title="Push / pull"><svg viewBox="0 0 16 16"><path d="M3 14c3-2 4-6 4-12M9 8h5M12 6l2 2-2 2"/></svg><span>Push / pull</span></button><button data-d="draw" title="Redraw"><svg viewBox="0 0 16 16"><path d="M3 13l1-3.2 7-7 2.2 2.2-7 7z M9.8 4l2.2 2.2"/></svg><span>Redraw</span></button><button data-d="smooth" title="Smooth"><svg viewBox="0 0 16 16"><path d="M1.5 8c2-5 4.5-5 6.5 0s4.5 5 6.5 0"/></svg><span>Smooth</span></button><button data-d="reset" title="Restore"><svg viewBox="0 0 16 16"><path d="M6.3 13.5L2.6 9.8a1 1 0 0 1 0-1.4l5.5-5.5a1 1 0 0 1 1.4 0l3.9 3.9a1 1 0 0 1 0 1.4l-5.3 5.3zM5.4 5.6l5 5M6.3 13.5h7.2"/></svg><span>Restore</span></button><button data-d="hole" title="Bottom cup hole"><svg viewBox="0 0 16 16"><path d="M3.6 2.5L2.2 13.5h11.6L12.4 2.5M4.3 13.5c1.4-1 2.3-2 2.3-3.6V6.4a1.4 1.4 0 0 1 2.8 0v3.5c0 1.6.9 2.6 2.3 3.6"/></svg><span>Bottom cup hole</span></button><button data-d="measure" title="Measure"><svg viewBox="0 0 16 16"><path d="M2 11L11 2l3 3-9 9zM5.2 7.8l1.4 1.4M7.2 5.8l1.4 1.4M9.2 3.8l1.4 1.4"/></svg><span>Measure</span></button></div></div>
       <div class="zoom"><button id="zIn">+</button><button id="zOut">−</button><button id="zFit">Fit</button></div>
       <div class="hud" id="hud"></div>
     </div>
@@ -611,6 +611,24 @@ const JA={
 "On spike": "けん先に刺す",
 "Stilt": "スティルト",
 "Menu": "メニュー",
+"When on, dragging spins the view on the screen. Hold Shift for 15° steps.": "オンにすると、ドラッグで表示が回ります。Shiftで15°ずつ回ります。",
+"Draw one wall of the bottom cup hole, from the cup up into the ken; the other side mirrors it. Or use the hole from another shape.": "中皿の穴の片側の壁を、皿からけんの中へ向かって描きます。反対側は対称になります。ほかの形状の穴を使うこともできます。",
+"Drag a contour in or out. Click a spot on it to nudge it in small steps. On the tama it changes the tama measures.": "輪郭をドラッグして内側 / 外側へ動かします。輪郭上をクリックすると、小さな刻みで動かせます。玉の上では、玉の寸法が変わります。",
+"Drag to move the view; scroll or pinch to zoom. Switch on Turn to spin the view by dragging around the shape.": "ドラッグで表示を動かし、スクロールまたはピンチで拡大・縮小します。「回す」をオンにすると、形状のまわりをドラッグして表示を回せます。",
+"Tama hole": "玉穴",
+"Tama hole bevel": "玉穴の面取り",
+"Bottom cup hole": "中皿の穴",
+"Move pieces": "パーツを動かす",
+"Ken held level: the tama rests on the slip stall ridge": "けんを水平に持った状態：玉はスリップストールの段に乗っています",
+"Ken held level: the tama rests on the handle stall ridge": "けんを水平に持った状態：玉はハンドルストールの段に乗っています",
+"Drag the tama or the ken to move it, and drag a round knob to turn it. They can touch but never overlap.": "玉またはけんをドラッグして動かし、丸いつまみをドラッグして回します。ふれ合うことはできますが、重なることはありません。",
+"Reset": "リセット",
+"Ken angle": "けんの角度",
+"Tama angle": "玉の角度",
+"Little bird": "小皿バード",
+"Free": "フリー",
+"Markup": "マークアップ",
+"To hand-shape this surface, use Push / pull or Redraw in Drag & draw.": "この面を手で成形するには、ドラッグ＆ドローの「押す / 引く」または「描き直す」を使ってください。",
 "Draw one wall of the hole, from the base cup up into the ken.": "穴の片側の壁を、中皿からけんの中へ向かって描いてください。",
 "Upright": "まっすぐに戻す",
 "Angle": "角度",
@@ -666,7 +684,7 @@ const JA={
 "No hand-shaped contours yet. Every contour follows its measures.": "手で成形した輪郭はまだありません。すべての輪郭は寸法どおりです。",
 "Hand-shaped contours": "手で成形した輪郭",
 "Undo and Redo in the top bar work on every change made here.": "ここでの変更はすべて、上部バーの「元に戻す」「やり直す」で戻せます。",
-"Shape the contours straight on the assembled view. Pick a tool from the bar at the bottom of the viewing area; its fine-tuning controls sit just above it.": "組立図の上で輪郭を直接成形します。表示エリア下部のバーからツールを選ぶと、そのすぐ上に微調整用のコントロールが出ます。",
+"Shape the contours straight on the kendama. Pick a tool from the bar at the bottom of the viewing area; its fine-tuning controls sit just above it.": "組立図の上で輪郭を直接成形します。表示エリア下部のバーからツールを選ぶと、そのすぐ上に微調整用のコントロールが出ます。",
 "Drag & draw": "ドラッグ＆ドロー",
 "Manual control": "手動調整",
 "3D view · drag to turn": "3D表示 · ドラッグで回転",
@@ -991,7 +1009,7 @@ const sphR=(a,d)=>(a*a+d*d)/(2*d);
 const MATS=[['maple','Maple (hard)',0.705],['walnut','Black walnut',0.610],['birch','Birch',0.670],['purpleheart','Purpleheart',0.880],['ebony','Gabon ebony',0.955],['delrin','Delrin (acetal)',1.415],['aluminum','Aluminum',2.70],['copper','Copper',8.96]];
 const DRILLS=(()=>{const a=[];for(let m=8;m<=16.001;m+=0.5)a.push([+m.toFixed(2),m.toFixed(1)+' mm metric']);const g=(x,y)=>y?g(y,x%y):x;for(let n=20;n<=41;n++){const v=n*25.4/64,d=g(n,64);if(a.some(q=>Math.abs(q[0]-v)<0.04))continue;a.push([+v.toFixed(2),`${n/d}/${64/d}" imperial`]);}return a.sort((x,y)=>x[0]-y[0]);})();
 const snapDrill=v=>DRILLS.reduce((b,q)=>Math.abs(q[0]-v)<Math.abs(b[0]-v)?q:b,DRILLS[0]);
-const TRICKS=[['none','Off'],['lunar','Lunar lander (big cup)'],['lunarS','Lunar lander (small cup)'],['lighthouse','Lighthouse'],['bird','Bird'],['smallbird','Small bird'],['handlestall','Handle stall'],['slipstall','Slip stall (ring stall)'],['underbird','Underbird'],['axe','Axe'],['spike','On spike'],['stilt','Stilt']];
+const TRICKS=[['none','Off'],['lunar','Lunar lander (big cup)'],['lunarS','Lunar lander (small cup)'],['lighthouse','Lighthouse'],['bird','Bird'],['smallbird','Little bird'],['handlestall','Handle stall'],['slipstall','Slip stall (ring stall)'],['underbird','Underbird'],['spike','On spike'],['stilt','Stilt']];
 
 /* ================= shape library (imported from the team's DXF files) ================= */
 // each entry: fitted measures (p), exact half-profiles in mm (ken: [height, r]; sar: [x from small-cup end, r]; cups: [depth, r]) and any base cup hole ([depth, r])
@@ -1062,13 +1080,13 @@ def('baseCupR','Base cup radius','base',0,0,0,{kind:'display',fn:p=>sphR(p.baseD
 def('sarTop','Sarado height (base to top of big cup)','sarado',134.87,100,190);
 def('sarL','Sarado width','sarado',72.87,45,110);
 def('waistSpan','Sarado waist length (between bands)','sarado',0,0,0,{kind:'display',fn:p=>p.sarL-p.smBandL-p.bgBandL});
-def('waistD','Sarado waist Ø','sarado',21.97,14,45,{note:'The narrowest point of the sarado swoop.'});
+def('waistD','Sarado waist Ø','sarado',21.97,14,45,{dimBy:'swoopAll',note:'The narrowest point of the sarado swoop.'});
 def('swoopDia','Swoop diameter','sarado',0,0,0,{kind:'display',fnG:G=>G.swoopDia,note:'The largest ball that fits the tighter of the two sarado swoops.',warn:(p,G)=>G&&G.swoopDia<p.tamaD?`Smaller than the tama (Ø${f2(p.tamaD)}): the tama may not fit the swoop.`:''});
 def('swoopMode','Sarado swoop surfaces','sarado','one',0,0,{kind:'choice',options:[['one','One surface across the waist'],['two','Two surfaces (small and big cup sides)']]});
-def('swAMode','Swoop (one surface) profile','sarado','radius',0,0,{kind:'choice',options:[['radius','Radius'],['mirror','Mirrored ellipses']],show:p=>p.swoopMode==='one'});
-def('swARv','Swoop (one surface) radius','sarado',0,0,0,{kind:'display',fnG:G=>G&&G.oneSw?G.oneSw.R:NaN,show:p=>p.swoopMode==='one'&&p.swAMode==='radius',note:'One arc from bird ridge to bird ridge, set by the waist Ø.'});
-def('swARx','Swoop (one surface) ellipse, length','sarado',NaN,3,1000,{kind:'added',show:p=>p.swoopMode==='one'&&p.swAMode==='mirror',note:'Both sides use this same ellipse, mirrored at the waist.'});
-def('swARy','Swoop (one surface) ellipse, depth','sarado',NaN,3,1000,{kind:'added',show:p=>p.swoopMode==='one'&&p.swAMode==='mirror',info:(p,G)=>{const o=G&&G.oneSw;if(!o)return'';return o.flat>0.05?`Flat at the waist: ${f2(o.flat)} mm long. A longer ellipse shortens it (up to ${f2(o.rxMax)} long, no flat).`:'No flat at the waist: the two ellipses meet at their lowest points.';}});
+def('swAMode','Swoop (one surface) profile','sarado','radius',0,0,{kind:'choice',seg:'swoopAll',options:[['radius','Radius'],['mirror','Mirrored ellipses']],show:p=>p.swoopMode==='one'});
+def('swARv','Swoop (one surface) radius','sarado',0,0,0,{kind:'display',dimBy:'swoopAll',fnG:G=>G&&G.oneSw?G.oneSw.R:NaN,show:p=>p.swoopMode==='one'&&p.swAMode==='radius',note:'One arc from bird ridge to bird ridge, set by the waist Ø.'});
+def('swARx','Swoop (one surface) ellipse, length','sarado',NaN,3,1000,{kind:'added',dimBy:'swoopAll',show:p=>p.swoopMode==='one'&&p.swAMode==='mirror',note:'Both sides use this same ellipse, mirrored at the waist.'});
+def('swARy','Swoop (one surface) ellipse, depth','sarado',NaN,3,1000,{kind:'added',dimBy:'swoopAll',show:p=>p.swoopMode==='one'&&p.swAMode==='mirror',info:(p,G)=>{const o=G&&G.oneSw;if(!o)return'';return o.flat>0.05?`Flat at the waist: ${f2(o.flat)} mm long. A longer ellipse shortens it (up to ${f2(o.rxMax)} long, no flat).`:'No flat at the waist: the two ellipses meet at their lowest points.';}});
 {const sw=(pre,name,seg,mode)=>{
   const on=(p,G)=>p.swoopMode===mode&&!(G&&G.segs[seg]&&G.segs[seg].drawn),is=m=>(p,G)=>on(p,G)&&p[pre+'Mode']===m;
   def(pre+'Mode',name+' profile','sarado','radius',0,0,{kind:'choice',options:[['radius','Radius'],['ellipse','Ellipse']],seg,show:p=>p.swoopMode===mode});
@@ -1441,6 +1459,12 @@ function rest(G,E,g,a1,a2){
  for(let d=a1;d<=a2;d+=2)ev(d);if(best){const b=best.deg;for(let d=b-2;d<=b+2;d+=0.2)ev(d);best.piv={x:E[0],y:E[1]};}
  return best;
 }
+// stalls: the ken is held level and the tama sits on top of a ridge, hole down over it. The tama sits over the highest part of the ridge (its middle if the ridge is flat).
+function ridgeSeat(G,y0,y1){
+ let yc=(y0+y1)/2,top=-1,lo=1e9;const n=24;for(let i=0;i<=n;i++){const y=lerp(y0,y1,i/n),r=G.rK(y);if(r>top+1e-9){top=r;yc=y;}if(r<lo)lo=r;}
+ if(top-lo<0.3)yc=(y0+y1)/2;
+ const T=mkTama(G.p),O=obs(G),H=x=>hit(T,O,x,yc,-1,0);let a=0,b=top+T.R+5;for(let i=0;i<40;i++){const m=(a+b)/2;if(H(m))a=m;else b=m;} // centred on the ken axis the tama overlaps it; lift it until it just clears
+ return{C:{x:b,y:yc},u:[-1,0],piv:{x:G.rK(yc),y:yc}};}
 function pose(G,k){
  const p=G.p,Xf=G.xE-G.xw,Xs=G.xS-G.xw;
  switch(k){
@@ -1451,9 +1475,8 @@ function pose(G,k){
   case'bird':case'stilt':return rest(G,[Xf,G.yA+p.bgD/2],[0,-1],-70,0);
   case'smallbird':return rest(G,[Xs,G.yA+p.smD/2],[0,-1],0,70);
   case'underbird':return rest(G,[Xf,G.yA-p.bgD/2],[-1,0],90,250);
-  case'slipstall':return rest(G,[p.ringD/2,p.ringPos+p.ringW/2],[-1,0],10,170);
-  case'handlestall':return rest(G,[p.baseD/2,0],[-1,0],0,90);
-  case'axe':return rest(G,[Xf,G.yA+p.bgD/2],[0,-1],30,180);
+  case'slipstall':return ridgeSeat(G,p.ringPos-p.ringW/2,p.ringPos+p.ringW/2);
+  case'handlestall':return ridgeSeat(G,0,p.baseBandL);
  }
  return null;
 }
@@ -1555,7 +1578,7 @@ function loadLib(name){
  begin();toast(`Imported ${e.name}. Curved contours follow the CAD outline exactly; measures are fitted to it.`);
 }
 function newDesign(t){if(t==='kocho')return loadLib('Kocho');S.p=Object.assign(defaults(),t==='scratch'?STARTER:{});sanitize(S.p);S.curves={};S.locks={};S.snaps=[];S.cmp=[];S.cmpOn={current:true};S.meta={brand:S.meta.brand||'TERRA',model:t==='scratch'?'NEW SHAPE':'KOCHO',designer:S.meta.designer||'',tolLocked:true};begin();}
-function begin(){started=true;hist=[];hpos=-1;$('#start').classList.remove('show');$('#mBrand').value=S.meta.brand;$('#mModel').value=S.meta.model;$('#mDesigner').value=S.meta.designer;for(const k in VT)VT[k].auto=true;refresh();commit();}
+function begin(){started=true;hist=[];hpos=-1;DD.spot=null;DD.selH=null;DD.hover=null;DD.meas=[];DD.free=null;ddCancel();$('#start').classList.remove('show');$('#mBrand').value=S.meta.brand;$('#mModel').value=S.meta.model;$('#mDesigner').value=S.meta.designer;for(const k in VT)VT[k].auto=true;refresh();commit();}
 
 /* ================= parameter panel ================= */
 const rows={},contourRows={};let lockNote=null,holeRow=null;
@@ -1565,7 +1588,7 @@ function segToggle(id){
 }
 function setDrawn(id,on){
  const c=S.curves[id];
- if(on){if(c){c.on=true;refresh();commit();}else{S.draw.on=true;pickSeg(id);toast(`Draw “${CUR.G.segs[id].label}” on the canvas: drag along the orange contour.`);}}
+ if(on){if(c){c.on=true;refresh();commit();}else if(CUR.G.segs[id]&&CUR.G.segs[id].nodraw){toast('To hand-shape this surface, use Push / pull or Redraw in Drag & draw.');}else{S.draw.on=true;pickSeg(id);toast(`Draw “${CUR.G.segs[id].label}” on the canvas: drag along the orange contour.`);}}
  else if(c&&c.on!==false){c.on=false;refresh();commit();}
 }
 function buildParams(){
@@ -1574,8 +1597,8 @@ function buildParams(){
  host.open=S.mode!=='dd';ddp.open=S.mode==='dd';host.append(sm);root.append(ddp,host);
  sm.onclick=e=>{e.preventDefault();VT.design.auto=true;setMode('manual');};
  sd.onclick=e=>{e.preventDefault();VT.design.auto=true;setMode('dd');if(document.body.classList.contains('m-params')&&window.setM)window.setM('view');};
- ddp.append(sd,el('p',{class:'gnote'},'Shape the contours straight on the assembled view. Pick a tool from the bar at the bottom of the viewing area; its fine-tuning controls sit just above it.'));
- for(const[,n,t]of DD_TOOLS.slice(1))ddp.append(el('div',{class:'ddrow'},el('b',{},n),el('span',{},t)));
+ ddp.append(sd,el('p',{class:'gnote'},'Shape the contours straight on the kendama. Pick a tool from the bar at the bottom of the viewing area; its fine-tuning controls sit just above it.'));
+ for(const[,n,t]of DD_TOOLS)ddp.append(el('div',{class:'ddrow'},el('b',{},n),el('span',{},t)));
  ddp.append(el('p',{class:'gnote'},'Undo and Redo in the top bar work on every change made here.'),el('h3',{style:'margin:12px 0 4px'},'Hand-shaped contours'),el('div',{id:'ddList'}));
  host.append(el('p',{class:'gnote',html:'Type a value or drag the slider. Values are limited automatically so the shape always stays buildable.'}));
  for(const g of GROUPS){
@@ -1695,7 +1718,7 @@ function bounds(v){
  const B=v==='design'&&balView();
  if(B){const sil=silhouette(G),P=poseCached(CUR,S.show.tama),R=p.tamaD/2,pts=[...sil.ken,...sil.sar].map(q=>rotW(B,q)),C=rotW(B,[P.C.x,P.C.y]);pts.push([C[0]-R,C[1]-R],[C[0]+R,C[1]+R]);
   x0=Math.min(...pts.map(q=>q[0]))-6;x1=Math.max(...pts.map(q=>q[0]))+6;y0=Math.min(...pts.map(q=>q[1]))-6;y1=Math.max(...pts.map(q=>q[1]))+10;return[x0,y0,x1,y1];}
- if(v==='design'){const T=poseCached(CUR,S.show.tama);if(T){const R=p.tamaD/2;x0=Math.min(x0,T.C.x-R-4);x1=Math.max(x1,T.C.x+R+4);y0=Math.min(y0,T.C.y-R-4);y1=Math.max(y1,T.C.y+R+4);}}
+ if(v==='design'){const T=tamaPose();if(T){const R=p.tamaD/2;x0=Math.min(x0,T.C.x-R-4);x1=Math.max(x1,T.C.x+R+4);y0=Math.min(y0,T.C.y-R-4);y1=Math.max(y1,T.C.y+R+4);}}
  return[x0,y0,x1,y1];
 }
 function fit(v){const T=VT[v],b=bounds(v),w=b[2]-b[0],h=b[3]-b[1],pad=v==='design'&&S.mode==='dd'?Math.min(112,CH*0.32):0;T.z=Math.min((CW-30)/w,(CH-30-pad)/h);T.ox=CW/2-(b[0]+b[2])/2*T.z;T.oy=(CH-pad)/2+(b[1]+b[3])/2*T.z;} // drag & draw keeps the shape clear of the tool dock
@@ -1712,10 +1735,12 @@ function tamaOutline(p,C,u){ // world polygons for the tama's hole walls (two si
  const side=s=>[P(T.yM,s*T.cr),P(T.yJ,s*T.hr),P(T.end,s*T.hr),P(T.end,s*T.sr),P(-T.R,s*T.sr)];
  return[side(1),side(-1)];
 }
-function drawTama(c,T,p,P,name){
- const R=p.tamaD/2;c.beginPath();c.arc(sx(T,P.C.x),sy(T,P.C.y),R*T.z,0,7);c.fillStyle=col('--tama');c.globalAlpha=.16;c.fill();c.globalAlpha=1;c.strokeStyle=col('--tama');c.lineWidth=1.5;c.stroke();
- c.lineWidth=1.2;for(const s of tamaOutline(p,P.C,P.u)){pathW(c,T,s);c.stroke();}
- if(name)label(c,name,sx(T,P.C.x),sy(T,P.C.y-R)+16,col('--tama'),'center');
+function drawTama(c,T,p,P,name,phase){
+ const R=p.tamaD/2,X=sx(T,P.C.x),Y=sy(T,P.C.y);
+ if(phase==='fill'){c.beginPath();c.arc(X,Y,R*T.z,0,7);c.fillStyle=col('--wood');c.fill();return;}
+ c.save();c.strokeStyle=col('--edge');c.lineJoin='round';c.lineWidth=1.5;c.beginPath();c.arc(X,Y,R*T.z,0,7);c.stroke();
+ c.lineWidth=1;c.setLineDash([4,3]);for(const s of tamaOutline(p,P.C,P.u)){pathW(c,T,s);c.stroke();}c.setLineDash([]);c.restore();
+ if(name)label(c,name,X,sy(T,P.C.y-R)+16,col('--edge'),'center');
 }
 // the full ellipse (or circle) behind each parametric curve, with its centre point
 // cleared ellipses stay hidden until that curve changes (a different ellipse) or is picked to draw
@@ -1745,6 +1770,7 @@ function drawDesign(c,T){
  const G=CUR.G,A=CUR.A,p=G.p,sil=silhouette(G);grid(c,T);
  const B=balView();if(B){const X=sx(T,B.x),Y=sy(T,B.y);c.save();c.translate(X,Y);c.rotate(-B.a);c.translate(-X,-Y);}
  c.lineJoin='round';
+ {const P0=tamaPose();if(P0)drawTama(c,T,p,P0,'','fill');}
  pathW(c,T,sil.ken,true);c.fillStyle=col('--wood');c.fill();c.strokeStyle=col('--edge');c.lineWidth=1.5;c.stroke();
  c.strokeStyle=col('--edge');c.lineWidth=1;c.setLineDash([4,3]);
  for(const sd of[1,-1]){pathW(c,T,G.bcP.map(([r,d])=>[sd*r,d]));c.stroke();}
@@ -1756,7 +1782,7 @@ function drawDesign(c,T){
  for(const[x,y,,f]of stringHoles(p,G)){c.beginPath();c.arc(sx(T,x),sy(T,y),Math.max(1.5,STR_HOLE_D/2*T.z),0,7);if(f!=='back'){c.fillStyle=col('--canvas');c.fill();}else c.setLineDash([2,2]);c.strokeStyle=col('--edge');c.lineWidth=1.2;c.stroke();c.setLineDash([]);}
  c.font='10px -apple-system,Helvetica,Arial,sans-serif';c.fillStyle=col('--edge');c.textAlign='center';
  c.fillText('BIG',sx(T,G.xE-G.xw-p.bgBandL/2),sy(T,G.yA)+3);c.fillText('SMALL',sx(T,G.xS-G.xw+p.smBandL/2),sy(T,G.yA)+3);c.textAlign='left';
- const P=poseCached(CUR,S.show.tama);if(P){drawTama(c,T,p,P,TRICKS.find(t=>t[0]===S.show.tama)[1]);}
+ const P=tamaPose();if(P){drawTama(c,T,p,P,S.show.tama==='free'?'':TRICKS.find(t=>t[0]===S.show.tama)[1],'line');}
  if(S.show.cog&&!B){cogMark(c,sx(T,A.cog.x),sy(T,A.cog.y),7,col('--cog'));label(c,`CoG ${f1(A.cog.y)} mm`,sx(T,A.cog.x)+12,sy(T,A.cog.y)+4,col('--cog'));}
  drawEllipses(c,T,'design');drawHighlight(c,T,'design');
  if(B){c.restore();const g=rotW(B,[A.cog.x,A.cog.y]),X=sx(T,B.x);
@@ -1764,7 +1790,7 @@ function drawDesign(c,T){
   c.strokeStyle=col('--cog');c.lineWidth=1;c.setLineDash([4,4]);c.beginPath();c.moveTo(X,sy(T,B.y)+14);c.lineTo(X,sy(T,top)-26);c.stroke();c.setLineDash([]);
   c.fillStyle=col('--cog');c.beginPath();c.arc(X,sy(T,B.y),3.5,0,7);c.fill();
   if(S.show.cog){cogMark(c,sx(T,g[0]),sy(T,g[1]),7,col('--cog'));label(c,'CoG',sx(T,g[0])+12,sy(T,g[1])+4,col('--cog'));}
-  const deg=B.a*180/Math.PI;flat(c,()=>label(c,(B.kenOnTama?'Balanced: tama held, ken + sarado CoG straight above the contact':'Balanced: ken held, tama centre straight above the contact')+` · ken tilted ${f1(Math.abs(deg))}° ${deg>=0?'toward the big cup':'toward the small cup'}`,12,22,col('--ink')));}
+  const deg=B.a*180/Math.PI,ST=S.show.tama==='handlestall'?'Ken held level: the tama rests on the handle stall ridge':S.show.tama==='slipstall'?'Ken held level: the tama rests on the slip stall ridge':'';flat(c,()=>label(c,ST||(B.kenOnTama?'Balanced: tama held, ken + sarado CoG straight above the contact':'Balanced: ken held, tama centre straight above the contact')+` · ken tilted ${f1(Math.abs(deg))}° ${deg>=0?'toward the big cup':'toward the small cup'}`,12,22,col('--ink')));}
 }
 function drawSarado(c,T){
  const G=CUR.G,p=G.p;grid(c,T);
@@ -1820,7 +1846,7 @@ function mesh3(){
 const rgb3=h=>{h=h.replace('#','');if(h.length===3)h=h.replace(/./g,x=>x+x);const n=parseInt(h,16);return[(n>>16)&255,(n>>8)&255,n&255];};
 function draw3D(c,T){
  const G=CUR.G,A=CUR.A,r=rot3(),pv=piv3(),Q=mesh3();grid(c,T);
- const base=[rgb3(col('--wood')),rgb3(col('--sarado')),rgb3(col('--wood')).map(x=>x*0.72),rgb3(col('--tama')),rgb3(col('--tama')).map(x=>x*0.6)];
+ const base=[rgb3(col('--wood')),rgb3(col('--sarado')),rgb3(col('--wood')).map(x=>x*0.72),rgb3(col('--wood')),rgb3(col('--wood')).map(x=>x*0.72)];
  const L=[-0.35,0.55,0.76],D=new Array(Q.length);
  for(let i=0;i<Q.length;i++){const v=Q[i].v,a=proj3(v[0],r,pv),b=proj3(v[1],r,pv),d=proj3(v[2],r,pv),e=proj3(v[3],r,pv);
   const ux=d[0]-a[0],uy=d[1]-a[1],uz=d[2]-a[2],wx=e[0]-b[0],wy=e[1]-b[1],wz=e[2]-b[2];let nx=uy*wz-uz*wy,ny=uz*wx-ux*wz,nz=ux*wy-uy*wx;const nl=Math.hypot(nx,ny,nz)||1;
@@ -1884,9 +1910,9 @@ function mkUp(e){
 function mkCancel(){ddCancel();MK.spin=null;MK.cur=null;MK.orb=null;MK.down=null;}
 /* ================= drag & draw: shape the contours straight on the assembled view ================= */
 // Points move the measures; push / pull, redraw and smooth turn a contour into a hand-shaped curve between its two measure points.
-const DD={tool:'point',width:16,strength:50,step:0.1,smooth:2,snap:true,hover:null,spot:null,selH:null,drag:null,act:null,stroke:null,meas:[],cursor:null,down:null};
+const DD={tool:'point',turn:false,width:16,strength:50,step:0.1,smooth:2,snap:true,hover:null,spot:null,selH:null,drag:null,act:null,stroke:null,meas:[],cursor:null,down:null};
 const DD_SEGS=['baseRidge','flare','swoopRing','ringHandle','smRidge','swoopAll','swoopSm','swoopBg','bgRidge'];
-const DD_TOOLS=[['pan','Move view','Drag to move the view. Scroll or pinch to zoom.'],['point','Points','Drag a dot to move that measure point. Click a dot to fine-tune it here.'],['push','Push / pull','Drag a contour in or out. Click a spot on it to nudge it in small steps.'],['draw','Redraw','Draw over any part of a contour to replace just that part. The ends snap to the edge.'],['smooth','Smooth','Rub over a contour to even it out.'],['reset','Restore','Click a hand-shaped contour to put it back to its measured shape.'],['hole','Cup hole','Draw one wall of the base cup hole, from the cup up into the ken; the other side mirrors it. Or use the hole from another shape.'],['measure','Measure','Click two points to measure between them.'],['spin','Turn','Drag around the shape to turn it on the screen. Hold Shift for 15° steps.']];
+const DD_TOOLS=[['pan','Move view','Drag to move the view; scroll or pinch to zoom. Switch on Turn to spin the view by dragging around the shape.'],['free','Move pieces','Drag the tama or the ken to move it, and drag a round knob to turn it. They can touch but never overlap.'],['point','Points','Drag a dot to move that measure point. Click a dot to fine-tune it here.'],['push','Push / pull','Drag a contour in or out. Click a spot on it to nudge it in small steps. On the tama it changes the tama measures.'],['draw','Redraw','Draw over any part of a contour to replace just that part. The ends snap to the edge.'],['smooth','Smooth','Rub over a contour to even it out.'],['reset','Restore','Click a hand-shaped contour to put it back to its measured shape.'],['hole','Bottom cup hole','Draw one wall of the bottom cup hole, from the cup up into the ken; the other side mirrors it. Or use the hole from another shape.'],['measure','Measure','Click two points to measure between them.']];
 const DD_STEPS=[0.01,0.02,0.05,0.1,0.25,0.5,1];
 const ddFrom=(G,sg,s,v,sd)=>sg.part==='ken'?[sd*v,s]:[s-G.xw,G.yA+sd*v];
 const ddTo=(G,sg,X,Y)=>sg.part==='ken'?[Y,Math.abs(X)]:[X+G.xw,Math.abs(Y-G.yA)];
@@ -1910,7 +1936,17 @@ function ddHandles(){
  h('smCup','Small cup depth',G.xS+p.smDepth-xw,yA,['smDepth',1],null);
  h('bgCup','Big cup depth',G.xE-p.bgDepth-xw,yA,['bgDepth',-1],null);
  h('sarPos','Sarado height on the ken',G.xS-xw-7,yA,null,['sarTop',1]);
+ const P=S.mode==='dd'?tamaPose():null; // the tama's own points sit in its frame: along the hole (u) and across it (v)
+ if(P){const T=mkTama(p),u=P.u,v=[-u[1],u[0]],at=(al,r)=>[P.C.x+u[0]*al+v[0]*r,P.C.y+u[1]*al+v[1]*r],tf={C:P.C,u,v},t=(id,label,q,ax,ay,rad)=>H.push({id,label,X:q[0],Y:q[1],ax,ay,tf,rad});
+  t('tD','Tama Ø',at(0,T.R),['tamaD',2],null,'dist');t('tCs','Tama hole bevel',at(T.yM,T.cr),['tamaCsD',2],null);
+  t('tHole','Tama hole',at(T.yJ,T.hr),['tamaHoleD',2],['tamaCsDepth',-1]);t('tDepth','Tama hole depth',at(T.end,0),null,['tamaHoleDepth',-1]);}
  return H.filter(q=>(!q.ax||PD[q.ax[0]])&&(!q.ay||PD[q.ay[0]]));}
+// nearest tama contour to a point: the ball itself, the bevel, the hole wall or the hole's end. Each one is driven by a tama measure.
+function ddTamaHit(W,T){
+ const P=S.mode==='dd'?tamaPose():null;if(!P)return null;const M=mkTama(CUR.G.p),u=P.u,dx=W[0]-P.C.x,dy=W[1]-P.C.y,al=dx*u[0]+dy*u[1],r=Math.abs(-dx*u[1]+dy*u[0]);
+ const seg=(a,b)=>{const vx=b[0]-a[0],vy=b[1]-a[1],L=vx*vx+vy*vy||1e-9,k=clamp(((al-a[0])*vx+(r-a[1])*vy)/L,0,1);return Math.hypot(al-a[0]-k*vx,r-a[1]-k*vy);};
+ const c=[['tD','x',Math.abs(Math.hypot(dx,dy)-M.R)],['tCs','x',seg([M.yM,M.cr],[M.yJ,M.hr])],['tHole','x',seg([M.yJ,M.hr],[M.end,M.hr])],['tDepth','y',seg([M.end,M.hr],[M.end,0])]].sort((a,b)=>a[2]-b[2])[0];
+ return{id:c[0],only:c[1],d:c[2]*T.z};}
 // nearest spot on a shapeable contour (either side of the axis)
 function ddHit(W,T,maxPx){
  const G=CUR.G;let best=null;
@@ -1929,6 +1965,9 @@ function ddW(sg,N,sc){const sig=Math.max(0.6,DD.width/2.5),w=new Array(N+1);for(
 const ddSet=(id,d,span,N)=>{S.curves[id]={d,smooth:false,strength:3,bin:span/N,on:true};};
 function ddPush(id,sc,base,delta){const sg=CUR.G.segs[id];if(!sg)return;const w=ddW(sg,base.N,sc);ddSet(id,base.d.map((x,i)=>x+delta*w[i]),base.span,base.N);refresh(true);}
 function ddSmooth(id,sc,amt){const sg=CUR.G.segs[id];if(!sg)return;const b=ddBase(sg),w=ddW(sg,b.N,sc),N=b.N;let f=b.d.slice();for(let k=0;k<6;k++){const g=f.slice();for(let i=1;i<N;i++)g[i]=(f[i-1]+2*f[i]+f[i+1])/4;f=g;}ddSet(id,b.d.map((x,i)=>lerp(x,f[i],clamp(w[i]*amt,0,1))),b.span,N);refresh(true);}
+// a hand-shaped single swoop no longer follows the waist Ø measure, so its waist point moves the drawn curve itself: the whole surface goes in or out, pinned at the two bird ridges
+const ddWaistDrawn=()=>{const sg=CUR.G&&CUR.G.segs.swoopAll;return sg&&sg.drawn?sg:null;};
+function ddWaistShift(base,delta){const sg=CUR.G.segs.swoopAll;if(!sg)return;const N=base.N;ddSet('swoopAll',base.d.map((x,i)=>x+delta*Math.sin(Math.PI*i/N)),base.span,N);refresh(true);}
 function ddNudge(dir){const sp=DD.spot;if(!sp||!CUR.G.segs[sp.id])return;const sg=CUR.G.segs[sp.id];ddPush(sp.id,sp.s,ddBase(sg),dir*DD.step);commit();syncDD();}
 function ddRestore(id){if(id){if(!S.curves[id])return;delete S.curves[id];}else{for(const k of DD_SEGS)delete S.curves[k];}DD.spot=null;refresh();commit();syncDD();}
 function ddApplyStroke(pts,T){
@@ -1946,43 +1985,83 @@ function ddApplyHole(st){
  for(let i=1;i<q.length;i++)if(q[i][0]<q[i-1][0])q[i][0]=q[i-1][0];
  const k=Math.round(DD.smooth*1.5);if(k>0){const r=q.map(x=>x[1]);q=q.map((x,i)=>{if(i===0||i===q.length-1)return x;let a=0,n=0;for(let j=Math.max(0,i-k);j<=Math.min(q.length-1,i+k);j++){a+=r[j];n++;}return[x[0],a/n];});}
  return ddSetHole(q);}
-const ddEv=(e,T)=>evW(e,T);
+/* free tama: in drag & draw the tama is a body of its own. It and the ken + sarado can be moved and turned separately; they can touch but never overlap.
+   The ken stays where it is in the design's own coordinates: "moving the ken" moves the view and shifts the tama the other way, so the tama stays put on the screen. */
+function ddFree(){if(!DD.free){const G=CUR.G,R=G.p.tamaD/2;DD.free={C:{x:G.xE-G.xw+R+12,y:Math.max(R,G.yA)},u:[0,1]};}return DD.free;}
+const ddFreeOn=()=>S.mode==='dd'&&S.show.tama==='free'&&!!CUR.G;
+const tamaPose=()=>S.show.tama==='free'?(ddFreeOn()?ddFree():null):poseCached(CUR,S.show.tama);
+const ddFreeHit=(C,u)=>hit(mkTama(CUR.G.p),obs(CUR.G),C.x,C.y,u[0],u[1]);
+const rot2=(x,y,a)=>[x*Math.cos(a)-y*Math.sin(a),x*Math.sin(a)+y*Math.cos(a)];
+// furthest fraction of a move (0..1) that keeps the tama clear, so it ends up pressed against whatever stopped it
+function ddFar(at){if(!ddFreeHit(at(1).C,at(1).u))return 1;let lo=0,hi=1;for(let i=0;i<14;i++){const m=(lo+hi)/2,q=at(m);if(ddFreeHit(q.C,q.u))hi=m;else lo=m;}return lo;}
+function ddFreeFix(){if(!ddFreeOn())return;const f=ddFree(),cy=CUR.G.p.kenH/2;let n=0;while(ddFreeHit(f.C,f.u)&&n++<600){const dx=f.C.x,dy=f.C.y-cy,L=Math.hypot(dx,dy)||1;f.C={x:f.C.x+dx/L*0.5,y:f.C.y+dy/L*0.5};}} // the shape changed under the tama: ease it out
+function ddTamaMove(dx,dy){const f=ddFree(),go=(ax,ay)=>{if(!ax&&!ay)return 1;const k=ddFar(m=>({C:{x:f.C.x+ax*m,y:f.C.y+ay*m},u:f.u}));f.C={x:f.C.x+ax*k,y:f.C.y+ay*k};return k;};
+ const steps=Math.max(1,Math.ceil(Math.hypot(dx,dy)/3));for(let i=0;i<steps;i++){const ax=dx/steps,ay=dy/steps,k=go(ax,ay);if(k<1){go(ax*(1-k),0);go(0,ay*(1-k));}}}
+function ddTamaTurn(da){const f=ddFree(),k=ddFar(m=>({C:f.C,u:rot2(f.u[0],f.u[1],da*m)}));f.u=rot2(f.u[0],f.u[1],da*k);return k;}
+function ddKenTurn(da){const f=ddFree(),py=CUR.G.p.kenH/2,at=m=>{const c=rot2(f.C.x,f.C.y-py,da*m);return{C:{x:c[0],y:py+c[1]},u:rot2(f.u[0],f.u[1],da*m)};},k=ddFar(at),q=at(k);
+ f.C=q.C;f.u=q.u;let a=V3.roll+da*k;a=Math.atan2(Math.sin(a),Math.cos(a));V3.roll=Math.abs(a)<1e-9?0:a;return k;}
+function ddKenMove(dxs,dys){const T=VT.design,f=ddFree(),c=Math.cos(-V3.roll),s=Math.sin(-V3.roll),wx=-(dxs*c-dys*s)/T.z,wy=(dxs*s+dys*c)/T.z,k=ddFar(m=>({C:{x:f.C.x+wx*m,y:f.C.y+wy*m},u:f.u}));
+ f.C={x:f.C.x+wx*k,y:f.C.y+wy*k};T.auto=false;T.ox+=dxs*k;T.oy+=dys*k;return k;}
+const ddKnobs=T=>{const f=ddFree(),G=CUR.G,R=G.p.tamaD/2,o=16/T.z;return{t:[f.C.x-f.u[0]*(R+o),f.C.y-f.u[1]*(R+o)],k:[0,G.p.kenH+o]};};
+const pip=(poly,W)=>{let inn=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if((a[1]>W[1])!==(b[1]>W[1])&&W[0]<(b[0]-a[0])*(W[1]-a[1])/(b[1]-a[1])+a[0])inn=!inn;}return inn;};
+function ddFreeDown(e,T,W){
+ if(!ddFreeOn())return false;const f=ddFree(),G=CUR.G,K=ddKnobs(T),near=q=>Math.hypot(W[0]-q[0],W[1]-q[1])*T.z<=14;let m=null;
+ if(near(K.t))m='tturn';else if(near(K.k))m='kturn';else if(Math.hypot(W[0]-f.C.x,W[1]-f.C.y)<=G.p.tamaD/2)m='tmove';else{const sil=silhouette(G);if(pip(sil.ken,W)||pip(sil.sar,W))m='kmove';}
+ if(!m)return false;const r=cv.getBoundingClientRect(),[px,py]=rollPiv(T);VT.design.auto=false;DD.fr={m,W,x:e.clientX,y:e.clientY,a:Math.atan2(e.clientY-r.top-py,e.clientX-r.left-px)};return true;}
+function ddFreeMove(e,T,W){
+ const g=DD.fr,f=ddFree();
+ if(g.m==='tmove'){ddTamaMove(W[0]-g.W[0],W[1]-g.W[1]);g.W=W;}
+ else if(g.m==='tturn'){const vx=f.C.x-W[0],vy=f.C.y-W[1];if(Math.hypot(vx,vy)*T.z>6){let da=Math.atan2(vy,vx)-Math.atan2(f.u[1],f.u[0]);da=Math.atan2(Math.sin(da),Math.cos(da));const n=Math.max(1,Math.ceil(Math.abs(da)/0.05));for(let i=0;i<n;i++)if(ddTamaTurn(da/n)<1)break;}}
+ else if(g.m==='kturn'){const r=cv.getBoundingClientRect(),[px,py]=rollPiv(T),a=Math.atan2(e.clientY-r.top-py,e.clientX-r.left-px);let da=a-g.a;da=Math.atan2(Math.sin(da),Math.cos(da));g.a=a;const n=Math.max(1,Math.ceil(Math.abs(da)/0.05));for(let i=0;i<n;i++)if(ddKenTurn(da/n)<1)break;}
+ else{ddKenMove(e.clientX-g.x,e.clientY-g.y);g.x=e.clientX;g.y=e.clientY;}
+ render();}
+const ddEv=(e,T)=>{const w=evW(e,T),B=balView();return B?rotW(B,w,true):w;}; // a trick pose tips the picture, so undo that too
 function ddDown(e,T){
  const t=DD.tool,W=ddEv(e,T);DD.down={x:e.clientX,y:e.clientY};DD.cursor=W;
  if(t==='point'){let b=null;for(const h of ddHandles()){const d=Math.hypot(W[0]-h.X,W[1]-h.Y)*T.z;if(d<=16&&(!b||d<b.d))b={d,h};}
   if(!b){if(DD.selH){DD.selH=null;syncDD();render();}return false;}
-  const v0={};for(const a of[b.h.ax,b.h.ay])if(a)v0[a[0]]=S.p[a[0]];DD.selH=b.h.id;DD.drag={h:b.h,W,v0,moved:false};syncDD();render();return true;}
+  const v0={};for(const a of[b.h.ax,b.h.ay])if(a)v0[a[0]]=S.p[a[0]];DD.selH=b.h.id;DD.drag={h:b.h,W,v0,moved:false,wb:b.h.id==='waist'&&ddWaistDrawn()?ddBase(ddWaistDrawn()):null};syncDD();render();return true;}
+ if(t==='push'){const th=ddTamaHit(W,T),sh=ddHit(W,T,18);if(th&&th.d<=18&&(!sh||th.d<sh.d*T.z)){const hd=ddHandles().find(q=>q.id===th.id);if(hd){const v0={};for(const a of[hd.ax,hd.ay])if(a)v0[a[0]]=S.p[a[0]];DD.spot=null;DD.drag={h:hd,W,v0,moved:false,only:th.only,wb:null};syncDD();render();return true;}}}
  if(t==='push'||t==='smooth'){const h=ddHit(W,T,18);if(!h)return false;const sg=CUR.G.segs[h.id];DD.spot={id:h.id,s:h.s,sd:h.sd};DD.act={id:h.id,s:h.s,sd:h.sd,v0:ddTo(CUR.G,sg,W[0],W[1])[1],base:ddBase(sg),moved:false};
   if(t==='smooth'){ddSmooth(h.id,h.s,DD.strength/100*0.6);DD.act.moved=true;}syncDD();render();return true;}
- if(t==='spin'){const r=cv.getBoundingClientRect(),[px,py]=rollPiv(T);MK.spin={a:Math.atan2(e.clientY-r.top-py,e.clientX-r.left-px),roll:V3.roll};return true;}
+ if(t==='pan'&&DD.turn){const r=cv.getBoundingClientRect(),[px,py]=rollPiv(T);MK.spin={a:Math.atan2(e.clientY-r.top-py,e.clientX-r.left-px),roll:V3.roll};return true;}
+ if(t==='free')return ddFreeDown(e,T,W);
  if(t==='hole'){DD.stroke=[W];render();return true;}
  if(t==='draw'){const sn=ddSnap(W,T,12);DD.stroke=[sn&&sn.kind==='edge'?sn.pt:W];render();return true;}
  if(t==='reset'){const h=ddHit(W,T,16);if(!h)return false;if(S.curves[h.id])ddRestore(h.id);else toast('This contour already follows its measures.');return true;}
  return false;}
 function ddMove(e,T){
  const W=ddEv(e,T);DD.cursor=W;
+ if(DD.fr){ddFreeMove(e,T,W);return true;}
  if(DD.drag){const g=DD.drag,h=g.h;g.moved=true;
-  if(h.ax){const d=PD[h.ax[0]];setParam(h.ax[0],Math.round((g.v0[h.ax[0]]+h.ax[1]*(W[0]-g.W[0]))/d.step*10)*d.step/10,false);}
-  if(h.ay){const d=PD[h.ay[0]];setParam(h.ay[0],Math.round((g.v0[h.ay[0]]+h.ay[1]*(W[1]-g.W[1]))/d.step*10)*d.step/10,false);}
+  if(g.wb){ddWaistShift(g.wb,W[1]-g.W[1]);syncDD();return true;}
+  let dx=W[0]-g.W[0],dy=W[1]-g.W[1];
+  if(h.tf){const f=h.tf,p1=[W[0]-f.C.x,W[1]-f.C.y],p0=[g.W[0]-f.C.x,g.W[1]-f.C.y];dy=dx*f.u[0]+dy*f.u[1];dx=h.rad==='dist'?Math.hypot(p1[0],p1[1])-Math.hypot(p0[0],p0[1]):Math.abs(p1[0]*f.v[0]+p1[1]*f.v[1])-Math.abs(p0[0]*f.v[0]+p0[1]*f.v[1]);}
+  if(h.ax&&g.only!=='y'){const d=PD[h.ax[0]];setParam(h.ax[0],Math.round((g.v0[h.ax[0]]+h.ax[1]*dx)/d.step*10)*d.step/10,false);}
+  if(h.ay&&g.only!=='x'){const d=PD[h.ay[0]];setParam(h.ay[0],Math.round((g.v0[h.ay[0]]+h.ay[1]*dy)/d.step*10)*d.step/10,false);}
   syncDD();return true;}
  if(DD.act){const a=DD.act,sg=CUR.G.segs[a.id];if(!sg){DD.act=null;return true;}const q=ddTo(CUR.G,sg,W[0],W[1]);a.moved=true;
   if(DD.tool==='push')ddPush(a.id,a.s,a.base,q[1]-a.v0);else{const s=clamp(q[0],Math.min(sg.s0,sg.s1),Math.max(sg.s0,sg.s1));DD.spot.s=s;ddSmooth(a.id,s,DD.strength/100*0.35);}
   return true;}
  if(DD.stroke){const l=DD.stroke[DD.stroke.length-1];if(Math.hypot(W[0]-l[0],W[1]-l[1])*T.z>2)DD.stroke.push(W);render();return true;}
  const t=DD.tool,hv=t==='push'||t==='smooth'||t==='reset'||t==='draw'?ddHit(W,T,t==='draw'?12:18):null,k=hv?hv.id+hv.sd+Math.round(hv.s*4):'';
- if(k!==(DD.hk||'')||t==='measure'||t==='point'||t==='push'||t==='smooth'){DD.hk=k;DD.hover=hv;render();}
+ if(k!==(DD.hk||'')||t==='measure'||t==='point'||t==='push'||t==='smooth'||t==='draw'){DD.hk=k;DD.hover=hv;render();}
  return false;}
 function ddUp(e){
  const T=VT.design,d=DD.down;DD.down=null;if(!d)return;const still=e&&Math.hypot(e.clientX-d.x,e.clientY-d.y)<5;
+ if(DD.fr){DD.fr=null;syncDD();render();return;}
  if(DD.drag){const m=DD.drag.moved;DD.drag=null;if(m)commit();syncDD();render();return;}
  if(DD.act){const a=DD.act;DD.act=null;if(a.moved)commit();syncDD();render();return;}
  if(DD.stroke&&DD.tool==='hole'){const st=DD.stroke;DD.stroke=null;if(ddApplyHole(st)){refresh();commit();}else{render();toast('Draw one wall of the hole, from the base cup up into the ken.');}syncDD();return;}
  if(DD.stroke){const st=DD.stroke;DD.stroke=null;const sn=ddSnap(st[st.length-1],T,12);if(sn&&sn.kind==='edge')st.push(sn.pt);
   if(st.length>3&&ddApplyStroke(st,T)){refresh();commit();}else{render();toast('Draw along a contour of the ken or sarado.');}syncDD();return;}
  if(DD.tool==='measure'&&still&&e){const W=ddEv(e,T),sn=DD.snap?ddSnap(W,T):null,q=sn?sn.pt:W;if(DD.meas.length>=2)DD.meas=[];DD.meas.push(q);syncDD();render();}}
-function ddCancel(){DD.drag=null;DD.act=null;DD.stroke=null;DD.down=null;}
+function ddCancel(){DD.fr=null;DD.drag=null;DD.act=null;DD.stroke=null;DD.down=null;}
 function drawDD(c,T){
  const G=CUR.G,acc=col('--accent'),P=q=>[sx(T,q[0]),sy(T,q[1])],t=DD.tool;c.save();c.lineJoin=c.lineCap='round';
+ {const B=balView();if(B){const X=sx(T,B.x),Y=sy(T,B.y);c.translate(X,Y);c.rotate(-B.a);c.translate(-X,-Y);}}
+ if(t==='free'&&ddFreeOn()){const f=ddFree(),K=ddKnobs(T),R=G.p.tamaD/2;c.strokeStyle=c.fillStyle=acc;c.lineWidth=1.5;
+  for(const[a,b]of[[[f.C.x-f.u[0]*R,f.C.y-f.u[1]*R],K.t],[[0,G.p.kenH],K.k]]){const A=P(a),Bq=P(b);c.beginPath();c.moveTo(A[0],A[1]);c.lineTo(Bq[0],Bq[1]);c.stroke();c.beginPath();c.arc(Bq[0],Bq[1],6.5,0,7);c.fill();c.save();c.strokeStyle=col('--canvas');c.lineWidth=1.4;c.beginPath();c.arc(Bq[0],Bq[1],3,0.6,5.2);c.stroke();c.restore();}}
  const segLine=(id,lw,dash)=>{const sg=G.segs[id];if(!sg)return;c.strokeStyle=col('--draw');c.lineWidth=lw;c.setLineDash(dash||[]);for(const sd of[1,-1]){pathW(c,T,sg.out.map(q=>ddFrom(G,sg,q[0],q[1],sd)));c.stroke();}c.setLineDash([]);};
  if(t!=='pan'&&t!=='measure'&&t!=='point')for(const id of ddSegs(G))if(S.curves[id]&&S.curves[id].on!==false)segLine(id,1.6,[5,4]); // hand-shaped contours
  const live=DD.act?DD.act:DD.hover;if(live&&t!=='point'&&t!=='measure'&&t!=='pan')segLine(live.id,3);
@@ -1993,7 +2072,9 @@ function drawDD(c,T){
  if(t==='point'){const H=ddHandles();let hov=null,hd=16;if(DD.cursor&&!DD.drag)for(const h of H){const d=Math.hypot(DD.cursor[0]-h.X,DD.cursor[1]-h.Y)*T.z;if(d<=hd){hd=d;hov=h;}}
   for(const h of H){const q=P([h.X,h.Y]),sel=h.id===DD.selH;c.beginPath();c.arc(q[0],q[1],sel?6.5:5,0,7);c.fillStyle=sel?acc:col('--canvas');c.fill();c.strokeStyle=acc;c.lineWidth=2;c.stroke();
    if(h.ax&&h.ay){c.beginPath();c.arc(q[0],q[1],1.6,0,7);c.fillStyle=sel?col('--canvas'):acc;c.fill();}}
-  const sh=H.find(h=>h.id===DD.selH)||hov;if(sh){const q=P([sh.X,sh.Y]);label(c,sh.id==='step'?`${sh.label}: Ø${f2(2*Math.abs(sh.X))} mm`:sh.label+': '+[sh.ax,sh.ay].filter(Boolean).map(a=>fmtV(PD[a[0]],S.p[a[0]])).join(' / ')+' mm',q[0]+12,q[1]-10,acc);}}
+  const sh=H.find(h=>h.id===DD.selH)||hov;if(sh){const q=P([sh.X,sh.Y]);label(c,sh.id==='step'?`${sh.label}: Ø${f2(2*Math.abs(sh.X))} mm`:sh.id==='waist'&&ddWaistDrawn()?`${sh.label}: Ø${f2(2*(sh.Y-G.yA))} mm`:sh.label+': '+[sh.ax,sh.ay].filter(Boolean).map(a=>fmtV(PD[a[0]],S.p[a[0]])).join(' / ')+' mm',q[0]+12,q[1]-10,acc);}}
+ if(t==='push'&&DD.cursor&&!DD.act&&!DD.stroke){const th=DD.drag&&DD.drag.only?{id:DD.drag.h.id,d:0}:ddTamaHit(DD.cursor,T),sh=DD.drag?null:ddHit(DD.cursor,T,18),Pt=tamaPose();
+  if(Pt&&th&&th.d<=18&&(!sh||th.d<sh.d*T.z)){c.strokeStyle=col('--draw');c.lineWidth=3;if(th.id==='tD'){c.beginPath();c.arc(sx(T,Pt.C.x),sy(T,Pt.C.y),G.p.tamaD/2*T.z,0,7);c.stroke();}else for(const sd of tamaOutline(G.p,Pt.C,Pt.u)){pathW(c,T,sd.slice(0,3));c.stroke();}}}
  if(DD.stroke&&DD.stroke.length>1){c.strokeStyle=col('--ink');c.lineWidth=1.8;pathW(c,T,DD.stroke);c.stroke();}
  if((t==='draw'||t==='measure')&&DD.cursor&&!DD.stroke&&(t==='draw'||DD.snap)){const sn=ddSnap(DD.cursor,T,t==='draw'?12:10);if(sn){const q=P(sn.pt);c.strokeStyle=acc;c.lineWidth=1.5;c.beginPath();if(sn.kind==='point')c.rect(q[0]-6,q[1]-6,12,12);else c.arc(q[0],q[1],6,0,7);c.stroke();}}
  if(t==='measure'&&DD.meas.length){const a=DD.meas[0],sn=DD.snap&&DD.cursor?ddSnap(DD.cursor,T):null,b=DD.meas[1]||(DD.cursor?(sn?sn.pt:DD.cursor):null),A=P(a);c.strokeStyle=c.fillStyle=acc;c.lineWidth=1.6;
@@ -2010,7 +2091,8 @@ function syncDD(){
  const width=()=>stp('Brush width',`${DD.width} mm`,again(()=>DD.width=clamp(DD.width-2,4,80)),again(()=>DD.width=clamp(DD.width+2,4,80)));
  const hint=x=>host.append(el('span',{class:'dd-h'},x));
  if(t==='point'){const h=CUR.G&&ddHandles().find(q=>q.id===DD.selH);
-  if(h){host.append(el('span',{class:'dd-n'},h.id==='step'?`${h.label}: Ø${f2(2*Math.abs(h.X))} mm`:h.label));for(const a of[h.ax,h.ay])if(a){const d=PD[a[0]],go=dir=>()=>{setParam(a[0],Math.round((+S.p[a[0]]+dir*d.step)*1e4)/1e4,true);commit();syncDD();};stp(d.label,fmtV(d,S.p[a[0]])+' '+d.unit,go(-1),go(1));}}
+  if(h&&h.id==='waist'&&ddWaistDrawn()){host.append(el('span',{class:'dd-n'},h.label));const go=dir=>()=>{ddWaistShift(ddBase(ddWaistDrawn()),dir*0.05);commit();syncDD();};stp('Sarado waist Ø',f2(2*(h.Y-CUR.G.yA))+' mm',go(-1),go(1));}
+  else if(h){host.append(el('span',{class:'dd-n'},h.id==='step'?`${h.label}: Ø${f2(2*Math.abs(h.X))} mm`:h.label));for(const a of[h.ax,h.ay])if(a){const d=PD[a[0]],go=dir=>()=>{setParam(a[0],Math.round((+S.p[a[0]]+dir*d.step)*1e4)/1e4,true);commit();syncDD();};stp(d.label,fmtV(d,S.p[a[0]])+' '+d.unit,go(-1),go(1));}}
   else hint(def[2]);}
  else if(t==='push'){width();const i=Math.max(0,DD_STEPS.indexOf(DD.step));stp('Nudge step',`${DD.step} mm`,again(()=>DD.step=DD_STEPS[Math.max(0,i-1)]),again(()=>DD.step=DD_STEPS[Math.min(DD_STEPS.length-1,i+1)]));
   btn('Pull in',()=>ddNudge(-1),!DD.spot);btn('Push out',()=>ddNudge(1),!DD.spot);}
@@ -2021,19 +2103,27 @@ function syncDD(){
   const sel=el('select',{class:'dd-sel',title:'Use the base cup hole from another shape'},el('option',{value:''},'Use the hole from…'));for(const e of LIB)if(e.hole)sel.append(el('option',{value:e.name,translate:'no'},e.name));
   sel.onchange=()=>{const e=LIB.find(q=>q.name===sel.value);if(!e)return;const h=libHole(e,S.p,true);if(ddSetHole(h.pts)){refresh();commit();toast(`Base cup hole from ${e.name} added.`);}syncDD();};host.append(sel);
   btn('Remove hole',()=>{delete S.curves.baseHole;refresh();commit();syncDD();},!S.curves.baseHole);}
- else if(t==='spin'){const deg=Math.round(V3.roll*180/Math.PI),turn=d=>again(()=>{let a=(deg+d)*Math.PI/180;a=Math.atan2(Math.sin(a),Math.cos(a));V3.roll=Math.abs(a)<1e-9?0:a;});stp('Angle',`${deg}°`,turn(-5),turn(5));btn('Upright',again(()=>V3.roll=0),!V3.roll);}
+ else if(t==='free'){if(ddFreeOn()){const f=ddFree(),td=Math.round(Math.atan2(f.u[0],f.u[1])*180/Math.PI),kd=Math.round(V3.roll*180/Math.PI),st=Math.PI/36;
+   stp('Tama angle',`${td}°`,again(()=>ddTamaTurn(st)),again(()=>ddTamaTurn(-st)));stp('Ken angle',`${kd}°`,again(()=>ddKenTurn(-st)),again(()=>ddKenTurn(st)));
+   btn('Reset',again(()=>{DD.free=null;V3.roll=0;VT.design.auto=true;}));}else hint(def[2]);}
  else if(t==='reset'){btn('Restore all contours',()=>ddRestore(),!DD_SEGS.some(k=>S.curves[k]));}
  else if(t==='measure'){const b=btn('Snap',again(()=>DD.snap=!DD.snap));b.classList.toggle('act',DD.snap);b.append(' ',el('b',{},DD.snap?'On':'Off'));btn('Clear',again(()=>DD.meas=[]),!DD.meas.length);
   if(DD.meas.length===2){const[a,b2]=DD.meas;host.append(el('span',{class:'dd-n'},`${f2(Math.hypot(b2[0]-a[0],b2[1]-a[1]))} mm`),el('span',{class:'dd-h'},`across ${f2(Math.abs(b2[0]-a[0]))} mm · along ${f2(Math.abs(b2[1]-a[1]))} mm`));}else hint(def[2]);}
- else hint(def[2]);
+ else{const b=btn('Turn',again(()=>DD.turn=!DD.turn));b.classList.toggle('act',DD.turn);b.append(' ',el('b',{},DD.turn?'On':'Off'));b.title='When on, dragging spins the view on the screen. Hold Shift for 15° steps.';
+  if(DD.turn||V3.roll){const deg=Math.round(V3.roll*180/Math.PI),turn=d=>again(()=>{let a=(deg+d)*Math.PI/180;a=Math.atan2(Math.sin(a),Math.cos(a));V3.roll=Math.abs(a)<1e-9?0:a;});stp('Angle',`${deg}°`,turn(-5),turn(5));btn('Upright',again(()=>V3.roll=0),!V3.roll);}else hint('Drag to move the view. Scroll or pinch to zoom.');}
  const L=$('#ddList');if(L){L.innerHTML='';const ids=CUR.G?ddSegs(CUR.G).filter(k=>S.curves[k]&&S.curves[k].on!==false):[];
   if(!ids.length)L.append(el('p',{class:'pnote'},'No hand-shaped contours yet. Every contour follows its measures.'));
   for(const id of ids){const b=el('button',{},'Restore');b.onclick=()=>ddRestore(id);L.append(el('div',{class:'plab',style:'padding:4px 0'},el('span',{},CUR.G.segs[id].label),b));}}
- cv.style.cursor=S.mode==='dd'&&S.view==='design'?(t==='pan'?'grab':'crosshair'):cv.style.cursor;}
-function setDDTool(t){DD.tool=t;DD.hover=null;ddCancel();syncDD();render();}
+ cv.style.cursor=S.mode==='dd'&&S.view==='design'?(t==='pan'||t==='free'?'grab':'crosshair'):cv.style.cursor;}
+// going from a trick pose to the free tama: both pieces stay exactly where they are on screen. The tama keeps the trick's position, and the tilt the trick gave the picture becomes a turn of the view.
+function ddAdoptPose(){
+ const P=poseCached(CUR,S.show.tama);if(!P||S.view!=='design')return;const T=VT.design,B=balView(),rot=(v,a)=>[v[0]*Math.cos(a)-v[1]*Math.sin(a),v[0]*Math.sin(a)+v[1]*Math.cos(a)];
+ if(B){const pR=rollPiv(T),d=[sx(T,B.x)-pR[0],sy(T,B.y)-pR[1]],r0=rot(d,V3.roll);let a=V3.roll-B.a;a=Math.atan2(Math.sin(a),Math.cos(a));const r1=rot(d,a);T.ox+=r0[0]-r1[0];T.oy+=r0[1]-r1[1];V3.roll=Math.abs(a)<1e-9?0:a;}
+ T.auto=false;DD.free={C:{x:P.C.x,y:P.C.y},u:[P.u[0],P.u[1]]};}
+function setDDTool(t){if(t==='free'&&S.show.tama!=='free'){ddAdoptPose();S.show.tama='free';tamaMode();}DD.tool=t;DD.hover=null;ddCancel();syncDD();render();}
 function setMode(m,keepView){
- S.mode=m;document.body.classList.toggle('ddmode',m==='dd');const a=$('#topMan'),b=$('#topDD');if(a)a.open=m!=='dd';if(b)b.open=m==='dd';ddCancel();
- if(m==='dd'){S.draw.on=false;V3.on=false;V3.yaw=V3.pitch=0;MK.tool='move';if(S.show.tama!=='none'){S.show.tama='none';$('#tTama').value='none';tamaChip();VT.design.auto=true;}if(S.view!=='design')setView('design');syncTools();}
+ S.mode=m;tamaMode();VT.design.auto=true;document.body.classList.toggle('ddmode',m==='dd');const a=$('#topMan'),b=$('#topDD');if(a)a.open=m!=='dd';if(b)b.open=m==='dd';ddCancel();
+ if(m==='dd'){S.draw.on=false;V3.on=false;V3.yaw=V3.pitch=0;MK.tool='move';if(S.view!=='design')setView('design');syncTools();}
  viewPill();syncDraw();syncDD();render();}
 function render(){
  if(!CUR.G)return;
@@ -2368,13 +2458,13 @@ function refresh(light){
  if(!started)return;
  sanitize(S.p);const G=build(S.p,S.curves);CUR={G,A:analyze(G)};
  if(!G.segs[S.draw.seg])S.draw.seg=G.order[0];
- syncParams();syncDraw();if(S.mode==='dd')syncDD();render();syncStats();
+ syncParams();syncDraw();if(S.mode==='dd'){ddFreeFix();syncDD();}render();syncStats();
  if(!light)syncSnaps();
  syncCompare();updUndo();
 }
 const viewPill=()=>{const d=S.mode==='dd'&&S.view==='design';$('#tView').value=d?'dd':S.view;$('#lView b').textContent=d?'Drag & draw':VIEWS[S.view];};
-const VIEWS={design:'Assembled',sarado:'Sarado section',spec:'Spec sheet',compare:'Compare'};
-function setView(v){if(v!=='design'&&S.mode==='dd'){S.mode='manual';document.body.classList.remove('ddmode');$('#topMan').open=true;$('#topDD').open=false;VT.design.auto=true;}S.view=v;viewPill();mkCancel();
+const VIEWS={design:'Markup',sarado:'Sarado section',spec:'Spec sheet',compare:'Compare'};
+function setView(v){if(v!=='design'&&S.mode==='dd'){S.mode='manual';tamaMode();document.body.classList.remove('ddmode');$('#topMan').open=true;$('#topDD').open=false;VT.design.auto=true;}S.view=v;viewPill();mkCancel();
  $('#lTama').style.display=v==='design'?'flex':'none';$('#tEll').style.display=v==='design'||v==='sarado'?'':'none';$('#vtools').style.display=v==='design'?'':'none';syncTools();$('#bPage').style.display=v==='spec'?'':'none';
  document.querySelector('.zoom').style.display=v==='spec'?'none':'flex';syncDraw();syncCompare();render();}
 function showStart(canCancel){
@@ -2384,7 +2474,7 @@ function showStart(canCancel){
 }
 function readFile(input,cb){input.onchange=()=>{const f=input.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{cb(JSON.parse(r.result),f.name);}catch(e){toast('Could not open that file: '+e.message);}input.value='';};r.readAsText(f);};input.click();}
 function wire(){
- for(const[v,t]of TRICKS)$('#tTama').append(el('option',{value:v},t));
+ tamaMode();
  $('#tView').onchange=e=>{const v=e.target.value;VT.design.auto=true;if(v==='dd')setMode('dd');else{if(S.mode==='dd')setMode('manual');setView(v);}};
  {const b=$('#bRight'),set=shut=>{document.body.classList.toggle('r-shut',shut);b.classList.toggle('act',!shut);b.setAttribute('aria-pressed',!shut);try{localStorage.setItem('tse.right',shut?'0':'1');}catch(e){}requestAnimationFrame(()=>{if(started){render();syncStats();}});};
   b.onclick=()=>set(!document.body.classList.contains('r-shut'));let sv=null;try{sv=localStorage.getItem('tse.right');}catch(e){}set(sv==='0');}
@@ -2408,7 +2498,7 @@ function wire(){
  $('#gSave').onclick=()=>download(`${slug(S.meta.model)}_${$('#gPart').value}.nc`,gcode(),'text/plain');
  for(const[id,k]of[['#mBrand','brand'],['#mModel','model'],['#mDesigner','designer']])$(id).oninput=e=>{S.meta[k]=e.target.value;autosave();if(S.view==='spec')render();};
  $('#tCog').onchange=e=>{S.show.cog=e.target.checked;render();};
- $('#tTama').onchange=e=>{S.show.tama=e.target.value;VT.design.auto=true;tamaChip();render();};tamaChip();
+ $('#tTama').onchange=e=>{const nv=e.target.value;if(nv==='free'&&S.mode==='dd'&&S.show.tama!=='free'&&S.show.tama!=='none')ddAdoptPose();else VT.design.auto=true;S.show.tama=nv;if(S.mode==='dd'){if(S.show.tama==='free')DD.tool='free';else if(DD.tool==='free')DD.tool='point';syncDD();}tamaChip();render();};tamaChip();
  $('#tEll').onclick=()=>{const on=S.show.ell=!S.show.ell,b=$('#tEll');S.ellHide={};b.classList.toggle('act',on);b.setAttribute('aria-pressed',on);b.querySelector('b').textContent=on?'On':'Off';render();};
  $('#bPage').onclick=()=>{S.page=S.page===1?2:1;$('#bPage').textContent=S.page===1?'Page 2 ›':'‹ Page 1';render();};
  $('#dSeg').onchange=e=>pickSeg(e.target.value);
@@ -2429,7 +2519,7 @@ function wire(){
  cv.addEventListener('pointerdown',e=>{if(e.pointerType!=='touch')return;touch.set(e.pointerId,{x:e.clientX,y:e.clientY});if(touch.size===2){stroke=null;pan=null;mkCancel();pinch=pinchGeo();render();}},true);
  cv.addEventListener('pointermove',e=>{if(!touch.has(e.pointerId))return;touch.set(e.pointerId,{x:e.clientX,y:e.clientY});if(!pinch||touch.size<2)return;e.stopImmediatePropagation();const T=VT[S.view],g=pinchGeo();if(T&&pinch.d>0){T.auto=false;T.ox+=g.mx-pinch.mx;T.oy+=g.my-pinch.my;zoom(g.d/pinch.d,g.mx,g.my);}pinch=g;},true);
  const tEnd=e=>{touch.delete(e.pointerId);if(touch.size<2&&pinch){pinch=null;stroke=null;pan=null;}};cv.addEventListener('pointerup',tEnd,true);cv.addEventListener('pointercancel',tEnd,true);
- cv.onpointerdown=e=>{const T=VT[S.view];if(!T||pinch)return;cv.setPointerCapture(e.pointerId);if(S.mode==='dd'&&S.view==='design'){if(!ddDown(e,T))pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};return;}const seg=CUR.G.segs[S.draw.seg];if(S.draw.on&&segOK(seg,S.view)&&!(S.view==='design'&&V3.on))stroke=[world(e)];else if(S.view==='design'&&mkDown(e,T));else pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};};
+ cv.onpointerdown=e=>{const T=VT[S.view];if(!T||pinch)return;cv.setPointerCapture(e.pointerId);if(S.mode==='dd'&&S.view==='design'){if(!ddDown(e,T))pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};else T.auto=false;return;}const seg=CUR.G.segs[S.draw.seg];if(S.draw.on&&segOK(seg,S.view)&&!(S.view==='design'&&V3.on))stroke=[world(e)];else if(S.view==='design'&&mkDown(e,T));else pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};};
  cv.onpointermove=e=>{const T=VT[S.view];if(!T){$('#hud').textContent='';return;}const w=world(e);$('#hud').textContent=S.view==='sarado'?`along sarado ${f1(w[0])} mm · radius ${f1(Math.abs(w[1]))} mm`:`height ${f1(w[1])} mm · radius ${f1(Math.abs(w[0]))} mm`;
   if(S.mode==='dd'&&S.view==='design'&&ddMove(e,T))return;
   if(S.view==='design'&&mkMove(e,T))return;
@@ -2442,7 +2532,9 @@ function wire(){
  window.addEventListener('keydown',e=>{const m=e.metaKey||e.ctrlKey;if(!m)return;if(e.key==='z'||e.key==='Z'){if(/INPUT|TEXTAREA/.test(document.activeElement.tagName)&&document.activeElement.type==='text')return;e.preventDefault();undo(e.shiftKey?1:-1);}else if(e.key==='s'){e.preventDefault();$('#bSave').click();}});
  if(window.matchMedia)window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(started){render();syncStats();}});
 }
-function tamaChip(){const t=TRICKS.find(t=>t[0]===$('#tTama').value);$('#lTama b').textContent=t?t[1]:'Off';}
+function tamaChip(){const t=TRICKS.find(t=>t[0]===S.show.tama);$('#lTama b').textContent=S.show.tama==='free'?'Free':t?t[1]:'Off';}
+// the tama pill: Off + the tricks in the other views; in drag & draw the tama is always there, so Off becomes Free
+function tamaMode(){const dd=S.mode==='dd';if(dd&&S.show.tama==='none')S.show.tama='free';if(!dd&&S.show.tama==='free')S.show.tama='none';const sel=$('#tTama');sel.innerHTML='';sel.append(el('option',{value:dd?'free':'none'},dd?'Free':'Off'));for(const[v,t]of TRICKS.slice(1))sel.append(el('option',{value:v},t));sel.value=S.show.tama;if(DD.tool==='free'&&S.show.tama!=='free')DD.tool='point';tamaChip();}
 buildParams();wire();setView('design');setMode('dd');showStart(false);
 // phones: the top bar keeps the name, undo/redo and a menu button; everything else opens from the menu
 {const mb=$('#bMenu'),hm=$('#hmenu'),setMenu=o=>{document.body.classList.toggle('m-menu',o);mb.setAttribute('aria-expanded',o);};
