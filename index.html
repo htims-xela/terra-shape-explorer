@@ -22,6 +22,7 @@ header.top{display:flex;align-items:center;gap:8px;padding:8px 12px;background:v
 .top label{color:var(--muted);font-size:11px;display:flex;align-items:center;gap:4px}
 .top input[type=text]{width:120px}
 .spacer{flex:1}
+#hmenu{display:contents}#bUndo,#bRedo{order:1}#bPdf,#bDxf,#bGcode{order:2}#bMenu,#tTamaChip{display:none}
 .wrap{flex:1;display:grid;grid-template-columns:350px 1fr 310px;min-height:0}
 aside{background:var(--panel);overflow-y:auto;padding:10px 12px}
 aside.left{border-right:1px solid var(--line)}
@@ -123,16 +124,27 @@ textarea{width:100%;height:220px;font:11px/1.35 ui-monospace,Menlo,monospace;bac
 /* phones: one panel at a time (measures, shape view, balance), picked from a bar along the bottom */
 @media (max-width:760px){
  body{height:100dvh}
- header.top{gap:6px;padding:6px 10px}
- header.top .brand{font-size:14px;order:0}
- header.top .lang{order:1;margin-right:0}
- header.top .spacer{order:2}
- #bNew{order:3}
- header.top label{order:4;flex:1 1 30%;min-width:0;flex-direction:column;align-items:stretch;gap:1px;font-size:10px}
- .top input[type=text]{width:100%!important}
- header.top>button:not(#bNew){order:5;padding:4px 9px;font-size:12.5px;flex:1 0 auto}
- #bUndo,#bRedo{font-size:15px!important;padding:2px 9px!important}
- header.top input[type=text]{padding:3px 5px}
+ header.top{gap:6px;padding:6px 10px;flex-wrap:nowrap;position:relative}
+ header.top .brand{font-size:14px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0}
+ #bUndo,#bRedo{font-size:16px;padding:0;width:38px;height:32px;flex:none}
+ #bMenu{display:flex;align-items:center;justify-content:center;order:3;width:38px;height:32px;padding:0;flex:none}
+ #bMenu i{display:block;width:16px;height:2px;background:currentColor;border-radius:1px;box-shadow:0 5px 0 currentColor,0 -5px 0 currentColor}
+ body.m-menu #bMenu{background:color-mix(in srgb,var(--accent) 14%,var(--panel));border-color:var(--accent);color:var(--accent)}
+ #hmenu{display:none}
+ body.m-menu #hmenu{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:absolute;top:100%;left:8px;right:8px;margin-top:4px;padding:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.28);z-index:25;max-height:calc(100dvh - 70px);overflow:auto}
+ #hmenu .spacer{display:none}
+ #hmenu .lang{grid-column:1/-1;justify-self:start;margin:0}
+ #hmenu label{grid-column:1/-1;flex-direction:column;align-items:stretch;gap:2px;font-size:11px}
+ #hmenu input[type=text]{width:100%!important}
+ #hmenu>button{padding:9px 8px;font-size:13.5px}
+ #hmenu #bPdf{grid-column:1/-1}
+ #lTama{position:relative;border:1px solid var(--line);border-radius:999px;padding:3px 9px;background:var(--panel);color:var(--ink);gap:4px!important;max-width:150px}
+ #lTama .lt{display:none}
+ #tTamaChip{display:flex;gap:4px;align-items:center;min-width:0;white-space:nowrap}
+ #tTamaChip span{color:var(--muted)}
+ #tTamaChip b{font-weight:600;overflow:hidden;text-overflow:ellipsis}
+ #tTamaChip::after{content:'';flex:none;width:5px;height:5px;margin:0 1px 2px 2px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(45deg)}
+ #lTama select{position:absolute;inset:0;width:100%;height:100%;opacity:0;padding:0;border:none}
  .wrap{display:flex;flex-direction:column;min-height:0}
  .wrap>aside,.wrap>main{flex:1;min-height:0;display:none;border:none!important;max-height:none!important}
  body.m-params aside.left,body.m-bal aside.right{display:block}
@@ -169,18 +181,21 @@ textarea{width:100%;height:220px;font:11px/1.35 ui-monospace,Menlo,monospace;bac
 <body>
 <header class="top">
   <div class="brand">Terra Shape Explorer</div>
+  <div id="hmenu">
   <span class="seg2 lang" id="lang" translate="no"><button data-l="en" title="English">EN</button><button data-l="ja" title="日本語">日本語</button></span>
   <label>Brand <input type="text" id="mBrand"></label>
   <label>Shape name <input type="text" id="mModel"></label>
   <label>Designer <input type="text" id="mDesigner" placeholder="Name (email)" style="width:170px"></label>
   <div class="spacer"></div>
-  <button id="bNew" data-short="Open">New / Open…</button>
-  <button id="bSave" data-short="Save">Save project</button>
+  <button id="bNew">New / Open…</button>
+  <button id="bSave">Save project</button>
+  <button id="bPdf" class="pri">Export PDF</button>
+  <button id="bDxf">Export DXF</button>
+  <button id="bGcode">G-code…</button>
+  </div>
   <button id="bUndo" title="Undo (Ctrl/Cmd+Z)" data-short="↶">Undo</button>
   <button id="bRedo" title="Redo" data-short="↷">Redo</button>
-  <button id="bPdf" class="pri" data-short="PDF">Export PDF</button>
-  <button id="bDxf" data-short="DXF">Export DXF</button>
-  <button id="bGcode" data-short="G-code">G-code…</button>
+  <button id="bMenu" title="Menu" aria-label="Menu" aria-expanded="false"><i></i></button>
 </header>
 <div class="wrap">
   <aside class="left" id="params"></aside>
@@ -191,9 +206,7 @@ textarea{width:100%;height:220px;font:11px/1.35 ui-monospace,Menlo,monospace;bac
       <button class="tab" data-v="spec">Spec sheet</button>
       <button class="tab" data-v="compare">Compare</button>
       <div class="spacer"></div>
-      <label id="lTama">Show tama <select id="tTama"></select></label>
-      <label id="lDims"><input type="checkbox" id="tDims" checked> Station labels</label>
-      <label id="lZone"><input type="checkbox" id="tZone" checked> Locked taper</label>
+      <label id="lTama"><span class="lt">Show tama</span> <span id="tTamaChip"><span>Tama</span><b></b></span><select id="tTama"></select></label>
       <label id="lEll"><input type="checkbox" id="tEll"> Ellipses</label>
       <button id="bEllClr" title="Clear the ellipses shown now. A curve's ellipse comes back when you change that curve or pick it to draw; tick Ellipses again to show them all." disabled>Clear ellipses</button>
       <button id="bPage" style="display:none">Page 2 ›</button>
@@ -551,8 +564,7 @@ const JA={
 "Axe": "アックス",
 "On spike": "けん先に刺す",
 "Stilt": "スティルト",
-"Station labels": "測点ラベル",
-"Locked taper": "固定テーパー",
+"Menu": "メニュー",
 "Ellipses": "楕円",
 "Clear the ellipses shown now. A curve's ellipse comes back when you change that curve or pick it to draw; tick Ellipses again to show them all.": "今表示されている楕円を消します。曲線を変更するか、描く対象に選ぶと、その曲線の楕円がまた表示されます。「楕円」をもう一度チェックすると全て表示されます。",
 "Clear ellipses": "楕円を消す",
@@ -1336,7 +1348,7 @@ function analyze(G){
 const elevTxt=L=>L?`${f1(Math.abs(L.elev))}° ${L.elev>=0?'above':'below'} horiz.`:'n/a';
 
 /* ================= state ================= */
-const S={meta:{brand:'TERRA',model:'KOCHO',designer:'',tolLocked:true},p:defaults(),curves:{},locks:{},snaps:[],cmp:[],cmpOn:{current:true},view:'design',show:{cog:true,tama:'none',dims:true,zone:true,ell:false},draw:{on:false,seg:'swoopBg',smooth:true,strength:3},page:1};
+const S={meta:{brand:'TERRA',model:'KOCHO',designer:'',tolLocked:true},p:defaults(),curves:{},locks:{},snaps:[],cmp:[],cmpOn:{current:true},view:'design',show:{cog:true,tama:'none',ell:false},draw:{on:false,seg:'swoopBg',smooth:true,strength:3},page:1};
 let CUR={G:null,A:null},hist=[],hpos=-1,started=false;
 const snapState=()=>JSON.stringify({p:S.p,curves:S.curves});
 function commit(){const s=snapState();if(hist[hpos]===s)return;hist=hist.slice(0,hpos+1);hist.push(s);if(hist.length>150)hist.shift();hpos=hist.length-1;autosave();updUndo();}
@@ -1608,8 +1620,6 @@ function drawDesign(c,T){
  for(const[x,y,,f]of stringHoles(p,G)){c.beginPath();c.arc(sx(T,x),sy(T,y),Math.max(1.5,STR_HOLE_D/2*T.z),0,7);if(f!=='back'){c.fillStyle=col('--canvas');c.fill();}else c.setLineDash([2,2]);c.strokeStyle=col('--edge');c.lineWidth=1.2;c.stroke();c.setLineDash([]);}
  c.font='10px -apple-system,Helvetica,Arial,sans-serif';c.fillStyle=col('--edge');c.textAlign='center';
  c.fillText('BIG',sx(T,G.xE-G.xw-p.bgBandL/2),sy(T,G.yA)+3);c.fillText('SMALL',sx(T,G.xS-G.xw+p.smBandL/2),sy(T,G.yA)+3);c.textAlign='left';
- if(S.show.zone){const x=sx(T,G.xE-G.xw)+10,y=sy(T,(G.st[0]+p.kenH)/2);label(c,'Locked sarado-fit taper',x,y,col('--lock'));}
- if(S.show.dims){const xl=sx(T,G.xS-G.xw)-10;c.lineWidth=1;G.st.forEach((y,i)=>{const r=G.D[i]/2;c.strokeStyle=col('--lock');c.setLineDash([2,3]);c.beginPath();c.moveTo(xl+2,sy(T,y));c.lineTo(sx(T,-r),sy(T,y));c.stroke();c.setLineDash([]);if(i===0||Math.abs(G.st[i-1]-y)*T.z>14)label(c,'Ø'+f2(G.D[i]),xl,sy(T,y)+4,col('--lock'),'right');});}
  const P=poseCached(CUR,S.show.tama);if(P){drawTama(c,T,p,P,TRICKS.find(t=>t[0]===S.show.tama)[1]);}
  if(S.show.cog&&!B){cogMark(c,sx(T,A.cog.x),sy(T,A.cog.y),7,col('--cog'));label(c,`CoG ${f1(A.cog.y)} mm`,sx(T,A.cog.x)+12,sy(T,A.cog.y)+4,col('--cog'));}
  drawEllipses(c,T,'design');drawHighlight(c,T,'design');
@@ -1972,7 +1982,7 @@ function refresh(light){
  syncCompare();updUndo();
 }
 function setView(v){S.view=v;document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('sel',t.dataset.v===v));
- $('#lDims').style.display=$('#lZone').style.display=$('#lTama').style.display=v==='design'?'flex':'none';$('#lEll').style.display=v==='design'||v==='sarado'?'flex':'none';$('#bEllClr').style.display=v==='design'||v==='sarado'?'':'none';$('#bPage').style.display=v==='spec'?'':'none';
+ $('#lTama').style.display=v==='design'?'flex':'none';$('#lEll').style.display=v==='design'||v==='sarado'?'flex':'none';$('#bEllClr').style.display=v==='design'||v==='sarado'?'':'none';$('#bPage').style.display=v==='spec'?'':'none';
  document.querySelector('.zoom').style.display=v==='spec'?'none':'flex';syncDraw();syncCompare();render();}
 function showStart(canCancel){
  const host=$('#sRecent');host.innerHTML='';$('#sCancel').style.display=canCancel?'':'none';
@@ -1999,8 +2009,8 @@ function wire(){
  $('#gSave').onclick=()=>download(`${slug(S.meta.model)}_${$('#gPart').value}.nc`,gcode(),'text/plain');
  for(const[id,k]of[['#mBrand','brand'],['#mModel','model'],['#mDesigner','designer']])$(id).oninput=e=>{S.meta[k]=e.target.value;autosave();if(S.view==='spec')render();};
  $('#tCog').onchange=e=>{S.show.cog=e.target.checked;render();};
- $('#tTama').onchange=e=>{S.show.tama=e.target.value;VT.design.auto=true;render();};
- $('#tDims').onchange=e=>{S.show.dims=e.target.checked;render();};$('#tZone').onchange=e=>{S.show.zone=e.target.checked;render();};$('#tEll').onchange=e=>{S.show.ell=e.target.checked;S.ellHide={};$('#bEllClr').disabled=!S.show.ell;render();};$('#bEllClr').onclick=clearEllipses;
+ $('#tTama').onchange=e=>{S.show.tama=e.target.value;VT.design.auto=true;tamaChip();render();};tamaChip();
+ $('#tEll').onchange=e=>{S.show.ell=e.target.checked;S.ellHide={};$('#bEllClr').disabled=!S.show.ell;render();};$('#bEllClr').onclick=clearEllipses;
  $('#bPage').onclick=()=>{S.page=S.page===1?2:1;$('#bPage').textContent=S.page===1?'Page 2 ›':'‹ Page 1';render();};
  $('#dSeg').onchange=e=>pickSeg(e.target.value);
  $('#dToggle').onclick=()=>{S.draw.on=!S.draw.on;if(S.draw.on)pickSeg(S.draw.seg);syncDraw();render();};
@@ -2031,7 +2041,14 @@ function wire(){
  window.addEventListener('keydown',e=>{const m=e.metaKey||e.ctrlKey;if(!m)return;if(e.key==='z'||e.key==='Z'){if(/INPUT|TEXTAREA/.test(document.activeElement.tagName)&&document.activeElement.type==='text')return;e.preventDefault();undo(e.shiftKey?1:-1);}else if(e.key==='s'){e.preventDefault();$('#bSave').click();}});
  if(window.matchMedia)window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(started){render();syncStats();}});
 }
+function tamaChip(){const t=TRICKS.find(t=>t[0]===$('#tTama').value);$('#tTamaChip b').textContent=t?t[1]:'Off';}
 buildParams();wire();setView('design');showStart(false);
+// phones: the top bar keeps the name, undo/redo and a menu button; everything else opens from the menu
+{const mb=$('#bMenu'),hm=$('#hmenu'),setMenu=o=>{document.body.classList.toggle('m-menu',o);mb.setAttribute('aria-expanded',o);};
+ mb.onclick=e=>{e.stopPropagation();setMenu(!document.body.classList.contains('m-menu'));};
+ hm.addEventListener('click',e=>{if(e.target.closest('#hmenu>button'))setMenu(false);});
+ document.addEventListener('pointerdown',e=>{if(document.body.classList.contains('m-menu')&&!e.target.closest('#hmenu,#bMenu'))setMenu(false);});
+ matchMedia('(max-width:760px)').addEventListener('change',()=>setMenu(false));}
 // phones: the contour drawing bar folds away under its title
 document.querySelector('.drawbar>b').onclick=()=>{if(matchMedia('(max-width:760px)').matches){document.body.classList.toggle('m-draw');requestAnimationFrame(render);}};
 // phones get short labels on the top-bar buttons so they fit on one row
