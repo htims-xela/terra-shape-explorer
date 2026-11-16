@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Terra Shape Explorer</title>
 <style>
 :root{--bg:#f3f1ec;--panel:#fff;--ink:#1c1c1e;--muted:#6d6d72;--line:#dcd8d0;--accent:#2f6f5e;--accent-ink:#fff;--wood:#ecd9b6;--sarado:#e2c898;--edge:#6e5230;--lock:#c0392b;--cog:#b3261e;--tama:#2c6fbb;--warn-bg:#fff3d6;--warn-ink:#6f4a00;--canvas:#fbfaf7;--grid:#ebe7df;--draw:#d35400;--soft:#f6f4ef}
@@ -119,6 +119,51 @@ textarea{width:100%;height:220px;font:11px/1.35 ui-monospace,Menlo,monospace;bac
 #toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:12.5px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:30;max-width:80vw}
 #toast.show{opacity:.95}
 @media (max-width:1100px){.wrap{grid-template-columns:300px 1fr}aside.right{grid-column:1/-1;border-left:none;border-top:1px solid var(--line);max-height:34vh}}
+#mnav{display:none}
+/* phones: one panel at a time (measures, shape view, balance), picked from a bar along the bottom */
+@media (max-width:760px){
+ body{height:100dvh}
+ header.top{gap:6px;padding:6px 10px}
+ header.top .brand{font-size:14px;order:0}
+ header.top .lang{order:1;margin-right:0}
+ header.top .spacer{order:2}
+ #bNew{order:3}
+ header.top label{order:4;flex:1 1 30%;min-width:0;flex-direction:column;align-items:stretch;gap:1px;font-size:10px}
+ .top input[type=text]{width:100%!important}
+ header.top>button:not(#bNew){order:5;padding:4px 9px;font-size:12.5px;flex:1 0 auto}
+ #bUndo,#bRedo{font-size:15px!important;padding:2px 9px!important}
+ header.top input[type=text]{padding:3px 5px}
+ .wrap{display:flex;flex-direction:column;min-height:0}
+ .wrap>aside,.wrap>main{flex:1;min-height:0;display:none;border:none!important;max-height:none!important}
+ body.m-params aside.left,body.m-bal aside.right{display:block}
+ body.m-view .wrap>main{display:flex}
+ .tabs{padding:6px 8px 0;gap:4px}
+ .tabs .tab{padding:5px 8px;font-size:12px}
+ .tabs .spacer{flex-basis:100%;height:0}
+ .drawbar{margin:0 8px;gap:6px}
+ .drawbar select{max-width:none;flex:1 1 100%;min-width:0;width:100%}
+ #dHint{display:none}
+ .drawbar>b{cursor:pointer;flex:1 1 100%;display:flex;align-items:center}
+ .drawbar>b::after{content:'';margin-left:auto;width:6px;height:6px;border-right:1.6px solid currentColor;border-bottom:1.6px solid currentColor;transform:rotate(-45deg)}
+ body.m-draw .drawbar>b::after{transform:translateY(-2px) rotate(45deg)}
+ body:not(.m-draw) .drawbar>:not(b){display:none}
+ .tabs label{font-size:11.5px}
+ .stage{margin:0 8px 8px;min-height:240px}
+ .zoom button{width:34px;height:34px;padding:0}
+ #cmpPanel{margin:0 8px 8px}
+ input[type=text],input[type=number],select{font-size:16px}
+ .pctl input[type=number]{width:84px}
+ .stp button{width:32px;height:30px;font-size:16px}
+ .plk{width:30px;height:30px}
+ .prow{padding:7px 0}
+ .mini canvas{height:130px}
+ .gform{grid-template-columns:1fr}
+ .card{padding:16px}
+ #toast{bottom:70px;left:12px;right:12px;transform:none;max-width:none;text-align:center}
+ #mnav{display:flex;border-top:1px solid var(--line);background:var(--panel);padding:4px 6px calc(4px + env(safe-area-inset-bottom))}
+ #mnav button{flex:1;border:none;background:transparent;color:var(--muted);font-size:13px;padding:9px 4px;border-radius:8px}
+ #mnav button.act{background:color-mix(in srgb,var(--accent) 14%,var(--panel));color:var(--accent);font-weight:600}
+}
 </style>
 </head>
 <body>
@@ -129,13 +174,13 @@ textarea{width:100%;height:220px;font:11px/1.35 ui-monospace,Menlo,monospace;bac
   <label>Shape name <input type="text" id="mModel"></label>
   <label>Designer <input type="text" id="mDesigner" placeholder="Name (email)" style="width:170px"></label>
   <div class="spacer"></div>
-  <button id="bNew">New / Open…</button>
-  <button id="bSave">Save project</button>
-  <button id="bUndo" title="Undo (Ctrl/Cmd+Z)">Undo</button>
-  <button id="bRedo" title="Redo">Redo</button>
-  <button id="bPdf" class="pri">Export PDF</button>
-  <button id="bDxf">Export DXF</button>
-  <button id="bGcode">G-code…</button>
+  <button id="bNew" data-short="Open">New / Open…</button>
+  <button id="bSave" data-short="Save">Save project</button>
+  <button id="bUndo" title="Undo (Ctrl/Cmd+Z)" data-short="↶">Undo</button>
+  <button id="bRedo" title="Redo" data-short="↷">Redo</button>
+  <button id="bPdf" class="pri" data-short="PDF">Export PDF</button>
+  <button id="bDxf" data-short="DXF">Export DXF</button>
+  <button id="bGcode" data-short="G-code">G-code…</button>
 </header>
 <div class="wrap">
   <aside class="left" id="params"></aside>
@@ -187,6 +232,8 @@ textarea{width:100%;height:220px;font:11px/1.35 ui-monospace,Menlo,monospace;bac
     <div id="warns"></div>
   </aside>
 </div>
+
+<nav id="mnav"><button data-m="params">Measures</button><button data-m="view">Shape</button><button data-m="bal">Balance</button></nav>
 
 <div class="modal" id="start"><div class="card">
   <h1>Terra Shape Explorer</h1>
@@ -532,6 +579,11 @@ const JA={
 "along sarado # mm · radius # mm": "皿胴方向 # mm · 半径 # mm",
 "height # mm · radius # mm": "高さ # mm · 半径 # mm",
 "Balance": "バランス",
+"Measures": "寸法",
+"Save": "保存",
+"Open": "開く",
+"G-code": "Gコード",
+"Shape": "形状",
 "Show centre of gravity": "重心を表示",
 "Lunar lander · big cup": "ルナ · 大皿",
 "Lunar lander · small cup": "ルナ · 小皿",
@@ -1592,6 +1644,7 @@ function render(){
 }
 function drawMini(id,L){
  const[w,h,c]=sizeCanvas($(id)),G=CUR.G,A=CUR.A,p=G.p;c.clearRect(0,0,w,h);
+ if(w<40||h<40)return; // hidden (e.g. the balance panel on a phone): drawn when it is shown
  if(!L){c.fillStyle=col('--muted');c.font='11px sans-serif';c.fillText('No resting position',10,20);return;}
  const a=L.ang,ca=Math.cos(a),sa=Math.sin(a),rot=([x,y])=>{const dx=x-L.C.x,dy=y-L.C.y;return[dx*ca-dy*sa,dx*sa+dy*ca];};
  const sil=silhouette(G),ken=sil.ken.map(rot),sar=sil.sar.map(rot),R=p.tamaD/2,all=[...ken,...sar,[-R,-R],[R,R]];
@@ -1960,7 +2013,12 @@ function wire(){
  $('#zIn').onclick=()=>zoom(1.25,CW/2,CH/2);$('#zOut').onclick=()=>zoom(0.8,CW/2,CH/2);
  cv.addEventListener('wheel',e=>{e.preventDefault();const r=cv.getBoundingClientRect();zoom(Math.exp(-e.deltaY*0.0015),e.clientX-r.left,e.clientY-r.top);},{passive:false});
  const world=e=>{const r=cv.getBoundingClientRect(),T=VT[S.view],w=[(e.clientX-r.left-T.ox)/T.z,(T.oy-(e.clientY-r.top))/T.z],B=balView();return B?rotW(B,w,true):w;};
- cv.onpointerdown=e=>{const T=VT[S.view];if(!T)return;cv.setPointerCapture(e.pointerId);const seg=CUR.G.segs[S.draw.seg];if(S.draw.on&&segOK(seg,S.view))stroke=[world(e)];else pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};};
+ const touch=new Map();let pinch=null;const pinchGeo=()=>{const[a,b]=[...touch.values()],r=cv.getBoundingClientRect();return{d:Math.hypot(a.x-b.x,a.y-b.y),mx:(a.x+b.x)/2-r.left,my:(a.y+b.y)/2-r.top};};
+ // two fingers on a touch screen: pinch to zoom and drag to pan (a drawing stroke in progress is dropped)
+ cv.addEventListener('pointerdown',e=>{if(e.pointerType!=='touch')return;touch.set(e.pointerId,{x:e.clientX,y:e.clientY});if(touch.size===2){stroke=null;pan=null;pinch=pinchGeo();render();}},true);
+ cv.addEventListener('pointermove',e=>{if(!touch.has(e.pointerId))return;touch.set(e.pointerId,{x:e.clientX,y:e.clientY});if(!pinch||touch.size<2)return;e.stopImmediatePropagation();const T=VT[S.view],g=pinchGeo();if(T&&pinch.d>0){T.auto=false;T.ox+=g.mx-pinch.mx;T.oy+=g.my-pinch.my;zoom(g.d/pinch.d,g.mx,g.my);}pinch=g;},true);
+ const tEnd=e=>{touch.delete(e.pointerId);if(touch.size<2&&pinch){pinch=null;stroke=null;pan=null;}};cv.addEventListener('pointerup',tEnd,true);cv.addEventListener('pointercancel',tEnd,true);
+ cv.onpointerdown=e=>{const T=VT[S.view];if(!T||pinch)return;cv.setPointerCapture(e.pointerId);const seg=CUR.G.segs[S.draw.seg];if(S.draw.on&&segOK(seg,S.view))stroke=[world(e)];else pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};};
  cv.onpointermove=e=>{const T=VT[S.view];if(!T){$('#hud').textContent='';return;}const w=world(e);$('#hud').textContent=S.view==='sarado'?`along sarado ${f1(w[0])} mm · radius ${f1(Math.abs(w[1]))} mm`:`height ${f1(w[1])} mm · radius ${f1(Math.abs(w[0]))} mm`;
   if(stroke){stroke.push(w);render();}else if(pan){T.auto=false;T.ox=pan.ox+e.clientX-pan.x;T.oy=pan.oy+e.clientY-pan.y;render();}};
  const up=()=>{if(stroke){const G=CUR.G,seg=G.segs[S.draw.seg],pts=stroke.map(q=>toSeg(G,seg,S.view,q[0],q[1]));stroke=null;
@@ -1972,6 +2030,13 @@ function wire(){
  if(window.matchMedia)window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(started){render();syncStats();}});
 }
 buildParams();wire();setView('design');showStart(false);
+// phones: the contour drawing bar folds away under its title
+document.querySelector('.drawbar>b').onclick=()=>{if(matchMedia('(max-width:760px)').matches){document.body.classList.toggle('m-draw');requestAnimationFrame(render);}};
+// phones get short labels on the top-bar buttons so they fit on one row
+{const mq=matchMedia('(max-width:760px)'),btns=[...document.querySelectorAll('header.top button[data-short]')];btns.forEach(b=>b.dataset.full=b.textContent);
+ const sh=()=>btns.forEach(b=>{const t=mq.matches?b.dataset.short:b.dataset.full;if(b.dataset.cur!==t){b.dataset.cur=t;b.textContent=t;}});mq.addEventListener('change',sh);sh();}
+{const setM=m=>{for(const k of['params','view','bal'])document.body.classList.toggle('m-'+k,k===m);document.querySelectorAll('#mnav button').forEach(b=>b.classList.toggle('act',b.dataset.m===m));requestAnimationFrame(()=>{if(started){render();syncStats();}});};
+ document.querySelectorAll('#mnav button').forEach(b=>b.onclick=()=>setM(b.dataset.m));setM('view');}
 trObs.observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['title','placeholder']});
 document.querySelectorAll('#lang button').forEach(b=>b.onclick=()=>setLang(b.dataset.l));setLang(LANG.cur);
 </script>
