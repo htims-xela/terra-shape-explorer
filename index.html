@@ -613,7 +613,7 @@ const JA={
 "Menu": "メニュー",
 "When on, dragging spins the view on the screen. Hold Shift for 15° steps.": "オンにすると、ドラッグで表示が回ります。Shiftで15°ずつ回ります。",
 "Draw one wall of the bottom cup hole, from the cup up into the ken; the other side mirrors it. Or use the hole from another shape.": "中皿の穴の片側の壁を、皿からけんの中へ向かって描きます。反対側は対称になります。ほかの形状の穴を使うこともできます。",
-"Drag a contour in or out. Click a spot on it to nudge it in small steps. On the tama it changes the tama measures.": "輪郭をドラッグして内側 / 外側へ動かします。輪郭上をクリックすると、小さな刻みで動かせます。玉の上では、玉の寸法が変わります。",
+"Drag a contour in or out. Click a spot on it to nudge it in small steps. This works on the outside of the tama too; on the tama hole it changes the hole measures.": "輪郭をドラッグして内側 / 外側へ動かします。輪郭上をクリックすると、小さな刻みで動かせます。玉の外側にも使えます。玉の穴の上では、穴の寸法が変わります。",
 "Drag to move the view; scroll or pinch to zoom. Switch on Turn to spin the view by dragging around the shape.": "ドラッグで表示を動かし、スクロールまたはピンチで拡大・縮小します。「回す」をオンにすると、形状のまわりをドラッグして表示を回せます。",
 "Tama hole": "玉穴",
 "Tama hole bevel": "玉穴の面取り",
@@ -654,7 +654,7 @@ const JA={
 "Spike bevel": "けん先の面取り",
 "Ring": "リング",
 "Handle swoop": "ハンドルスウープ",
-"Draw along a contour of the ken or sarado.": "けんまたは皿胴の輪郭に沿って描いてください。",
+"Draw along a contour of the ken, sarado or tama.": "けん、皿胴または玉の輪郭に沿って描いてください。",
 "This contour already follows its measures.": "この輪郭はすでに寸法どおりです。",
 "More": "増やす",
 "Less": "減らす",
@@ -670,7 +670,7 @@ const JA={
 "Click two points to measure between them.": "2点をクリックすると、その間の距離を測ります。",
 "Click a hand-shaped contour to put it back to its measured shape.": "手で成形した輪郭をクリックすると、寸法どおりの形に戻ります。",
 "Rub over a contour to even it out.": "輪郭をこすると、なめらかになります。",
-"Draw over any part of a contour to replace just that part. The ends snap to the edge.": "輪郭の一部をなぞると、その部分だけが置き換わります。両端は輪郭に吸着します。",
+"Draw over any part of a contour, the tama included, to replace just that part. The ends snap to the edge.": "輪郭（玉も含む）の一部をなぞると、その部分だけが置き換わります。両端は輪郭に吸着します。",
 "Drag a contour in or out. Click a spot on it to nudge it in small steps.": "輪郭をドラッグして内側 / 外側へ動かします。輪郭上をクリックすると、小さな刻みで動かせます。",
 "Drag a dot to move that measure point. Click a dot to fine-tune it here.": "点をドラッグすると、その寸法点が動きます。点をクリックすると、ここで微調整できます。",
 "Drag to move the view. Scroll or pinch to zoom.": "ドラッグで表示を動かします。スクロールまたはピンチで拡大・縮小します。",
@@ -823,6 +823,8 @@ const JA={
 "Small cup hollow": "小皿のくぼみ",
 "Big cup hollow": "大皿のくぼみ",
 "Sarado swoop (one surface)": "皿胴スウープ（1面）",
+"Tama outside": "玉の外側",
+"HAND-SHAPED (Ø IS THE MEASURED BALL)": "手で成形（Øは元の球の寸法）",
 "Sarado swoop, small cup side": "皿胴スウープ（小皿側）",
 "Sarado swoop, big cup side": "皿胴スウープ（大皿側）",
 "Balanced: tama held, ken + sarado CoG straight above the contact": "つり合い：玉を持った状態。けん＋皿胴の重心が接点の真上",
@@ -1412,6 +1414,8 @@ function build(p,curves){
  const fS={r:cS.step?0:cS.r[0]},fB={r:cB.step?0:cB.r[0]};
  const sarPts=mono([...cS.pts,...mir(cB.pts)]);
  const swoopR=swAll?[minConcaveR(swAll),minConcaveR(swAll)]:[minConcaveR(ws),minConcaveR(wb)],swoopDia=2*Math.min(...swoopR),fil=[fS.r,fB.r];
+ // tama outside: s = arc length round the measured ball from the hole's bevel edge to the string hole, v = distance from the tama centre; hand-shaped only in drag & draw
+ {const T0=tamaBase(p),R=T0.R;run(mk('tamaBall','Tama outside','tama','design',[R*T0.fM,R],[R*T0.fS,R],{grp:'Tama',fn:()=>R,R,nodraw:true,lo:s=>tamaLo(T0,s/R),hi:()=>R+12}));}
  const G={p,W,segs,order,kenPts,cav,bcP:cavP,cupP:bcP,hole,sarPts,smC,bgC,smDR,bgDR,xS,xE,xw,yA,kR,st,D,yB,swoopR,swoopDia,fil,stepR,oneSw,sarStep:[cS,cB],rK:y=>interp(kenPts,y),rS:x=>interp(sarPts,x)};
  const wall=(dr,xf)=>{let m=1e9;for(let i=1;i<dr.length;i++){const w=G.rS(xf(dr[i][0]))-dr[i][1];if(w<m)m=w;}return m;};
  if(wall(smDR,d=>xS+d)<1.5)W.push('Small cup: the wall between the cup and the outside of the sarado is under 1.5 mm.');
@@ -1435,8 +1439,26 @@ function stringHoles(p,G){const o=[],top=G.yA+p.waistD/2;for(let i=1;i<=p.sarStr
 const strSidesTxt=p=>p.sarStrSides==='front'?'RIGHTY ONLY':p.sarStrSides==='back'?'LEFTY ONLY':'BOTH SIDES';
 
 /* ================= tama positions ================= */
-function mkTama(p){const R=p.tamaD/2,cr=p.tamaCsD/2,hr=p.tamaHoleD/2,yM=Math.sqrt(Math.max(0,R*R-cr*cr)),yJ=yM-p.tamaCsDepth,end=R-p.tamaHoleDepth,sr=TAMA_STR_D/2;
- return{R,cr,hr,yM,yJ,end,sr,holeR:al=>al>=yJ?(yM>yJ?hr+(cr-hr)*Math.min(1,(al-yJ)/(yM-yJ)):cr):al>=end?hr:sr};}
+// the tama in its own frame: al runs along the hole axis (towards the hole), r across it; f is the angle from that axis, rho the distance from the centre.
+// The outside is a ball of Ø tamaD unless it has been hand-shaped in drag & draw (contour 'tamaBall', between the hole's bevel edge fM and the string hole fS).
+function tamaBase(p){const R=p.tamaD/2,cr=p.tamaCsD/2,hr=p.tamaHoleD/2,yM=Math.sqrt(Math.max(0,R*R-cr*cr)),yJ=yM-p.tamaCsDepth,end=R-p.tamaHoleDepth,sr=TAMA_STR_D/2;
+ const T={R,cr,hr,yM,yJ,end,sr,fM:Math.atan2(cr,yM),fS:Math.PI-Math.asin(Math.min(1,sr/R)),Rmax:R,rho:null,holeR:al=>al>=yJ?(yM>yJ?hr+(cr-hr)*Math.min(1,(al-yJ)/(yM-yJ)):cr):al>=end?hr:sr};
+ T.rhoAt=f=>T.rho?T.rho(f):R;
+ T.outer=(n=48)=>{const o=[[T.rhoAt(T.fS)*Math.cos(T.fS),0]];for(let i=0;i<=n;i++){const f=lerp(T.fS,T.fM,i/n),q=T.rhoAt(f);o.push([q*Math.cos(f),q*Math.sin(f)]);}o[o.length-1]=[yM,cr];return o;}; // [al, r] from the bottom (on the axis) up to the bevel edge
+ return T;}
+// smallest distance from the centre the outside may come in to at angle f: 1.5 mm of wood left around the hole
+function tamaLo(T,f){const c=Math.cos(f),s=Math.sin(f);let lo=4;for(let q=4;q<=T.R+12;q+=0.25){if(q*s-T.holeR(q*c)<1.5)lo=q+0.25;}return Math.min(lo,T.R);}
+function mkTama(p,G){
+ if(G&&G._T&&G._T.p===p)return G._T;
+ const T=tamaBase(p),sg=G&&G.segs&&G.segs.tamaBall;
+ if(sg&&sg.drawn&&sg.out){const o=sg.out,K=360,tb=new Float64Array(K+1);let j=0,m=T.R;
+  for(let i=0;i<=K;i++){const f=Math.PI*i/K,s=f*T.R;let q=T.R;if(f>T.fM&&f<T.fS){while(j<o.length-2&&o[j+1][0]<s)j++;const a=o[j],b=o[j+1],t=clamp((s-a[0])/((b[0]-a[0])||1),0,1);q=lerp(a[1],b[1],t);}tb[i]=q;if(q>m)m=q;}
+  T.rho=f=>{const x=clamp(f,0,Math.PI)/Math.PI*K,i=Math.min(K-1,Math.floor(x));return lerp(tb[i],tb[i+1],x-i);};T.Rmax=m;T.shaped=true;}
+ if(G){T.p=p;G._T=T;}return T;}
+// the whole outside of the tama as a closed world polygon (both sides, over the bevel too)
+function tamaLoop(T,C,u,n=120){const v=[-u[1],u[0]],o=[];for(const sd of[1,-1])for(let i=0;i<=n;i++){const f=sd>0?Math.PI*i/n:Math.PI*(1-i/n),q=T.rhoAt(f),al=q*Math.cos(f),r=sd*q*Math.sin(f);o.push([C.x+u[0]*al+v[0]*r,C.y+u[1]*al+v[1]*r]);}return o;}
+// volume of the outside, a solid of revolution seen from its centre: 2π/3 ∫ rho³ sin f df
+function tamaVol(T){if(!T.rho)return 4/3*Math.PI*T.R**3;let V=0;const n=720;for(let i=0;i<n;i++){const f=Math.PI*(i+0.5)/n;V+=T.rho(f)**3*Math.sin(f);}return 2*Math.PI/3*V*Math.PI/n;}
 function densify(poly,out,step=0.4){for(let i=0;i<poly.length;i++){const a=poly[i],b=poly[(i+1)%poly.length],L=Math.hypot(b[0]-a[0],b[1]-a[1]),n=Math.max(1,Math.ceil(L/step));for(let j=0;j<n;j++)out.push(a[0]+(b[0]-a[0])*j/n,a[1]+(b[1]-a[1])*j/n);}return out;}
 // Overlap is tested against the real 3D shapes, not the flat section. A flat section lets a round rim or ridge slip into the tama hole where the solid ring would touch the ball either side of the hole.
 // obs: points all over the surface of the ken (profile spun about its axis) and the sarado (spun about its own axis). Only the z >= 0 half is kept: the tama centre and hole axis lie in the z = 0 plane, so the other half mirrors it.
@@ -1448,14 +1470,14 @@ function obs(G){if(!G._obs){const[k,q]=obsFlat(G),cnt=r=>Math.max(1,Math.ceil(Ma
   G._obs=o;}return G._obs;}
 // quick test in the section plane: the nearest point of a spun shape to the tama centre always lies in that plane, so if nothing there is within reach nothing in 3D is either
 function nearFlat(G,cx,cy,R){const[k,q]=obsFlat(G),R2=R*R;for(let i=0;i<k.length;i+=2){const dx=k[i]-cx,dy=k[i+1]-cy;if(dx*dx+dy*dy<R2)return true;}for(let i=0;i<q.length;i+=2){const dx=q[i]-cx,dy=G.yA+q[i+1]-cy;if(dx*dx+dy*dy<R2)return true;}return false;}
-function hit(T,O,cx,cy,ux,uy){const R=T.R-0.15,R2=R*R;for(let i=0;i<O.length;i+=3){const dz=O[i+2];if(dz>R)continue;const dx=O[i]-cx;if(dx>R||dx<-R)continue;const dy=O[i+1]-cy;if(dy>R||dy<-R)continue;const d2=dx*dx+dy*dy+dz*dz;if(d2>=R2)continue;const al=dx*ux+dy*uy,rad=Math.sqrt(Math.max(0,d2-al*al));if(rad<T.holeR(al)-0.15)continue;return true;}return false;}
+function hit(T,O,cx,cy,ux,uy){const R=T.Rmax-0.15,R2=R*R,rh=T.rho;for(let i=0;i<O.length;i+=3){const dz=O[i+2];if(dz>R)continue;const dx=O[i]-cx;if(dx>R||dx<-R)continue;const dy=O[i+1]-cy;if(dy>R||dy<-R)continue;const d2=dx*dx+dy*dy+dz*dz;if(d2>=R2)continue;const al=dx*ux+dy*uy,rad=Math.sqrt(Math.max(0,d2-al*al));if(rad<T.holeR(al)-0.15)continue;if(rh){const q=rh(Math.atan2(rad,al))-0.15;if(d2>=q*q)continue;}return true;}return false;}
 // the same test in the section plane only. It is exact when the tama sits on a piece's own axis (in a cup, on the spike, under the base), which is all seat() is used for, and it is much cheaper: the balance read-outs call it on every change.
-function hitFlat(T,G,cx,cy,ux,uy){const[k,q]=obsFlat(G),R=T.R-0.15,R2=R*R,one=(dx,dy)=>{const d2=dx*dx+dy*dy;if(d2>=R2)return false;const al=dx*ux+dy*uy,rad=Math.sqrt(Math.max(0,d2-al*al));return rad>=T.holeR(al)-0.15;};
+function hitFlat(T,G,cx,cy,ux,uy){const[k,q]=obsFlat(G),R=T.Rmax-0.15,R2=R*R,rh=T.rho,one=(dx,dy)=>{const d2=dx*dx+dy*dy;if(d2>=R2)return false;const al=dx*ux+dy*uy,rad=Math.sqrt(Math.max(0,d2-al*al));if(rad<T.holeR(al)-0.15)return false;if(rh){const r2=rh(Math.atan2(rad,al))-0.15;return d2<r2*r2;}return true;};
  for(let i=0;i<k.length;i+=2)if(one(k[i]-cx,k[i+1]-cy))return true;for(let i=0;i<q.length;i+=2)if(one(q[i]-cx,G.yA+q[i+1]-cy))return true;return false;}
-function seat(G,A,n,u){const T=mkTama(G.p),C=t=>({x:A[0]+n[0]*t,y:A[1]+n[1]*t}),H=t=>{const c=C(t);return hitFlat(T,G,c.x,c.y,u[0],u[1]);};
- let lo=-2*T.R,hi=2*T.R+20;while(H(hi)&&hi<2000)hi*=1.6;if(!H(lo)){const c=C(lo);return{C:c,u,piv:c};}for(let i=0;i<36;i++){const m=(lo+hi)/2;if(H(m))lo=m;else hi=m;}const c=C(hi+0.02);return{C:c,u,piv:c};}
+function seat(G,A,n,u){const T=mkTama(G.p,G),C=t=>({x:A[0]+n[0]*t,y:A[1]+n[1]*t}),H=t=>{const c=C(t);return hitFlat(T,G,c.x,c.y,u[0],u[1]);};
+ let lo=-2*T.Rmax,hi=2*T.Rmax+20;while(H(hi)&&hi<2000)hi*=1.6;if(!H(lo)){const c=C(lo);return{C:c,u,piv:c};}for(let i=0;i<36;i++){const m=(lo+hi)/2;if(H(m))lo=m;else hi=m;}const c=C(hi+0.02);return{C:c,u,piv:c};}
 function stall(G,E,a0,sg){
- const T=mkTama(G.p),O=obs(G),dE=clamp(Math.max(T.yM-T.cr,T.yJ-T.hr),1,T.R);
+ const T=mkTama(G.p,G),O=obs(G),dE=clamp(Math.max(T.yM-T.cr,T.yJ-T.hr),1,T.R);
  const at=a=>{const s=Math.sin(a),c=Math.cos(a);return{C:{x:E[0]+dE*s,y:E[1]+dE*c},u:[-s,-c]};},H=a=>{const q=at(a);return hit(T,O,q.C.x,q.C.y,q.u[0],q.u[1]);};
  const st=Math.PI/360,edge=(lo,hi)=>{for(let i=0;i<22;i++){const m=(lo+hi)/2;if(H(m))hi=m;else lo=m;}return at(lo);};
  let start=a0;
@@ -1465,8 +1487,8 @@ function stall(G,E,a0,sg){
 }
 // tama hole resting on an edge E: for each tilt, slide the tama onto the edge until it touches; keep the tilt with the lowest centre (gravity g, in ken coordinates)
 function rest(G,E,g,a1,a2){
- const T=mkTama(G.p),O=obs(G);let best=null;
- const ev=deg=>{const a=deg*Math.PI/180,s=Math.sin(a),c=Math.cos(a),H=t=>hit(T,O,E[0]+t*s,E[1]+t*c,-s,-c);let lo=0,hi=2*T.R+5;if(H(hi))return;for(let i=0;i<24;i++){const m=(lo+hi)/2;if(H(m))lo=m;else hi=m;}
+ const T=mkTama(G.p,G),O=obs(G);let best=null;
+ const ev=deg=>{const a=deg*Math.PI/180,s=Math.sin(a),c=Math.cos(a),H=t=>hit(T,O,E[0]+t*s,E[1]+t*c,-s,-c);let lo=0,hi=2*T.Rmax+5;if(H(hi))return;for(let i=0;i<24;i++){const m=(lo+hi)/2;if(H(m))lo=m;else hi=m;}
   const C={x:E[0]+hi*s,y:E[1]+hi*c},h=-(C.x*g[0]+C.y*g[1]);if(!best||h<best.h-1e-9)best={deg,h,C,u:[-s,-c]};};
  for(let d=a1;d<=a2;d+=2)ev(d);if(best){const b=best.deg;for(let d=b-2;d<=b+2;d+=0.2)ev(d);best.piv={x:E[0],y:E[1]};}
  return best;
@@ -1475,7 +1497,7 @@ function rest(G,E,g,a1,a2){
 function ridgeSeat(G,y0,y1){
  let yc=(y0+y1)/2,top=-1,lo=1e9;const n=24;for(let i=0;i<=n;i++){const y=lerp(y0,y1,i/n),r=G.rK(y);if(r>top+1e-9){top=r;yc=y;}if(r<lo)lo=r;}
  if(top-lo<0.3)yc=(y0+y1)/2;
- const T=mkTama(G.p),O=obs(G),H=x=>hit(T,O,x,yc,-1,0);let a=0,b=top+T.R+5;for(let i=0;i<40;i++){const m=(a+b)/2;if(H(m))a=m;else b=m;} // centred on the ken axis the tama overlaps it; lift it until it just clears
+ const T=mkTama(G.p,G),O=obs(G),H=x=>hit(T,O,x,yc,-1,0);let a=0,b=top+T.Rmax+5;for(let i=0;i<40;i++){const m=(a+b)/2;if(H(m))a=m;else b=m;} // centred on the ken axis the tama overlaps it; lift it until it just clears
  return{C:{x:b+0.02,y:yc},u:[-1,0],piv:{x:G.rK(yc),y:yc}};}
 function pose(G,k){
  const p=G.p,Xf=G.xE-G.xw,Xs=G.xS-G.xw;
@@ -1502,7 +1524,7 @@ function analyze(G){
  const Sx=revolve(G.sarPts),cs=revolve(G.smDR.map(([d,r])=>[G.xS+d,r])),cb=revolve(G.bgDR.slice().reverse().map(([d,r])=>[G.xE-d,r]));
  const rk=taperD(p,G.yA)/2,hV=Math.PI*rk*rk*p.waistD,sV=Sx.V-cs.V-cb.V-hV,sC=(Sx.V*Sx.c-cs.V*cs.c-cb.V*cb.c-hV*G.xw)/sV;
  const kM=kV/1000*p.kenRho,sM=sV/1000*p.sarRho,M=kM+sM,cog={x:sM*(sC-G.xw)/M,y:(kM*kC+sM*G.yA)/M};
- const T=mkTama(p),h=T.hr,c=T.cr,tV=4/3*Math.PI*T.R**3-Math.PI*h*h*p.tamaHoleDepth-Math.PI*p.tamaCsDepth*((c*c+c*h+h*h)/3-h*h)-Math.PI*T.sr*T.sr*(2*T.R-p.tamaHoleDepth);
+ const T=mkTama(p,G),h=T.hr,c=T.cr,tV=tamaVol(T)-Math.PI*h*h*p.tamaHoleDepth-Math.PI*p.tamaCsDepth*((c*c+c*h+h*h)/3-h*h)-Math.PI*T.sr*T.sr*(2*T.R-p.tamaHoleDepth);
  const E={G},A={kM,kC,sM,M,cog,tM:tV/1000*p.tamaRho};
  A.big=balance(poseCached(E,'lunar'),cog);A.small=balance(poseCached(E,'lunarS'),cog);
  return A;
@@ -1728,9 +1750,9 @@ function bounds(v){
  if(v==='sarado'){const m=Math.max(p.smD,p.bgD,p.smBandD,p.bgBandD)/2+6;return[G.xS-8,-m,G.xE+8,m];}
  let x0=G.xS-G.xw-22,x1=G.xE-G.xw+8,y0=-6,y1=p.kenH+6;
  const B=v==='design'&&balView();
- if(B){const sil=silhouette(G),P=poseCached(CUR,S.show.tama),R=p.tamaD/2,pts=[...sil.ken,...sil.sar].map(q=>rotW(B,q)),C=rotW(B,[P.C.x,P.C.y]);pts.push([C[0]-R,C[1]-R],[C[0]+R,C[1]+R]);
+ if(B){const sil=silhouette(G),P=poseCached(CUR,S.show.tama),R=mkTama(p,G).Rmax,pts=[...sil.ken,...sil.sar].map(q=>rotW(B,q)),C=rotW(B,[P.C.x,P.C.y]);pts.push([C[0]-R,C[1]-R],[C[0]+R,C[1]+R]);
   x0=Math.min(...pts.map(q=>q[0]))-6;x1=Math.max(...pts.map(q=>q[0]))+6;y0=Math.min(...pts.map(q=>q[1]))-6;y1=Math.max(...pts.map(q=>q[1]))+10;return[x0,y0,x1,y1];}
- if(v==='design'){const T=tamaPose();if(T){const R=p.tamaD/2;x0=Math.min(x0,T.C.x-R-4);x1=Math.max(x1,T.C.x+R+4);y0=Math.min(y0,T.C.y-R-4);y1=Math.max(y1,T.C.y+R+4);}}
+ if(v==='design'){const T=tamaPose();if(T){const R=mkTama(p,G).Rmax;x0=Math.min(x0,T.C.x-R-4);x1=Math.max(x1,T.C.x+R+4);y0=Math.min(y0,T.C.y-R-4);y1=Math.max(y1,T.C.y+R+4);}}
  return[x0,y0,x1,y1];
 }
 function fit(v){const T=VT[v],b=bounds(v),w=b[2]-b[0],h=b[3]-b[1],pad=v==='design'?Math.min(112,CH*0.32):0;T.z=Math.min((CW-30)/w,(CH-30-pad)/h);T.ox=CW/2-(b[0]+b[2])/2*T.z;T.oy=(CH-pad)/2+(b[1]+b[3])/2*T.z;} // room for the drag & draw tool dock; Markup fits the same way so the picture does not shift when you switch between the two
@@ -1742,16 +1764,16 @@ function toSeg(G,seg,view,X,Y){switch(seg.part){case'ken':return[Y,Math.abs(X)];
 const segOK=(seg,v)=>seg&&(seg.view==='both'?(v==='design'||v==='sarado'):seg.view===v);
 function cogMark(c,x,y,r,color){c.save();c.fillStyle=col('--canvas');c.beginPath();c.arc(x,y,r,0,7);c.fill();c.fillStyle=color;c.beginPath();c.moveTo(x,y);c.arc(x,y,r,0,Math.PI/2);c.closePath();c.fill();c.beginPath();c.moveTo(x,y);c.arc(x,y,r,Math.PI,Math.PI*1.5);c.closePath();c.fill();c.strokeStyle=color;c.lineWidth=1.4;c.beginPath();c.arc(x,y,r,0,7);c.stroke();c.restore();}
 function label(c,t,x,y,color,align){c.font='11px -apple-system,Helvetica,Arial,sans-serif';c.textAlign=align||'left';const w=c.measureText(t).width,x0=align==='right'?x-w:align==='center'?x-w/2:x;c.fillStyle=col('--canvas');c.globalAlpha=.85;c.fillRect(x0-3,y-11,w+6,15);c.globalAlpha=1;c.fillStyle=color||col('--ink');c.fillText(t,x,y);c.textAlign='left';}
-function tamaOutline(p,C,u){ // world polygons for the tama's hole walls (two sides)
- const T=mkTama(p),v=[-u[1],u[0]],P=(al,r)=>[C.x+u[0]*al+v[0]*r,C.y+u[1]*al+v[1]*r];
+function tamaOutline(p,C,u,G){ // world polygons for the tama's hole walls (two sides)
+ const T=mkTama(p,G),v=[-u[1],u[0]],P=(al,r)=>[C.x+u[0]*al+v[0]*r,C.y+u[1]*al+v[1]*r];
  const side=s=>[P(T.yM,s*T.cr),P(T.yJ,s*T.hr),P(T.end,s*T.hr),P(T.end,s*T.sr),P(-T.R,s*T.sr)];
  return[side(1),side(-1)];
 }
-function drawTama(c,T,p,P,name,phase){
- const R=p.tamaD/2,X=sx(T,P.C.x),Y=sy(T,P.C.y);
- if(phase==='fill'){c.beginPath();c.arc(X,Y,R*T.z,0,7);c.fillStyle=col('--wood');c.fill();return;}
- c.save();c.strokeStyle=col('--edge');c.lineJoin='round';c.lineWidth=1.5;c.beginPath();c.arc(X,Y,R*T.z,0,7);c.stroke();
- c.lineWidth=1;c.setLineDash([4,3]);for(const s of tamaOutline(p,P.C,P.u)){pathW(c,T,s);c.stroke();}c.setLineDash([]);c.restore();
+function drawTama(c,T,p,P,name,phase,G=CUR.G){
+ const M=mkTama(p,G),R=M.Rmax,X=sx(T,P.C.x),Y=sy(T,P.C.y),out=()=>{if(M.rho)pathW(c,T,tamaLoop(M,P.C,P.u),true);else{c.beginPath();c.arc(X,Y,M.R*T.z,0,7);}};
+ if(phase==='fill'){out();c.fillStyle=col('--wood');c.fill();return;}
+ c.save();c.strokeStyle=col('--edge');c.lineJoin='round';c.lineWidth=1.5;out();c.stroke();
+ c.lineWidth=1;c.setLineDash([4,3]);for(const s of tamaOutline(p,P.C,P.u,G)){pathW(c,T,s);c.stroke();}c.setLineDash([]);c.restore();
  if(name)label(c,name,X,sy(T,P.C.y-R)+16,col('--edge'),'center');
 }
 // the full ellipse (or circle) behind each parametric curve, with its centre point
@@ -1851,7 +1873,7 @@ function mesh3(){
  surf(G.kenPts,ken,0);surf([[0,G.bcP[0][0]],[0,G.kenPts[0][1]]],ken,0);surf(G.bcP.map(([r,d])=>[d,r]),ken,2);
  surf(G.sarPts,sar,1);
  for(const[cup,x0,dir,end]of[[G.smC,G.xS,1,G.sarPts[0]],[G.bgC,G.xE,-1,G.sarPts[G.sarPts.length-1]]]){surf(cup.map(([r,d])=>[x0+dir*d,r]),sar,2);surf([[x0,cup[0][0]],[x0,end[1]]],sar,1);}
- if(P){const T=mkTama(p),u=P.u,C=P.C,pr=[];for(let i=0;i<=40;i++){const al=-T.R+(T.yM+T.R)*i/40;pr.push([al,Math.sqrt(Math.max(0,T.R*T.R-al*al))]);}pr[pr.length-1]=[T.yM,T.cr];pr.push([T.yJ,T.hr],[T.end,T.hr],[T.end,0]);
+ if(P){const T=mkTama(p,G),u=P.u,C=P.C,pr=T.outer(T.rho?72:40);pr.push([T.yJ,T.hr],[T.end,T.hr],[T.end,0]);
   const tf=(al,r,c,s)=>[C.x+u[0]*al-u[1]*r*c,C.y+u[1]*al+u[0]*r*c,r*s];surf(pr.slice(0,-3),tf,3);surf(pr.slice(-4),tf,4);}
  M3={G,k,q};return q;}
 const rgb3=h=>{h=h.replace('#','');if(h.length===3)h=h.replace(/./g,x=>x+x);const n=parseInt(h,16);return[(n>>16)&255,(n>>8)&255,n&255];};
@@ -1921,13 +1943,15 @@ function mkUp(e){
 function mkCancel(){ddCancel();MK.spin=null;MK.cur=null;MK.orb=null;MK.down=null;}
 /* ================= drag & draw: shape the contours straight on the assembled view ================= */
 // Points move the measures; push / pull, redraw and smooth turn a contour into a hand-shaped curve between its two measure points.
-const DD={tool:'point',turn:false,width:16,strength:50,step:0.1,smooth:2,snap:true,hover:null,spot:null,selH:null,drag:null,act:null,stroke:null,meas:[],cursor:null,down:null};
-const DD_SEGS=['baseRidge','flare','swoopRing','ringHandle','smRidge','swoopAll','swoopSm','swoopBg','bgRidge'];
-const DD_TOOLS=[['pan','Move view','Drag to move the view; scroll or pinch to zoom. Switch on Turn to spin the view by dragging around the shape.'],['free','Move pieces','Drag the tama or the ken to move it, and drag a round knob to turn it. They can touch but never overlap.'],['point','Points','Drag a dot to move that measure point. Click a dot to fine-tune it here.'],['push','Push / pull','Drag a contour in or out. Click a spot on it to nudge it in small steps. On the tama it changes the tama measures.'],['draw','Redraw','Draw over any part of a contour to replace just that part. The ends snap to the edge.'],['smooth','Smooth','Rub over a contour to even it out.'],['reset','Restore','Click a hand-shaped contour to put it back to its measured shape.'],['hole','Bottom cup hole','Draw one wall of the bottom cup hole, from the cup up into the ken; the other side mirrors it. Or use the hole from another shape.'],['measure','Measure','Click two points to measure between them.']];
+const DD={tool:'point',turn:false,width:16,strength:50,step:0.1,smooth:0,hsmooth:2,snap:true,hover:null,spot:null,selH:null,drag:null,act:null,stroke:null,meas:[],cursor:null,down:null};
+const DD_SEGS=['baseRidge','flare','swoopRing','ringHandle','smRidge','swoopAll','swoopSm','swoopBg','bgRidge','tamaBall'];
+const DD_TOOLS=[['pan','Move view','Drag to move the view; scroll or pinch to zoom. Switch on Turn to spin the view by dragging around the shape.'],['free','Move pieces','Drag the tama or the ken to move it, and drag a round knob to turn it. They can touch but never overlap.'],['point','Points','Drag a dot to move that measure point. Click a dot to fine-tune it here.'],['push','Push / pull','Drag a contour in or out. Click a spot on it to nudge it in small steps. This works on the outside of the tama too; on the tama hole it changes the hole measures.'],['draw','Redraw','Draw over any part of a contour, the tama included, to replace just that part. The ends snap to the edge.'],['smooth','Smooth','Rub over a contour to even it out.'],['reset','Restore','Click a hand-shaped contour to put it back to its measured shape.'],['hole','Bottom cup hole','Draw one wall of the bottom cup hole, from the cup up into the ken; the other side mirrors it. Or use the hole from another shape.'],['measure','Measure','Click two points to measure between them.']];
 const DD_STEPS=[0.01,0.02,0.05,0.1,0.25,0.5,1];
-const ddFrom=(G,sg,s,v,sd)=>sg.part==='ken'?[sd*v,s]:[s-G.xw,G.yA+sd*v];
-const ddTo=(G,sg,X,Y)=>sg.part==='ken'?[Y,Math.abs(X)]:[X+G.xw,Math.abs(Y-G.yA)];
-const ddSegs=G=>DD_SEGS.filter(id=>G.segs[id]&&(G.segs[id].part==='ken'||G.segs[id].part==='sar'));
+// the tama outside is laid out round the tama centre: s/R is the angle from the hole axis, v the distance from the centre
+const ddTF=()=>{const P=tamaPose();return P?{C:P.C,u:P.u,v:[-P.u[1],P.u[0]]}:null;};
+const ddFrom=(G,sg,s,v,sd)=>{if(sg.part==='tama'){const f=ddTF(),a=s/sg.R,al=v*Math.cos(a),r=sd*v*Math.sin(a);return f?[f.C.x+f.u[0]*al+f.v[0]*r,f.C.y+f.u[1]*al+f.v[1]*r]:[0,0];}return sg.part==='ken'?[sd*v,s]:[s-G.xw,G.yA+sd*v];};
+const ddTo=(G,sg,X,Y)=>{if(sg.part==='tama'){const f=ddTF();if(!f)return[sg.s0,sg.v0];const dx=X-f.C.x,dy=Y-f.C.y,al=dx*f.u[0]+dy*f.u[1],r=Math.abs(dx*f.v[0]+dy*f.v[1]);return[Math.atan2(r,al)*sg.R,Math.hypot(dx,dy)];}return sg.part==='ken'?[Y,Math.abs(X)]:[X+G.xw,Math.abs(Y-G.yA)];};
+const ddSegs=G=>DD_SEGS.filter(id=>{const sg=G.segs[id];return sg&&(sg.part==='ken'||sg.part==='sar'||sg.part==='tama'&&S.mode==='dd'&&!!tamaPose());});
 function ddHandles(){
  const G=CUR.G,p=G.p,yA=G.yA,xw=G.xw,H=[],h=(id,label,X,Y,ax,ay)=>H.push({id,label,X,Y,ax,ay});
  h('base','Base cup Ø',p.baseD/2,0,['baseD',2],null);
@@ -1948,15 +1972,15 @@ function ddHandles(){
  h('bgCup','Big cup depth',G.xE-p.bgDepth-xw,yA,['bgDepth',-1],null);
  h('sarPos','Sarado height on the ken',G.xS-xw-7,yA,null,['sarTop',1]);
  const P=S.mode==='dd'?tamaPose():null; // the tama's own points sit in its frame: along the hole (u) and across it (v)
- if(P){const T=mkTama(p),u=P.u,v=[-u[1],u[0]],at=(al,r)=>[P.C.x+u[0]*al+v[0]*r,P.C.y+u[1]*al+v[1]*r],tf={C:P.C,u,v},t=(id,label,q,ax,ay,rad)=>H.push({id,label,X:q[0],Y:q[1],ax,ay,tf,rad});
-  t('tD','Tama Ø',at(0,T.R),['tamaD',2],null,'dist');t('tCs','Tama hole bevel',at(T.yM,T.cr),['tamaCsD',2],null);
+ if(P){const T=mkTama(p,G),u=P.u,v=[-u[1],u[0]],at=(al,r)=>[P.C.x+u[0]*al+v[0]*r,P.C.y+u[1]*al+v[1]*r],tf={C:P.C,u,v},t=(id,label,q,ax,ay,rad)=>H.push({id,label,X:q[0],Y:q[1],ax,ay,tf,rad});
+  t('tD','Tama Ø',at(0,T.rhoAt(Math.PI/2)),['tamaD',2],null,'dist');t('tCs','Tama hole bevel',at(T.yM,T.cr),['tamaCsD',2],null);
   t('tHole','Tama hole',at(T.yJ,T.hr),['tamaHoleD',2],['tamaCsDepth',-1]);t('tDepth','Tama hole depth',at(T.end,0),null,['tamaHoleDepth',-1]);}
  return H.filter(q=>(!q.ax||PD[q.ax[0]])&&(!q.ay||PD[q.ay[0]]));}
 // nearest tama contour to a point: the ball itself, the bevel, the hole wall or the hole's end. Each one is driven by a tama measure.
 function ddTamaHit(W,T){
- const P=S.mode==='dd'?tamaPose():null;if(!P)return null;const M=mkTama(CUR.G.p),u=P.u,dx=W[0]-P.C.x,dy=W[1]-P.C.y,al=dx*u[0]+dy*u[1],r=Math.abs(-dx*u[1]+dy*u[0]);
+ const P=S.mode==='dd'?tamaPose():null;if(!P)return null;const M=mkTama(CUR.G.p,CUR.G),u=P.u,dx=W[0]-P.C.x,dy=W[1]-P.C.y,al=dx*u[0]+dy*u[1],r=Math.abs(-dx*u[1]+dy*u[0]);
  const seg=(a,b)=>{const vx=b[0]-a[0],vy=b[1]-a[1],L=vx*vx+vy*vy||1e-9,k=clamp(((al-a[0])*vx+(r-a[1])*vy)/L,0,1);return Math.hypot(al-a[0]-k*vx,r-a[1]-k*vy);};
- const c=[['tD','x',Math.abs(Math.hypot(dx,dy)-M.R)],['tCs','x',seg([M.yM,M.cr],[M.yJ,M.hr])],['tHole','x',seg([M.yJ,M.hr],[M.end,M.hr])],['tDepth','y',seg([M.end,M.hr],[M.end,0])]].sort((a,b)=>a[2]-b[2])[0];
+ const c=[['tCs','x',seg([M.yM,M.cr],[M.yJ,M.hr])],['tHole','x',seg([M.yJ,M.hr],[M.end,M.hr])],['tDepth','y',seg([M.end,M.hr],[M.end,0])]].sort((a,b)=>a[2]-b[2])[0];
  return{id:c[0],only:c[1],d:c[2]*T.z};}
 // nearest spot on a shapeable contour (either side of the axis)
 function ddHit(W,T,maxPx){
@@ -1968,7 +1992,7 @@ function ddHit(W,T,maxPx){
 function ddSnap(W,T,px=10){
  let b=null;for(const h of ddHandles()){const d=Math.hypot(W[0]-h.X,W[1]-h.Y)*T.z;if(d<=px+2&&(!b||d<b.d))b={d,pt:[h.X,h.Y],kind:'point',label:h.label};}
  if(b)return b;
- const sil=silhouette(CUR.G);for(const poly of[sil.ken,sil.sar]){const n=poly.length;for(let i=0;i<n;i++){const a=poly[i],c=poly[(i+1)%n],vx=c[0]-a[0],vy=c[1]-a[1],L=vx*vx+vy*vy||1e-9,t=clamp(((W[0]-a[0])*vx+(W[1]-a[1])*vy)/L,0,1),d=Math.hypot(W[0]-a[0]-t*vx,W[1]-a[1]-t*vy)*T.z;if(d<=px&&(!b||d<b.d))b={d,pt:[a[0]+t*vx,a[1]+t*vy],kind:'edge'};}}
+ const sil=silhouette(CUR.G),Pt=S.mode==='dd'?tamaPose():null,polys=[sil.ken,sil.sar];if(Pt)polys.push(tamaLoop(mkTama(CUR.G.p,CUR.G),Pt.C,Pt.u));for(const poly of polys){const n=poly.length;for(let i=0;i<n;i++){const a=poly[i],c=poly[(i+1)%n],vx=c[0]-a[0],vy=c[1]-a[1],L=vx*vx+vy*vy||1e-9,t=clamp(((W[0]-a[0])*vx+(W[1]-a[1])*vy)/L,0,1),d=Math.hypot(W[0]-a[0]-t*vx,W[1]-a[1]-t*vy)*T.z;if(d<=px&&(!b||d<b.d))b={d,pt:[a[0]+t*vx,a[1]+t*vy],kind:'edge'};}}
  return b;}
 function ddBase(sg){const span=Math.abs(sg.s1-sg.s0),N=clamp(Math.round(span/0.35),24,260),cur=sg.out.map(q=>[(q[0]-sg.s0)/(sg.s1-sg.s0),q[1]]),d=[];for(let i=0;i<=N;i++)d.push(interp(cur,i/N)-lerp(sg.v0,sg.v1,i/N));return{d,N,span};}
 // brush weight along the contour: a bell around the grabbed spot that fades to nothing at the two measure points
@@ -1982,10 +2006,13 @@ function ddWaistShift(base,delta){const sg=CUR.G.segs.swoopAll;if(!sg)return;con
 function ddNudge(dir){const sp=DD.spot;if(!sp||!CUR.G.segs[sp.id])return;const sg=CUR.G.segs[sp.id];ddPush(sp.id,sp.s,ddBase(sg),dir*DD.step);commit();syncDD();}
 function ddRestore(id){if(id){if(!S.curves[id])return;delete S.curves[id];}else{for(const k of DD_SEGS)delete S.curves[k];}DD.spot=null;refresh();commit();syncDD();}
 function ddApplyStroke(pts,T){
- const G=CUR.G,by={};let n=0;
- for(const q of pts){const h=ddHit(q,T,26);if(h){(by[h.id]=by[h.id]||[]).push(q);n++;}}
- const sm=S.draw.smooth,st=S.draw.strength;S.draw.smooth=DD.smooth>0;S.draw.strength=DD.smooth||3;let done=0;
- try{for(const id in by){if(by[id].length<4)continue;const sg=G.segs[id];if(applyStroke(sg,by[id].map(q=>ddTo(G,sg,q[0],q[1]))))done++;}}finally{S.draw.smooth=sm;S.draw.strength=st;}
+ const G=CUR.G,by={},lab=pts.map(q=>{const h=ddHit(q,T,26);return h?h.id:null;});
+ // a point drawn further from the old contour than that still belongs to the contour being drawn over (the last one the stroke was near), so a new shape well away from the old one is followed, not cut short
+ let last=null;for(let i=0;i<lab.length;i++){if(lab[i])last=lab[i];else lab[i]=last;}
+ const first=lab.find(Boolean);for(let i=0;i<lab.length&&!lab[i];i++)lab[i]=first;
+ pts.forEach((q,i)=>{if(lab[i])(by[lab[i]]=by[lab[i]]||[]).push(q);});
+ let done=0;
+ for(const id in by){if(by[id].length<4)continue;const sg=G.segs[id];if(applyStroke(sg,by[id].map(q=>ddTo(G,sg,q[0],q[1])),{bake:DD.smooth}))done++;}
  return done;}
 // base cup hole: [depth, radius] up one wall; it is kept inside the ken with a little wall left, and its bottom closes flat
 function ddHoleClamp(pts){const G=CUR.G,p=G.p,a=p.baseD/2-p.rim,top=G.yB-8,o=[];for(const[d0,r0]of pts){const d=clamp(d0,0,top);if(d0>top+1e-6&&o.length)break;let r=clamp(r0,0,Math.max(0,G.rK(d)-1.5));if(d<0.02)r=Math.min(r,a);o.push([Math.round(d*1000)/1000,Math.round(r*1000)/1000]);}return o;}
@@ -1994,18 +2021,18 @@ function ddApplyHole(st){
  let q=st.map(w=>[w[1],Math.abs(w[0])]);if(q.length<4)return false;if(q[0][0]>q[q.length-1][0])q.reverse();
  if(q[q.length-1][0]-q[0][0]<1)return false;
  for(let i=1;i<q.length;i++)if(q[i][0]<q[i-1][0])q[i][0]=q[i-1][0];
- const k=Math.round(DD.smooth*1.5);if(k>0){const r=q.map(x=>x[1]);q=q.map((x,i)=>{if(i===0||i===q.length-1)return x;let a=0,n=0;for(let j=Math.max(0,i-k);j<=Math.min(q.length-1,i+k);j++){a+=r[j];n++;}return[x[0],a/n];});}
+ const k=Math.round(DD.hsmooth*1.5);if(k>0){const r=q.map(x=>x[1]);q=q.map((x,i)=>{if(i===0||i===q.length-1)return x;let a=0,n=0;for(let j=Math.max(0,i-k);j<=Math.min(q.length-1,i+k);j++){a+=r[j];n++;}return[x[0],a/n];});}
  return ddSetHole(q);}
 /* free tama: in drag & draw the tama is a body of its own. It and the ken + sarado can be moved and turned separately; they can touch but never overlap.
    The ken stays where it is in the design's own coordinates: "moving the ken" moves the view and shifts the tama the other way, so the tama stays put on the screen. */
 function ddFree(){if(!DD.free){const G=CUR.G,R=G.p.tamaD/2;DD.free={C:{x:G.xE-G.xw+R+12,y:Math.max(R,G.yA)},u:[0,1]};}return DD.free;}
 const ddFreeOn=()=>S.view==='design'&&S.show.tama==='free'&&!!CUR.G;
 const tamaPose=()=>S.show.tama==='free'?(ddFreeOn()?ddFree():null):poseCached(CUR,S.show.tama);
-const ddFreeHit=(C,u)=>hit(mkTama(CUR.G.p),obs(CUR.G),C.x,C.y,u[0],u[1]);
+const ddFreeHit=(C,u)=>hit(mkTama(CUR.G.p,CUR.G),obs(CUR.G),C.x,C.y,u[0],u[1]);
 const rot2=(x,y,a)=>[x*Math.cos(a)-y*Math.sin(a),x*Math.sin(a)+y*Math.cos(a)];
 // furthest fraction of a move (0..1) that keeps the tama clear, so it ends up pressed against whatever stopped it
 function ddFar(at){if(!ddFreeHit(at(1).C,at(1).u))return 1;let lo=0,hi=1;for(let i=0;i<14;i++){const m=(lo+hi)/2,q=at(m);if(ddFreeHit(q.C,q.u))hi=m;else lo=m;}return lo;}
-function ddFreeFix(){if(!ddFreeOn())return;const f=ddFree(),cy=CUR.G.p.kenH/2;if(!nearFlat(CUR.G,f.C.x,f.C.y,CUR.G.p.tamaD/2))return;let n=0;while(ddFreeHit(f.C,f.u)&&n++<600){const dx=f.C.x,dy=f.C.y-cy,L=Math.hypot(dx,dy)||1;f.C={x:f.C.x+dx/L*0.5,y:f.C.y+dy/L*0.5};}} // the shape changed under the tama: ease it out
+function ddFreeFix(){if(!ddFreeOn())return;const f=ddFree(),cy=CUR.G.p.kenH/2;if(!nearFlat(CUR.G,f.C.x,f.C.y,mkTama(CUR.G.p,CUR.G).Rmax))return;let n=0;while(ddFreeHit(f.C,f.u)&&n++<600){const dx=f.C.x,dy=f.C.y-cy,L=Math.hypot(dx,dy)||1;f.C={x:f.C.x+dx/L*0.5,y:f.C.y+dy/L*0.5};}} // the shape changed under the tama: ease it out
 function ddTamaMove(dx,dy){const f=ddFree(),go=(ax,ay)=>{if(!ax&&!ay)return 1;const k=ddFar(m=>({C:{x:f.C.x+ax*m,y:f.C.y+ay*m},u:f.u}));f.C={x:f.C.x+ax*k,y:f.C.y+ay*k};return k;};
  const steps=Math.max(1,Math.ceil(Math.hypot(dx,dy)/3));for(let i=0;i<steps;i++){const ax=dx/steps,ay=dy/steps,k=go(ax,ay);if(k<1){go(ax*(1-k),0);go(0,ay*(1-k));}}}
 function ddTamaTurn(da){const f=ddFree(),k=ddFar(m=>({C:f.C,u:rot2(f.u[0],f.u[1],da*m)}));f.u=rot2(f.u[0],f.u[1],da*k);return k;}
@@ -2013,11 +2040,11 @@ function ddKenTurn(da){const f=ddFree(),py=CUR.G.p.kenH/2,at=m=>{const c=rot2(f.
  f.C=q.C;f.u=q.u;let a=V3.roll+da*k;a=Math.atan2(Math.sin(a),Math.cos(a));V3.roll=Math.abs(a)<1e-9?0:a;return k;}
 function ddKenMove(dxs,dys){const T=VT.design,f=ddFree(),c=Math.cos(-V3.roll),s=Math.sin(-V3.roll),wx=-(dxs*c-dys*s)/T.z,wy=(dxs*s+dys*c)/T.z,k=ddFar(m=>({C:{x:f.C.x+wx*m,y:f.C.y+wy*m},u:f.u}));
  f.C={x:f.C.x+wx*k,y:f.C.y+wy*k};T.auto=false;T.ox+=dxs*k;T.oy+=dys*k;return k;}
-const ddKnobs=T=>{const f=ddFree(),G=CUR.G,R=G.p.tamaD/2,o=16/T.z;return{t:[f.C.x-f.u[0]*(R+o),f.C.y-f.u[1]*(R+o)],k:[0,G.p.kenH+o]};};
+const ddKnobs=T=>{const f=ddFree(),G=CUR.G,M=mkTama(G.p,G),R=M.rhoAt(Math.PI),o=16/T.z;return{t:[f.C.x-f.u[0]*(R+o),f.C.y-f.u[1]*(R+o)],k:[0,G.p.kenH+o]};};
 const pip=(poly,W)=>{let inn=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if((a[1]>W[1])!==(b[1]>W[1])&&W[0]<(b[0]-a[0])*(W[1]-a[1])/(b[1]-a[1])+a[0])inn=!inn;}return inn;};
 function ddFreeDown(e,T,W){
  if(!ddFreeOn())return false;const f=ddFree(),G=CUR.G,K=ddKnobs(T),near=q=>Math.hypot(W[0]-q[0],W[1]-q[1])*T.z<=14;let m=null;
- if(near(K.t))m='tturn';else if(near(K.k))m='kturn';else if(Math.hypot(W[0]-f.C.x,W[1]-f.C.y)<=G.p.tamaD/2)m='tmove';else{const sil=silhouette(G);if(pip(sil.ken,W)||pip(sil.sar,W))m='kmove';}
+ if(near(K.t))m='tturn';else if(near(K.k))m='kturn';else if(pip(tamaLoop(mkTama(G.p,G),f.C,f.u,60),W))m='tmove';else{const sil=silhouette(G);if(pip(sil.ken,W)||pip(sil.sar,W))m='kmove';}
  if(!m)return false;const r=cv.getBoundingClientRect(),[px,py]=rollPiv(T);VT.design.auto=false;DD.fr={m,W,x:e.clientX,y:e.clientY,a:Math.atan2(e.clientY-r.top-py,e.clientX-r.left-px)};return true;}
 function ddFreeMove(e,T,W){
  const g=DD.fr,f=ddFree();
@@ -2065,13 +2092,13 @@ function ddUp(e){
  if(DD.act){const a=DD.act;DD.act=null;if(a.moved)commit();syncDD();render();return;}
  if(DD.stroke&&DD.tool==='hole'){const st=DD.stroke;DD.stroke=null;if(ddApplyHole(st)){refresh();commit();}else{render();toast('Draw one wall of the hole, from the base cup up into the ken.');}syncDD();return;}
  if(DD.stroke){const st=DD.stroke;DD.stroke=null;const sn=ddSnap(st[st.length-1],T,12);if(sn&&sn.kind==='edge')st.push(sn.pt);
-  if(st.length>3&&ddApplyStroke(st,T)){refresh();commit();}else{render();toast('Draw along a contour of the ken or sarado.');}syncDD();return;}
+  if(st.length>3&&ddApplyStroke(st,T)){refresh();commit();}else{render();toast('Draw along a contour of the ken, sarado or tama.');}syncDD();return;}
  if(DD.tool==='measure'&&still&&e){const W=ddEv(e,T),sn=DD.snap?ddSnap(W,T):null,q=sn?sn.pt:W;if(DD.meas.length>=2)DD.meas=[];DD.meas.push(q);syncDD();render();}}
 function ddCancel(){DD.fr=null;DD.drag=null;DD.act=null;DD.stroke=null;DD.down=null;}
 function drawDD(c,T){
  const G=CUR.G,acc=col('--accent'),P=q=>[sx(T,q[0]),sy(T,q[1])],t=DD.tool;c.save();c.lineJoin=c.lineCap='round';
  {const B=balView();if(B){const X=sx(T,B.x),Y=sy(T,B.y);c.translate(X,Y);c.rotate(-B.a);c.translate(-X,-Y);}}
- if(t==='free'&&ddFreeOn()){const f=ddFree(),K=ddKnobs(T),R=G.p.tamaD/2;c.strokeStyle=c.fillStyle=acc;c.lineWidth=1.5;
+ if(t==='free'&&ddFreeOn()){const f=ddFree(),K=ddKnobs(T),R=mkTama(G.p,G).rhoAt(Math.PI);c.strokeStyle=c.fillStyle=acc;c.lineWidth=1.5;
   for(const[a,b]of[[[f.C.x-f.u[0]*R,f.C.y-f.u[1]*R],K.t],[[0,G.p.kenH],K.k]]){const A=P(a),Bq=P(b);c.beginPath();c.moveTo(A[0],A[1]);c.lineTo(Bq[0],Bq[1]);c.stroke();c.beginPath();c.arc(Bq[0],Bq[1],6.5,0,7);c.fill();c.save();c.strokeStyle=col('--canvas');c.lineWidth=1.4;c.beginPath();c.arc(Bq[0],Bq[1],3,0.6,5.2);c.stroke();c.restore();}}
  const segLine=(id,lw,dash)=>{const sg=G.segs[id];if(!sg)return;c.strokeStyle=col('--draw');c.lineWidth=lw;c.setLineDash(dash||[]);for(const sd of[1,-1]){pathW(c,T,sg.out.map(q=>ddFrom(G,sg,q[0],q[1],sd)));c.stroke();}c.setLineDash([]);};
  if(t!=='pan'&&t!=='measure'&&t!=='point')for(const id of ddSegs(G))if(S.curves[id]&&S.curves[id].on!==false)segLine(id,1.6,[5,4]); // hand-shaped contours
@@ -2085,7 +2112,7 @@ function drawDD(c,T){
    if(h.ax&&h.ay){c.beginPath();c.arc(q[0],q[1],1.6,0,7);c.fillStyle=sel?col('--canvas'):acc;c.fill();}}
   const sh=H.find(h=>h.id===DD.selH)||hov;if(sh){const q=P([sh.X,sh.Y]);label(c,sh.id==='step'?`${sh.label}: Ø${f2(2*Math.abs(sh.X))} mm`:sh.id==='waist'&&ddWaistDrawn()?`${sh.label}: Ø${f2(2*(sh.Y-G.yA))} mm`:sh.label+': '+[sh.ax,sh.ay].filter(Boolean).map(a=>fmtV(PD[a[0]],S.p[a[0]])).join(' / ')+' mm',q[0]+12,q[1]-10,acc);}}
  if(t==='push'&&DD.cursor&&!DD.act&&!DD.stroke){const th=DD.drag&&DD.drag.only?{id:DD.drag.h.id,d:0}:ddTamaHit(DD.cursor,T),sh=DD.drag?null:ddHit(DD.cursor,T,18),Pt=tamaPose();
-  if(Pt&&th&&th.d<=18&&(!sh||th.d<sh.d*T.z)){c.strokeStyle=col('--draw');c.lineWidth=3;if(th.id==='tD'){c.beginPath();c.arc(sx(T,Pt.C.x),sy(T,Pt.C.y),G.p.tamaD/2*T.z,0,7);c.stroke();}else for(const sd of tamaOutline(G.p,Pt.C,Pt.u)){pathW(c,T,sd.slice(0,3));c.stroke();}}}
+  if(Pt&&th&&th.d<=18&&(!sh||th.d<sh.d*T.z)){c.strokeStyle=col('--draw');c.lineWidth=3;for(const sd of tamaOutline(G.p,Pt.C,Pt.u,G)){pathW(c,T,sd.slice(0,3));c.stroke();}}}
  if(DD.stroke&&DD.stroke.length>1){c.strokeStyle=col('--ink');c.lineWidth=1.8;pathW(c,T,DD.stroke);c.stroke();}
  if((t==='draw'||t==='measure')&&DD.cursor&&!DD.stroke&&(t==='draw'||DD.snap)){const sn=ddSnap(DD.cursor,T,t==='draw'?12:10);if(sn){const q=P(sn.pt);c.strokeStyle=acc;c.lineWidth=1.5;c.beginPath();if(sn.kind==='point')c.rect(q[0]-6,q[1]-6,12,12);else c.arc(q[0],q[1],6,0,7);c.stroke();}}
  if(t==='measure'&&DD.meas.length){const a=DD.meas[0],sn=DD.snap&&DD.cursor?ddSnap(DD.cursor,T):null,b=DD.meas[1]||(DD.cursor?(sn?sn.pt:DD.cursor):null),A=P(a);c.strokeStyle=c.fillStyle=acc;c.lineWidth=1.6;
@@ -2110,7 +2137,7 @@ function syncDD(){
  else if(t==='smooth'){width();stp('Strength',`${DD.strength}%`,again(()=>DD.strength=clamp(DD.strength-10,10,100)),again(()=>DD.strength=clamp(DD.strength+10,10,100)));
   btn('Smooth here',()=>{const sp=DD.spot;if(sp){ddSmooth(sp.id,sp.s,DD.strength/100);commit();}},!DD.spot);}
  else if(t==='draw'){stp('Line smoothing',DD.smooth?`${DD.smooth} mm`:'Off',again(()=>DD.smooth=clamp(DD.smooth-1,0,10)),again(()=>DD.smooth=clamp(DD.smooth+1,0,10)));}
- else if(t==='hole'){stp('Line smoothing',DD.smooth?`${DD.smooth} mm`:'Off',again(()=>DD.smooth=clamp(DD.smooth-1,0,10)),again(()=>DD.smooth=clamp(DD.smooth+1,0,10)));
+ else if(t==='hole'){stp('Line smoothing',DD.hsmooth?`${DD.hsmooth} mm`:'Off',again(()=>DD.hsmooth=clamp(DD.hsmooth-1,0,10)),again(()=>DD.hsmooth=clamp(DD.hsmooth+1,0,10)));
   const sel=el('select',{class:'dd-sel',title:'Use the base cup hole from another shape'},el('option',{value:''},'Use the hole from…'));for(const e of LIB)if(e.hole)sel.append(el('option',{value:e.name,translate:'no'},e.name));
   sel.onchange=()=>{const e=LIB.find(q=>q.name===sel.value);if(!e)return;const h=libHole(e,S.p,true);if(ddSetHole(h.pts)){refresh();commit();toast(`Base cup hole from ${e.name} added.`);}syncDD();};host.append(sel);
   btn('Remove hole',()=>{delete S.curves.baseHole;refresh();commit();syncDD();},!S.curves.baseHole);}
@@ -2154,7 +2181,7 @@ function drawMini(id,L){
  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;for(const q of all){x0=Math.min(x0,q[0]);x1=Math.max(x1,q[0]);y0=Math.min(y0,q[1]);y1=Math.max(y1,q[1]);}
  const z=Math.min((w-12)/(x1-x0),(h-22)/(y1-y0)),T={z,ox:w/2-(x0+x1)/2*z,oy:h/2+6+(y0+y1)/2*z};
  const u=rot([L.C.x+L.u[0],L.C.y+L.u[1]]);
- drawTama(c,T,p,{C:{x:0,y:0},u},'');
+ drawTama(c,T,p,{C:{x:0,y:0},u},'',undefined,G);
  c.lineJoin='round';pathW(c,T,ken,true);c.fillStyle=col('--wood');c.fill();c.strokeStyle=col('--edge');c.lineWidth=1;c.stroke();pathW(c,T,sar,true);c.fillStyle=col('--sarado');c.fill();c.stroke();
  const g=rot([A.cog.x,A.cog.y]);c.setLineDash([3,3]);c.strokeStyle=col('--cog');pathW(c,T,[[0,-R],[0,y1]]);c.stroke();c.setLineDash([]);cogMark(c,sx(T,g[0]),sy(T,g[1]),4,col('--cog'));
  c.fillStyle=col('--ink');c.font='600 11px -apple-system,Helvetica,sans-serif';c.fillText(`Spike ${elevTxt(L)}`,6,14);
@@ -2162,7 +2189,8 @@ function drawMini(id,L){
 
 /* ================= freehand contours ================= */
 const SLIP_NEXT={};
-function applyStroke(seg,pts){
+// opt (drag & draw): the line is kept as drawn. Smoothing (opt.bake, mm) is applied once to the new part only, and the two ends ease into the contour over a short run instead of tilting the whole new part to meet it.
+function applyStroke(seg,pts,opt){
  const span=Math.abs(seg.s1-seg.s0),N=clamp(Math.round(span/0.35),24,260),sum=new Array(N+1).fill(0),cnt=new Array(N+1).fill(0);
  const add=(s,v)=>{const t=(s-seg.s0)/(seg.s1-seg.s0);if(t<-0.03||t>1.03)return;const b=clamp(Math.round(t*N),0,N);sum[b]+=v;cnt[b]++;};
  pts.forEach((q,i)=>{add(q[0],q[1]);if(i)for(let j=1;j<10;j++)add(lerp(pts[i-1][0],q[0],j/10),lerp(pts[i-1][1],q[1],j/10));});
@@ -2172,9 +2200,13 @@ function applyStroke(seg,pts){
  let last=a;for(let i=a;i<=b;i++)if(cnt[i]){v[i]=sum[i]/cnt[i];for(let j=last+1;j<i;j++)v[j]=lerp(v[last],v[i],(j-last)/(i-last));last=i;}
  if(a<=N*0.05)a=0;if(b>=N*0.95)b=N;
  const first=cnt.findIndex(c=>c>0);for(let i=0;i<=N;i++)if(v[i]===undefined)v[i]=v[i<first?first:last];
+ const bin=span/N;
+ if(opt&&opt.bake>0){const sg=opt.bake/bin,rad=Math.ceil(sg*3),o=v.slice();for(let i=a;i<=b;i++){let s=0,w=0;for(let j=-rad;j<=rad;j++){let q=i+j;if(q<a)q=2*a-q;if(q>b)q=2*b-q;q=clamp(q,a,b);const k=Math.exp(-j*j/(2*sg*sg));s+=v[q]*k;w+=k;}o[i]=s/w;}for(let i=a;i<=b;i++)v[i]=o[i];}
  const ca=E(a)-v[a],cb=E(b)-v[b];
- for(let i=0;i<=N;i++){if(i<a||i>b)v[i]=E(i);else v[i]+=lerp(ca,cb,(i-a)/(b-a));}
- S.curves[seg.id]={d:v.map((x,i)=>x-lerp(seg.v0,seg.v1,i/N)),smooth:S.draw.smooth,strength:S.draw.strength,bin:span/N,on:true};
+ if(opt){const run=c=>clamp(Math.round(Math.max(1.5,2*Math.abs(c))/bin),1,Math.max(1,Math.floor((b-a)/3))),La=run(ca),Lb=run(cb),ease=x=>x>=1?0:0.5*(1+Math.cos(Math.PI*x));
+  for(let i=0;i<=N;i++){if(i<a||i>b)v[i]=E(i);else v[i]+=ca*ease((i-a)/La)+cb*ease((b-i)/Lb);}}
+ else for(let i=0;i<=N;i++){if(i<a||i>b)v[i]=E(i);else v[i]+=lerp(ca,cb,(i-a)/(b-a));}
+ S.curves[seg.id]=opt?{d:v.map((x,i)=>x-lerp(seg.v0,seg.v1,i/N)),smooth:false,strength:S.draw.strength,bin,on:true}:{d:v.map((x,i)=>x-lerp(seg.v0,seg.v1,i/N)),smooth:S.draw.smooth,strength:S.draw.strength,bin,on:true};
  return true;
 }
 function syncDraw(){
@@ -2282,11 +2314,11 @@ function specSarado(D,G,s,cx,cy){
 function specTama(D,G,s,cx,cy){
  const p=G.p,X=x=>cx+x*s,Y=y=>cy-y*s,R=p.tamaD/2,hr=p.tamaHoleD/2,cr=p.tamaCsD/2,sr=TAMA_STR_D/2;
  const yb=-Math.sqrt(R*R-cr*cr),yc=yb+p.tamaCsDepth,yt=Math.sqrt(R*R-sr*sr),ye=Math.max(yc,Math.min(-R+p.tamaHoleDepth,yt-3)),ytip=Math.min(ye+(hr-sr)*.6,yt-.5);
- const a0=Math.atan2(yt,sr),a1=Math.atan2(yb,cr),half=[];for(let i=0;i<=56;i++){const a=lerp(a0,a1,i/56);half.push([R*Math.cos(a),R*Math.sin(a)]);}
+ const M=mkTama(p,G),a0=Math.atan2(yt,sr),a1=Math.atan2(yb,cr),half=[];for(let i=0;i<=(M.rho?120:56);i++){const a=lerp(a0,a1,i/(M.rho?120:56)),q=M.rhoAt(Math.atan2(Math.cos(a),-Math.sin(a)));half.push([q*Math.cos(a),q*Math.sin(a)]);} // hole down: the hole axis points to -y
  half.push([hr,yc],[hr,ye],[sr,ytip]);
  const A=half.map(([x,y])=>[X(x),Y(y)]),B=half.map(([x,y])=>[X(-x),Y(y)]);
  D.hatch([A,B]);D.style('#000',.9);D.poly(A,true);D.poly(B,true);
- dimH(D,X(-R),X(R),cy,cy,Y(R)-14,f2(p.tamaD));
+ dimH(D,X(-R),X(R),cy,cy,Y(R)-14,f2(p.tamaD));if(M.rho)D.text('HAND-SHAPED (Ø IS THE MEASURED BALL)',cx,Y(M.Rmax)-26,{align:'center',size:5,bg:1});
  dimH(D,X(-hr),X(hr),Y(yc),Y(yc),Y(-R)+13,f2(p.tamaHoleD));
  dimH(D,X(-cr),X(cr),Y(yb),Y(yb),Y(-R)+27,f2(p.tamaCsD));
  dimV(D,Y(yc),Y(yb),X(hr),X(cr),X(cr)+22,f2(p.tamaCsDepth),{right:1,bg:1});
@@ -2397,7 +2429,7 @@ function exportDxf(){
  pl('SARADO_FRONT',sil.sar,true);for(const[x,y]of stringHoles(p,G))ci('SARADO_STRING_HOLES',x,y,STR_HOLE_D/2);
  const ox=p.sarL+60,oy=G.yA;pl('SARADO_SECTION',sarSection(G).map(([x,y])=>[x+ox,y+oy]),true);pl('SARADO_HALF_PROFILE',G.sarPts.map(([x,r])=>[x+ox,r+oy]));ln('CENTRELINES',[G.xS-5+ox,oy],[G.xE+5+ox,oy]);
  for(const sd of[1,-1])ln('SARADO_KEN_HOLE',[G.xw+ox+sd*taperD(p,G.yA+p.waistD/2)/2,oy+p.waistD/2],[G.xw+ox+sd*taperD(p,G.yA-p.waistD/2)/2,oy-p.waistD/2]);
- const tx=ox,ty=p.tamaD/2+4;ci('TAMA',tx,ty,p.tamaD/2);for(const s of tamaOutline(p,{x:tx,y:ty},[0,-1]))pl('TAMA',s);
+ const TM=mkTama(p,G),tx=ox,ty=TM.Rmax+4;if(TM.rho)pl('TAMA',tamaLoop(TM,{x:tx,y:ty},[0,-1],240),true);else ci('TAMA',tx,ty,p.tamaD/2);for(const s of tamaOutline(p,{x:tx,y:ty},[0,-1],G))pl('TAMA',s);
  o.push('0','ENDSEC','0','EOF');download(slug(S.meta.model)+'.dxf',o.join('\n')+'\n','application/dxf');
 }
 function gcode(){

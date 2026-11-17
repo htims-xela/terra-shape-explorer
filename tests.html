@@ -106,12 +106,12 @@ for(const[lib,two]of DD_CASES)test(`Drag & draw: every contour against every poi
  E(`loadLib(${JSON.stringify(lib)});${two?"S.p.swoopMode='two';refresh();commit();":''}setMode('dd');`);await sleep(30);fitView();
  const base=E('snapState()'),load=s=>E(`(()=>{const o=JSON.parse(${JSON.stringify(s)});S.p=o.p;S.curves=o.curves;refresh();})()`);
  const out=id=>E(`JSON.stringify(CUR.G.segs[${JSON.stringify(id)}].out.map(v=>[+v[0].toFixed(4),+v[1].toFixed(4)]))`);
- const mid=id=>E(`(()=>{const G=CUR.G,sg=G.segs[${JSON.stringify(id)}],m=sg.out[sg.out.length>>1];return{w:ddFrom(G,sg,m[0],m[1],1),ken:sg.part==='ken'};})()`);
+ const mid=id=>E(`(()=>{const G=CUR.G,sg=G.segs[${JSON.stringify(id)}],m=sg.out[sg.out.length>>1],w=ddFrom(G,sg,m[0],m[1],1);let d=sg.part==='ken'?[6,0]:[0,-6];if(sg.part==='tama'){const C=ddFree().C,L=Math.hypot(w[0]-C.x,w[1]-C.y);d=[(w[0]-C.x)/L*6,-(w[1]-C.y)/L*6];}return{w,d};})()`); // push outward: right for the ken, up for the sarado, away from the centre for the tama
  const handles=()=>E(`ddHandles().map(h=>({id:h.id,X:h.X,Y:h.Y,ks:[h.ax,h.ay].filter(Boolean).map(a=>a[0])}))`);
  const segs=E('ddSegs(CUR.G)');ok(segs.length>=7,'has '+segs.length+' reshapeable contours');
  for(const id of segs){
   load(base);const orig=out(id),had=E(`!!S.curves[${JSON.stringify(id)}]`);
-  E(`setDDTool('push')`);let m=mid(id),q=PP(m.w);drag(q,m.ken?[q[0]+6,q[1]]:[q[0],q[1]-6]);
+  E(`setDDTool('push')`);let m=mid(id),q=PP(m.w);drag(q,[q[0]+m.d[0],q[1]+m.d[1]]);
   ok(E(`!!S.curves[${JSON.stringify(id)}]`)&&out(id)!==orig,id+': push / pull changes the contour');
   const pushed=E('snapState()');
   for(const h0 of handles()){for(const dv of[[5,-5],[-5,5]]){
@@ -143,6 +143,27 @@ test('Drag & draw tools: nudge, smooth, redraw, restore all, measure, turn',asyn
  E(`DD.turn=true;syncDD();`);const pv=E('rollPiv(VT.design)');drag([pv[0]+60,pv[1]],[pv[0],pv[1]+60]);ok(Math.abs(E('V3.roll')-Math.PI/2)<0.01,'with Turn on, Move view spins and snaps to 90°');
  E(`V3.roll=0;DD.turn=false;setDDTool('point');`);
 });
+test('Redraw follows the drawn line: far from the old contour, ends off it, zoomed in, and a second stroke leaves the first alone',async({E,ok,ev,fitView})=>{
+ E(`loadLib('Kocho');setMode('dd');`);await sleep(30);fitView();
+ const base=E('snapState()'),load=()=>E(`(()=>{const o=JSON.parse(${JSON.stringify(base)});S.p=o.p;S.curves=o.curves;refresh();})()`);
+ // zoom in on a contour, draw a line offset from it by off(t) mm between fractions a..b, and return how far (mm) the new contour lies from that line
+ E(`window.__zoom=(id,z)=>{const T=VT.design,G=CUR.G,sg=G.segs[id],m=sg.out[sg.out.length>>1],w=ddFrom(G,sg,m[0],m[1],1);T.auto=false;T.z=z;T.ox=CW/2-w[0]*z;T.oy=CH/2+w[1]*z;render();};
+  window.__line=(id,off,a,b)=>{const G=CUR.G,sg=G.segs[id],n=sg.out.length,i0=Math.round(n*a),i1=Math.round(n*b),o=[];for(let i=i0;i<=i1;i++){const q=sg.out[i];o.push(ddFrom(G,sg,q[0],q[1]+off((i-i0)/(i1-i0)),1));}return o;};
+  window.__miss=(id,line)=>{const G=CUR.G,sg=G.segs[id],P=sg.out.map(q=>ddFrom(G,sg,q[0],q[1],1)),d=w=>{let m=1e9;for(let i=0;i<P.length-1;i++){const a=P[i],b=P[i+1],vx=b[0]-a[0],vy=b[1]-a[1],L=vx*vx+vy*vy||1e-9,t=Math.max(0,Math.min(1,((w[0]-a[0])*vx+(w[1]-a[1])*vy)/L));m=Math.min(m,Math.hypot(w[0]-a[0]-t*vx,w[1]-a[1]-t*vy));}return m;};const k=Math.round(line.length*0.05);return Math.max(...line.slice(k,line.length-k).map(d));};`);
+ const draw=line=>{const px=line.map(w=>E(`[sx(VT.design,${w[0]}),sy(VT.design,${w[1]})]`)),st=[px[0]];for(const q of px){const l=st[st.length-1];if(Math.hypot(q[0]-l[0],q[1]-l[1])>2)st.push(q);}st.push(px[px.length-1]);
+  ev('pointerdown',st[0][0],st[0][1]);st.forEach(q=>ev('pointermove',q[0],q[1]));ev('pointerup',st[st.length-1][0],st[st.length-1][1]);};
+ ok(E('DD.smooth')===0,'line smoothing starts off, so the line is kept as drawn');
+ const cases=[['swoopAll','8*Math.sin(t*Math.PI)',0.35,0.65,'8 mm out from the sarado swoop'],['swoopAll','1.5*Math.sin(t*Math.PI*3)',0.35,0.65,'a wiggle on the sarado swoop'],['swoopAll','1.5+0.5*Math.sin(t*Math.PI*2)',0.35,0.65,'ends 1.5 mm off the sarado swoop'],['flare','5*Math.sin(t*Math.PI)',0.25,0.75,'5 mm out from the flare'],['tamaBall','8*Math.sin(t*Math.PI)',0.3,0.7,'8 mm out from the tama']];
+ for(const[id,f,a,b,what]of cases){load();E(`__zoom('${id}',5);setDDTool('draw');`);const line=E(`__line('${id}',t=>${f},${a},${b})`);draw(line);const m=E(`__miss('${id}',${JSON.stringify(line)})`);ok(m<0.15,`zoomed in, ${what}: the contour follows the line (off by ${m.toFixed(3)} mm at most)`);}
+ // a second stroke further along leaves the first one as it was
+ load();E(`__zoom('swoopAll',3);setDDTool('draw');`);const l1=E(`__line('swoopAll',t=>2*Math.sin(t*Math.PI),0.15,0.4)`);draw(l1);const m1=E(`__miss('swoopAll',${JSON.stringify(l1)})`);
+ const l2=E(`__line('swoopAll',t=>-1.5*Math.sin(t*Math.PI),0.6,0.85)`);draw(l2);const m2=E(`__miss('swoopAll',${JSON.stringify(l1)})`);
+ ok(m1<0.15&&Math.abs(m2-m1)<0.01,`a second stroke does not blur the first (${m1.toFixed(3)} → ${m2.toFixed(3)} mm)`);
+ // with line smoothing on, the new part is smoothed
+ load();E(`__zoom('swoopAll',5);setDDTool('draw');DD.smooth=2;`);const lw=E(`__line('swoopAll',t=>1.5*Math.sin(t*Math.PI*3),0.35,0.65)`);draw(lw);ok(E(`__miss('swoopAll',${JSON.stringify(lw)})`)>0.2,'with line smoothing on, the drawn wiggle is evened out');
+ E('DD.smooth=0;VT.design.auto=true;');load();
+});
+
 test('Drag & draw: sarado waist point on a hand-shaped single swoop',async({E,ok,drag,click,PP,fitView})=>{
  E(`loadLib('Kocho');setMode('dd');`);await sleep(30);fitView();
  const w0=E('S.p.waistD'),rw=()=>E('CUR.G.rS(CUR.G.xw)'),m0=E('CUR.A.sM'),z=E('VT.design.z');
@@ -246,10 +267,13 @@ test('Tool bar order, names, and tama points and push / pull',async({w,E,ok,drag
  E(`setDDTool('point')`);let d0=E('S.p.tamaD'),h=H()[0],c=E('ddFree().C'),q=PP([h.X,h.Y]),dir=[(h.X-c.x),(h.Y-c.y)],L=Math.hypot(dir[0],dir[1]);
  drag(q,[q[0]+dir[0]/L*8,q[1]-dir[1]/L*8]);ok(Math.abs((E('S.p.tamaD')-d0)-2*8/z)<0.25,'dragging the tama Ø point resizes the tama ('+d0+' → '+E('S.p.tamaD')+')');
  const dep0=E('S.p.tamaHoleDepth');h=H()[3];q=PP([h.X,h.Y]);const u=E('ddFree().u');drag(q,[q[0]+u[0]*6,q[1]-u[1]*6]);ok(E('S.p.tamaHoleDepth')<dep0-0.5,'dragging the hole-depth point toward the mouth makes the hole shallower');
- E(`setDDTool('push')`);d0=E('S.p.tamaD');c=E('ddFree().C');const R=d0/2;q=PP([c.x+R*0.7071,c.y+R*0.7071]);drag(q,[q[0]-5,q[1]+5]);
- ok(E('S.p.tamaD')<d0-1,'push / pull on the ball changes the tama Ø ('+d0.toFixed(2)+' → '+E('S.p.tamaD').toFixed(2)+')');
+ E(`setDDTool('push')`);d0=E('S.p.tamaD');c=E('ddFree().C');const R=d0/2,rho=()=>E('(()=>{const f=ddFree(),T=mkTama(CUR.G.p,CUR.G),dx=0.7071,dy=0.7071,al=dx*f.u[0]+dy*f.u[1],r=Math.abs(-dx*f.u[1]+dy*f.u[0]);return T.rhoAt(Math.atan2(r,al));})()');
+ q=PP([c.x+R*0.7071,c.y+R*0.7071]);drag(q,[q[0]-5,q[1]+5]);
+ ok(E('!!S.curves.tamaBall')&&Math.abs(E('S.p.tamaD')-d0)<1e-9&&rho()<R-0.5,'push / pull on the ball hand-shapes the tama outside and leaves the Ø measure alone ('+R.toFixed(2)+' → '+rho().toFixed(2)+' mm there)');
  ok(!E('ddFreeHit(ddFree().C,ddFree().u)'),'tama still clear of the ken');
- E('undo(-1)');ok(Math.abs(E('S.p.tamaD')-d0)<1e-9,'undo puts the tama Ø back');
+ E('undo(-1)');ok(!E('!!S.curves.tamaBall')&&Math.abs(rho()-R)<1e-6,'undo puts the round tama back');
+ const hd0=E('S.p.tamaHoleD');E(`(()=>{const f=ddFree(),T=mkTama(CUR.G.p,CUR.G),u=f.u,v=[-u[1],u[0]],al=(T.yJ+T.end)/2;window.__hw=[f.C.x+u[0]*al+v[0]*T.hr,f.C.y+u[1]*al+v[1]*T.hr,v[0],v[1]];})()`);
+ const hw=E('window.__hw');q=PP([hw[0],hw[1]]);drag(q,[q[0]+hw[2]*8,q[1]-hw[3]*8]);ok(E('S.p.tamaHoleD')>hd0&&!E('!!S.curves.tamaBall'),'push / pull on the hole wall still changes the hole Ø ('+hd0+' → '+E('S.p.tamaHoleD')+')');
 });
 
 test('Choosing Move pieces keeps the ken and tama where they were',async({w,E,ok,fitView})=>{
@@ -305,6 +329,51 @@ test('View tools: 3D turn, flat turn, mark-ups with undo and delete',async({E,ok
 });
 
 /* ---------- language ---------- */
+test('Drag & draw: the tama outside can be pushed, smoothed, redrawn and restored; contact, 3D, weight and exports follow',async({w,E,ok,ev,drag,click,PP,fitView,finite})=>{
+ E(`loadLib('Kocho');setMode('dd');`);await sleep(30);fitView();E('VT.design.auto=false');
+ ok(E(`ddSegs(CUR.G).includes('tamaBall')`),'the tama outside is a shapeable contour');
+ // a point on the outside of the tama, f radians from the hole axis, side sd, distance from the centre rho (default: on the surface)
+ E(`window.__tp=(f,sd,rho)=>{const P=ddFree(),T=mkTama(CUR.G.p,CUR.G),u=P.u,v=[-u[1],u[0]],q=rho==null?T.rhoAt(f):rho;return[P.C.x+u[0]*q*Math.cos(f)+v[0]*sd*q*Math.sin(f),P.C.y+u[1]*q*Math.cos(f)+v[1]*sd*q*Math.sin(f)];};`);
+ const tp=(f,sd=1,rho)=>E(`__tp(${f},${sd},${rho==null?'null':rho})`),rhoAt=f=>E(`mkTama(CUR.G.p,CUR.G).rhoAt(${f})`),R=E('CUR.G.p.tamaD/2'),m0=E('CUR.A.tM'),z=E('VT.design.z');
+ // push / pull: drag the side of the tama outward
+ E(`setDDTool('push')`);let a=PP(tp(Math.PI/2)),b=PP(tp(Math.PI/2,1,R+10/z));drag(a,b,8);
+ ok(Math.abs(rhoAt(Math.PI/2)-R-10/z)<0.2,'push follows the pointer ('+(rhoAt(Math.PI/2)-R).toFixed(2)+' vs '+(10/z).toFixed(2)+' mm)');
+ ok(Math.abs(rhoAt(0.1)-R)<1e-6&&Math.abs(rhoAt(3.12)-R)<1e-6,'the hole mouth and the string hole stay where they were');
+ ok(E('CUR.A.tM')>m0+0.5&&finite(),'the tama gets heavier ('+m0.toFixed(1)+' → '+E('CUR.A.tM').toFixed(1)+' g)');
+ ok(Math.abs(E('mkTama(CUR.G.p,CUR.G).Rmax')-rhoAt(Math.PI/2))<0.05,'its reach is the bulge');
+ const bump=rhoAt(Math.PI/2);E('ddNudge(-1)');ok(Math.abs(bump-rhoAt(Math.PI/2)-E('DD.step'))<0.02,'nudge moves the tama outside by one step');
+ // smooth
+ E(`setDDTool('smooth');DD.strength=100;`);const r0=rhoAt(Math.PI/2+0.25);for(let k=0;k<3;k++){a=PP(tp(Math.PI/2-0.4));b=PP(tp(Math.PI/2+0.4));drag(a,b,10);}
+ ok(Math.abs(rhoAt(Math.PI/2+0.25)-r0)>0.01&&finite(),'smooth changes the tama outside');
+ // redraw: draw 2 mm inside the other side, lower down
+ E(`setDDTool('draw')`);const pts=[];for(let i=0;i<=24;i++){const f=2.0+0.8*i/24;pts.push(PP(tp(f,-1,rhoAt(f)-2*Math.sin(Math.PI*i/24))));}
+ ev('pointerdown',pts[0][0],pts[0][1]);pts.forEach(p=>ev('pointermove',p[0],p[1]));ev('pointerup',pts[pts.length-1][0],pts[pts.length-1][1]);
+ ok(rhoAt(2.4)<R-1.2,'redraw replaces that part of the tama ('+rhoAt(2.4).toFixed(2)+' mm from the centre)');
+ ok(rhoAt(2.4)>=E('tamaLo(tamaBase(CUR.G.p),2.4)')-1e-6,'the tama keeps its wall round the hole');
+ // measure snaps to the tama outside
+ E(`setDDTool('measure');DD.snap=true;`);const sn=E(`(()=>{const s=ddSnap(__tp(1.2,1,mkTama(CUR.G.p,CUR.G).rhoAt(1.2)+0.6),VT.design);return s&&s.kind;})()`);ok(sn==='edge','measure snaps to the tama outside');
+ // the shaped tama shows in 3D, the spec sheet and the DXF
+ ok(E(`(()=>{M3=null;return mesh3().length>0;})()`),'3D view builds the shaped tama');
+ const got=E(`(()=>{const o=[],d=download;download=(n,t)=>o.push(t);try{const a=new PdfDrawer(612);specPage1(a,CUR);specPage2(new PdfDrawer(612),CUR);exportDxf();}finally{download=d;}return o;})()`);
+ ok(got.length===1&&/TAMA/.test(got[0])&&!/\nCIRCLE\n(?:[^\n]*\n){1,3}TAMA\n/.test(got[0]),'DXF draws the shaped tama as an outline, not a circle');
+ // contact: the shaped tama never overlaps, and a bulge stops it sooner than a round tama would
+ E(`setDDTool('free');(()=>{const f=ddFree();f.u=[0,1];f.C={x:80,y:CUR.G.p.kenH*0.35};})();ddFreeFix();`);
+ const c0=E('ddFree().C');a=PP([c0.x,c0.y]);b=PP([c0.x-70,c0.y]);drag(a,b,40);
+ const c1=E('ddFree().C');ok(c1.x<c0.x-5&&!E('ddFreeHit(ddFree().C,ddFree().u)'),'moving the shaped tama into the ken stops it touching, never overlapping');
+ ok(E(`(()=>{const f=ddFree();return hit(mkTama(CUR.G.p,CUR.G),obs(CUR.G),f.C.x-0.5,f.C.y,f.u[0],f.u[1]);})()`),'it is pressed right up against the ken');
+ // trick poses still find a seat with the shaped tama
+ ok(['lunar','spike','lighthouse','bird','slipstall'].every(k=>E(`(()=>{const P=pose(CUR.G,'${k}');return !!P&&isFinite(P.C.x)&&isFinite(P.C.y);})()`)),'trick poses still work with a shaped tama');
+ // Markup shows the same shaped tama
+ E(`setMode('manual');`);await sleep(30);ok(E('!!S.curves.tamaBall&&S.show.tama==="free"&&CUR.G.segs.tamaBall.drawn'),'Markup keeps the shaped tama');E(`setMode('dd');`);await sleep(30);
+ // restore: click the tama outside
+ E(`setDDTool('reset')`);click(PP(tp(Math.PI/2)));ok(!E('!!S.curves.tamaBall')&&Math.abs(rhoAt(2.4)-R)<1e-6,'Restore makes the tama round again');
+ // save / open keeps a shaped tama
+ E(`setDDTool('push')`);a=PP(tp(Math.PI/2));b=PP(tp(Math.PI/2,1,R+6/z));drag(a,b,6);const keep=rhoAt(Math.PI/2);
+ const saved=E('snapState()');E(`(()=>{const o=JSON.parse(${JSON.stringify(saved)});const d=cleanDesign(o);S.p=d.p;S.curves=d.curves;refresh();})()`);
+ ok(Math.abs(rhoAt(Math.PI/2)-keep)<1e-6,'save / open keeps the shaped tama');
+ E('ddRestore()');ok(!E('!!S.curves.tamaBall'),'Restore all includes the tama');
+});
+
 test('Japanese: every on-screen string is translated, and English comes back',async({w,E,ok})=>{
  E(`loadLib('Kocho');`);await sleep(30);
  const en=w.document.querySelector('#params').innerText;
