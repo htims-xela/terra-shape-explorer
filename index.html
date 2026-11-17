@@ -1438,10 +1438,22 @@ const strSidesTxt=p=>p.sarStrSides==='front'?'RIGHTY ONLY':p.sarStrSides==='back
 function mkTama(p){const R=p.tamaD/2,cr=p.tamaCsD/2,hr=p.tamaHoleD/2,yM=Math.sqrt(Math.max(0,R*R-cr*cr)),yJ=yM-p.tamaCsDepth,end=R-p.tamaHoleDepth,sr=TAMA_STR_D/2;
  return{R,cr,hr,yM,yJ,end,sr,holeR:al=>al>=yJ?(yM>yJ?hr+(cr-hr)*Math.min(1,(al-yJ)/(yM-yJ)):cr):al>=end?hr:sr};}
 function densify(poly,out,step=0.4){for(let i=0;i<poly.length;i++){const a=poly[i],b=poly[(i+1)%poly.length],L=Math.hypot(b[0]-a[0],b[1]-a[1]),n=Math.max(1,Math.ceil(L/step));for(let j=0;j<n;j++)out.push(a[0]+(b[0]-a[0])*j/n,a[1]+(b[1]-a[1])*j/n);}return out;}
-function obs(G){if(!G._obs){const o=[];densify(kenSection(G).map(([y,r])=>[r,y]),o);densify(sarSection(G).map(([x,r])=>[x-G.xw,r+G.yA]),o);G._obs=Float64Array.from(o);}return G._obs;}
-function hit(T,O,cx,cy,ux,uy){const R=T.R-0.15,R2=R*R;for(let i=0;i<O.length;i+=2){const dx=O[i]-cx,dy=O[i+1]-cy;if(dx>R||dx<-R||dy>R||dy<-R)continue;const d2=dx*dx+dy*dy;if(d2>=R2)continue;const al=dx*ux+dy*uy,rad=Math.sqrt(Math.max(0,d2-al*al));if(rad<T.holeR(al)-0.15)continue;return true;}return false;}
-function seat(G,A,n,u){const T=mkTama(G.p),O=obs(G),C=t=>({x:A[0]+n[0]*t,y:A[1]+n[1]*t}),H=t=>{const c=C(t);return hit(T,O,c.x,c.y,u[0],u[1]);};
- let lo=-2*T.R,hi=2*T.R+20;while(H(hi)&&hi<2000)hi*=1.6;if(!H(lo)){const c=C(lo);return{C:c,u,piv:c};}for(let i=0;i<36;i++){const m=(lo+hi)/2;if(H(m))lo=m;else hi=m;}const c=C(hi);return{C:c,u,piv:c};}
+// Overlap is tested against the real 3D shapes, not the flat section. A flat section lets a round rim or ridge slip into the tama hole where the solid ring would touch the ball either side of the hole.
+// obs: points all over the surface of the ken (profile spun about its axis) and the sarado (spun about its own axis). Only the z >= 0 half is kept: the tama centre and hole axis lie in the z = 0 plane, so the other half mirrors it.
+function obsFlat(G){if(!G._obs2){const k=[];densify(kenSection(G).map(([y,r])=>[r,y]),k,0.6);const q=[];densify(sarSection(G).map(([x,r])=>[x-G.xw,r]),q,0.6);G._obs2=[k,q];}return G._obs2;} // the section outlines: [r, y] for the ken, [x, r] for the sarado
+function obs(G){if(!G._obs){const[k,q]=obsFlat(G),cnt=r=>Math.max(1,Math.ceil(Math.PI*r/0.8))+1;let n=0;for(let i=0;i<k.length;i+=2)if(k[i]>=0)n+=cnt(k[i]);for(let i=0;i<q.length;i+=2)if(q[i+1]>=0)n+=cnt(q[i+1]);
+  const o=new Float32Array(n*3);let j=0;
+  for(let i=0;i<k.length;i+=2){const r=k[i],y=k[i+1];if(r<0)continue;const m=cnt(r)-1;for(let t=0;t<=m;t++){const a=Math.PI*t/m;o[j++]=Math.cos(a)*r;o[j++]=y;o[j++]=Math.sin(a)*r;}}
+  for(let i=0;i<q.length;i+=2){const x=q[i],r=q[i+1];if(r<0)continue;const m=cnt(r)-1;for(let t=0;t<=m;t++){const a=Math.PI*t/m;o[j++]=x;o[j++]=G.yA+Math.cos(a)*r;o[j++]=Math.sin(a)*r;}}
+  G._obs=o;}return G._obs;}
+// quick test in the section plane: the nearest point of a spun shape to the tama centre always lies in that plane, so if nothing there is within reach nothing in 3D is either
+function nearFlat(G,cx,cy,R){const[k,q]=obsFlat(G),R2=R*R;for(let i=0;i<k.length;i+=2){const dx=k[i]-cx,dy=k[i+1]-cy;if(dx*dx+dy*dy<R2)return true;}for(let i=0;i<q.length;i+=2){const dx=q[i]-cx,dy=G.yA+q[i+1]-cy;if(dx*dx+dy*dy<R2)return true;}return false;}
+function hit(T,O,cx,cy,ux,uy){const R=T.R-0.15,R2=R*R;for(let i=0;i<O.length;i+=3){const dz=O[i+2];if(dz>R)continue;const dx=O[i]-cx;if(dx>R||dx<-R)continue;const dy=O[i+1]-cy;if(dy>R||dy<-R)continue;const d2=dx*dx+dy*dy+dz*dz;if(d2>=R2)continue;const al=dx*ux+dy*uy,rad=Math.sqrt(Math.max(0,d2-al*al));if(rad<T.holeR(al)-0.15)continue;return true;}return false;}
+// the same test in the section plane only. It is exact when the tama sits on a piece's own axis (in a cup, on the spike, under the base), which is all seat() is used for, and it is much cheaper: the balance read-outs call it on every change.
+function hitFlat(T,G,cx,cy,ux,uy){const[k,q]=obsFlat(G),R=T.R-0.15,R2=R*R,one=(dx,dy)=>{const d2=dx*dx+dy*dy;if(d2>=R2)return false;const al=dx*ux+dy*uy,rad=Math.sqrt(Math.max(0,d2-al*al));return rad>=T.holeR(al)-0.15;};
+ for(let i=0;i<k.length;i+=2)if(one(k[i]-cx,k[i+1]-cy))return true;for(let i=0;i<q.length;i+=2)if(one(q[i]-cx,G.yA+q[i+1]-cy))return true;return false;}
+function seat(G,A,n,u){const T=mkTama(G.p),C=t=>({x:A[0]+n[0]*t,y:A[1]+n[1]*t}),H=t=>{const c=C(t);return hitFlat(T,G,c.x,c.y,u[0],u[1]);};
+ let lo=-2*T.R,hi=2*T.R+20;while(H(hi)&&hi<2000)hi*=1.6;if(!H(lo)){const c=C(lo);return{C:c,u,piv:c};}for(let i=0;i<36;i++){const m=(lo+hi)/2;if(H(m))lo=m;else hi=m;}const c=C(hi+0.02);return{C:c,u,piv:c};}
 function stall(G,E,a0,sg){
  const T=mkTama(G.p),O=obs(G),dE=clamp(Math.max(T.yM-T.cr,T.yJ-T.hr),1,T.R);
  const at=a=>{const s=Math.sin(a),c=Math.cos(a);return{C:{x:E[0]+dE*s,y:E[1]+dE*c},u:[-s,-c]};},H=a=>{const q=at(a);return hit(T,O,q.C.x,q.C.y,q.u[0],q.u[1]);};
@@ -1464,7 +1476,7 @@ function ridgeSeat(G,y0,y1){
  let yc=(y0+y1)/2,top=-1,lo=1e9;const n=24;for(let i=0;i<=n;i++){const y=lerp(y0,y1,i/n),r=G.rK(y);if(r>top+1e-9){top=r;yc=y;}if(r<lo)lo=r;}
  if(top-lo<0.3)yc=(y0+y1)/2;
  const T=mkTama(G.p),O=obs(G),H=x=>hit(T,O,x,yc,-1,0);let a=0,b=top+T.R+5;for(let i=0;i<40;i++){const m=(a+b)/2;if(H(m))a=m;else b=m;} // centred on the ken axis the tama overlaps it; lift it until it just clears
- return{C:{x:b,y:yc},u:[-1,0],piv:{x:G.rK(yc),y:yc}};}
+ return{C:{x:b+0.02,y:yc},u:[-1,0],piv:{x:G.rK(yc),y:yc}};}
 function pose(G,k){
  const p=G.p,Xf=G.xE-G.xw,Xs=G.xS-G.xw;
  switch(k){
@@ -1595,8 +1607,8 @@ function buildParams(){
  const root=$('#params');root.innerHTML='';
  const host=el('details',{class:'top',id:'topMan'}),ddp=el('details',{class:'top',id:'topDD'}),sm=el('summary',{},'Manual control'),sd=el('summary',{},'Drag & draw');
  host.open=S.mode!=='dd';ddp.open=S.mode==='dd';host.append(sm);root.append(ddp,host);
- sm.onclick=e=>{e.preventDefault();VT.design.auto=true;setMode('manual');};
- sd.onclick=e=>{e.preventDefault();VT.design.auto=true;setMode('dd');if(document.body.classList.contains('m-params')&&window.setM)window.setM('view');};
+ sm.onclick=e=>{e.preventDefault();setMode('manual');};
+ sd.onclick=e=>{e.preventDefault();setMode('dd');if(document.body.classList.contains('m-params')&&window.setM)window.setM('view');};
  ddp.append(sd,el('p',{class:'gnote'},'Shape the contours straight on the kendama. Pick a tool from the bar at the bottom of the viewing area; its fine-tuning controls sit just above it.'));
  for(const[,n,t]of DD_TOOLS)ddp.append(el('div',{class:'ddrow'},el('b',{},n),el('span',{},t)));
  ddp.append(el('p',{class:'gnote'},'Undo and Redo in the top bar work on every change made here.'),el('h3',{style:'margin:12px 0 4px'},'Hand-shaped contours'),el('div',{id:'ddList'}));
@@ -1721,7 +1733,7 @@ function bounds(v){
  if(v==='design'){const T=tamaPose();if(T){const R=p.tamaD/2;x0=Math.min(x0,T.C.x-R-4);x1=Math.max(x1,T.C.x+R+4);y0=Math.min(y0,T.C.y-R-4);y1=Math.max(y1,T.C.y+R+4);}}
  return[x0,y0,x1,y1];
 }
-function fit(v){const T=VT[v],b=bounds(v),w=b[2]-b[0],h=b[3]-b[1],pad=v==='design'&&S.mode==='dd'?Math.min(112,CH*0.32):0;T.z=Math.min((CW-30)/w,(CH-30-pad)/h);T.ox=CW/2-(b[0]+b[2])/2*T.z;T.oy=(CH-pad)/2+(b[1]+b[3])/2*T.z;} // drag & draw keeps the shape clear of the tool dock
+function fit(v){const T=VT[v],b=bounds(v),w=b[2]-b[0],h=b[3]-b[1],pad=v==='design'?Math.min(112,CH*0.32):0;T.z=Math.min((CW-30)/w,(CH-30-pad)/h);T.ox=CW/2-(b[0]+b[2])/2*T.z;T.oy=(CH-pad)/2+(b[1]+b[3])/2*T.z;} // room for the drag & draw tool dock; Markup fits the same way so the picture does not shift when you switch between the two
 const sx=(T,X)=>T.ox+X*T.z,sy=(T,Y)=>T.oy-Y*T.z;
 function pathW(c,T,pts,close){c.beginPath();pts.forEach((q,i)=>i?c.lineTo(sx(T,q[0]),sy(T,q[1])):c.moveTo(sx(T,q[0]),sy(T,q[1])));if(close)c.closePath();}
 function grid(c,T){if(NOGRID)return;c.strokeStyle=col('--grid');c.lineWidth=1;c.beginPath();const g=10*T.z;if(!(g>2))return;for(let x=((T.ox%g)+g)%g;x<CW;x+=g){c.moveTo(Math.round(x)+.5,0);c.lineTo(Math.round(x)+.5,CH);}for(let y=((T.oy%g)+g)%g;y<CH;y+=g){c.moveTo(0,Math.round(y)+.5);c.lineTo(CW,Math.round(y)+.5);}c.stroke();}
@@ -1830,7 +1842,7 @@ function thin3(pts,tol=0.04,maxL=5){ // fewer profile points: keep the corners, 
   if(m>tol||(L>maxL&&mi>0)){if(m<=tol)mi=(a+b)>>1;keep[mi]=1;st.push([a,mi],[mi,b]);}}
  return pts.filter((q,i)=>keep[i]);}
 function mesh3(){
- const G=CUR.G,p=G.p,k=S.show.tama,B=balView();if(M3&&M3.G===G&&M3.k===k)return M3.q;
+ const G=CUR.G,p=G.p,P=tamaPose(),k=S.show.tama+(S.show.tama==='free'&&P?JSON.stringify([P.C,P.u]):''),B=balView();if(M3&&M3.G===G&&M3.k===k)return M3.q;
  const q=[],N=28,cs=[];for(let j=0;j<=N;j++){const a=j/N*2*Math.PI;cs.push([Math.cos(a),Math.sin(a)]);}
  const tw=B?v=>{const w=rotW(B,v);return[w[0],w[1],v[2]];}:v=>v;
  const surf=(prof,f,ci)=>{const pr=thin3(prof);for(let i=0;i<pr.length-1;i++){const a=pr[i],b=pr[i+1];if(a[1]<1e-6&&b[1]<1e-6)continue;
@@ -1839,7 +1851,6 @@ function mesh3(){
  surf(G.kenPts,ken,0);surf([[0,G.bcP[0][0]],[0,G.kenPts[0][1]]],ken,0);surf(G.bcP.map(([r,d])=>[d,r]),ken,2);
  surf(G.sarPts,sar,1);
  for(const[cup,x0,dir,end]of[[G.smC,G.xS,1,G.sarPts[0]],[G.bgC,G.xE,-1,G.sarPts[G.sarPts.length-1]]]){surf(cup.map(([r,d])=>[x0+dir*d,r]),sar,2);surf([[x0,cup[0][0]],[x0,end[1]]],sar,1);}
- const P=poseCached(CUR,k);
  if(P){const T=mkTama(p),u=P.u,C=P.C,pr=[];for(let i=0;i<=40;i++){const al=-T.R+(T.yM+T.R)*i/40;pr.push([al,Math.sqrt(Math.max(0,T.R*T.R-al*al))]);}pr[pr.length-1]=[T.yM,T.cr];pr.push([T.yJ,T.hr],[T.end,T.hr],[T.end,0]);
   const tf=(al,r,c,s)=>[C.x+u[0]*al-u[1]*r*c,C.y+u[1]*al+u[0]*r*c,r*s];surf(pr.slice(0,-3),tf,3);surf(pr.slice(-4),tf,4);}
  M3={G,k,q};return q;}
@@ -1988,13 +1999,13 @@ function ddApplyHole(st){
 /* free tama: in drag & draw the tama is a body of its own. It and the ken + sarado can be moved and turned separately; they can touch but never overlap.
    The ken stays where it is in the design's own coordinates: "moving the ken" moves the view and shifts the tama the other way, so the tama stays put on the screen. */
 function ddFree(){if(!DD.free){const G=CUR.G,R=G.p.tamaD/2;DD.free={C:{x:G.xE-G.xw+R+12,y:Math.max(R,G.yA)},u:[0,1]};}return DD.free;}
-const ddFreeOn=()=>S.mode==='dd'&&S.show.tama==='free'&&!!CUR.G;
+const ddFreeOn=()=>S.view==='design'&&S.show.tama==='free'&&!!CUR.G;
 const tamaPose=()=>S.show.tama==='free'?(ddFreeOn()?ddFree():null):poseCached(CUR,S.show.tama);
 const ddFreeHit=(C,u)=>hit(mkTama(CUR.G.p),obs(CUR.G),C.x,C.y,u[0],u[1]);
 const rot2=(x,y,a)=>[x*Math.cos(a)-y*Math.sin(a),x*Math.sin(a)+y*Math.cos(a)];
 // furthest fraction of a move (0..1) that keeps the tama clear, so it ends up pressed against whatever stopped it
 function ddFar(at){if(!ddFreeHit(at(1).C,at(1).u))return 1;let lo=0,hi=1;for(let i=0;i<14;i++){const m=(lo+hi)/2,q=at(m);if(ddFreeHit(q.C,q.u))hi=m;else lo=m;}return lo;}
-function ddFreeFix(){if(!ddFreeOn())return;const f=ddFree(),cy=CUR.G.p.kenH/2;let n=0;while(ddFreeHit(f.C,f.u)&&n++<600){const dx=f.C.x,dy=f.C.y-cy,L=Math.hypot(dx,dy)||1;f.C={x:f.C.x+dx/L*0.5,y:f.C.y+dy/L*0.5};}} // the shape changed under the tama: ease it out
+function ddFreeFix(){if(!ddFreeOn())return;const f=ddFree(),cy=CUR.G.p.kenH/2;if(!nearFlat(CUR.G,f.C.x,f.C.y,CUR.G.p.tamaD/2))return;let n=0;while(ddFreeHit(f.C,f.u)&&n++<600){const dx=f.C.x,dy=f.C.y-cy,L=Math.hypot(dx,dy)||1;f.C={x:f.C.x+dx/L*0.5,y:f.C.y+dy/L*0.5};}} // the shape changed under the tama: ease it out
 function ddTamaMove(dx,dy){const f=ddFree(),go=(ax,ay)=>{if(!ax&&!ay)return 1;const k=ddFar(m=>({C:{x:f.C.x+ax*m,y:f.C.y+ay*m},u:f.u}));f.C={x:f.C.x+ax*k,y:f.C.y+ay*k};return k;};
  const steps=Math.max(1,Math.ceil(Math.hypot(dx,dy)/3));for(let i=0;i<steps;i++){const ax=dx/steps,ay=dy/steps,k=go(ax,ay);if(k<1){go(ax*(1-k),0);go(0,ay*(1-k));}}}
 function ddTamaTurn(da){const f=ddFree(),k=ddFar(m=>({C:f.C,u:rot2(f.u[0],f.u[1],da*m)}));f.u=rot2(f.u[0],f.u[1],da*k);return k;}
@@ -2122,7 +2133,7 @@ function ddAdoptPose(){
  T.auto=false;DD.free={C:{x:P.C.x,y:P.C.y},u:[P.u[0],P.u[1]]};}
 function setDDTool(t){if(t==='free'&&S.show.tama!=='free'){ddAdoptPose();S.show.tama='free';tamaMode();}DD.tool=t;DD.hover=null;ddCancel();syncDD();render();}
 function setMode(m,keepView){
- S.mode=m;tamaMode();VT.design.auto=true;document.body.classList.toggle('ddmode',m==='dd');const a=$('#topMan'),b=$('#topDD');if(a)a.open=m!=='dd';if(b)b.open=m==='dd';ddCancel();
+ S.mode=m;tamaMode();document.body.classList.toggle('ddmode',m==='dd');const a=$('#topMan'),b=$('#topDD');if(a)a.open=m!=='dd';if(b)b.open=m==='dd';ddCancel();
  if(m==='dd'){S.draw.on=false;V3.on=false;V3.yaw=V3.pitch=0;MK.tool='move';if(S.view!=='design')setView('design');syncTools();}
  viewPill();syncDraw();syncDD();render();}
 function render(){
@@ -2458,13 +2469,13 @@ function refresh(light){
  if(!started)return;
  sanitize(S.p);const G=build(S.p,S.curves);CUR={G,A:analyze(G)};
  if(!G.segs[S.draw.seg])S.draw.seg=G.order[0];
- syncParams();syncDraw();if(S.mode==='dd'){ddFreeFix();syncDD();}render();syncStats();
+ syncParams();syncDraw();ddFreeFix();if(S.mode==='dd')syncDD();render();syncStats();
  if(!light)syncSnaps();
  syncCompare();updUndo();
 }
 const viewPill=()=>{const d=S.mode==='dd'&&S.view==='design';$('#tView').value=d?'dd':S.view;$('#lView b').textContent=d?'Drag & draw':VIEWS[S.view];};
 const VIEWS={design:'Markup',sarado:'Sarado section',spec:'Spec sheet',compare:'Compare'};
-function setView(v){if(v!=='design'&&S.mode==='dd'){S.mode='manual';tamaMode();document.body.classList.remove('ddmode');$('#topMan').open=true;$('#topDD').open=false;VT.design.auto=true;}S.view=v;viewPill();mkCancel();
+function setView(v){if(v!=='design'&&S.mode==='dd'){S.mode='manual';tamaMode();document.body.classList.remove('ddmode');$('#topMan').open=true;$('#topDD').open=false;}S.view=v;viewPill();mkCancel();
  $('#lTama').style.display=v==='design'?'flex':'none';$('#tEll').style.display=v==='design'||v==='sarado'?'':'none';$('#vtools').style.display=v==='design'?'':'none';syncTools();$('#bPage').style.display=v==='spec'?'':'none';
  document.querySelector('.zoom').style.display=v==='spec'?'none':'flex';syncDraw();syncCompare();render();}
 function showStart(canCancel){
@@ -2475,7 +2486,7 @@ function showStart(canCancel){
 function readFile(input,cb){input.onchange=()=>{const f=input.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{cb(JSON.parse(r.result),f.name);}catch(e){toast('Could not open that file: '+e.message);}input.value='';};r.readAsText(f);};input.click();}
 function wire(){
  tamaMode();
- $('#tView').onchange=e=>{const v=e.target.value;VT.design.auto=true;if(v==='dd')setMode('dd');else{if(S.mode==='dd')setMode('manual');setView(v);}};
+ $('#tView').onchange=e=>{const v=e.target.value;if(v==='dd')setMode('dd');else{if(S.mode==='dd')setMode('manual');setView(v);}};
  {const b=$('#bRight'),set=shut=>{document.body.classList.toggle('r-shut',shut);b.classList.toggle('act',!shut);b.setAttribute('aria-pressed',!shut);try{localStorage.setItem('tse.right',shut?'0':'1');}catch(e){}requestAnimationFrame(()=>{if(started){render();syncStats();}});};
   b.onclick=()=>set(!document.body.classList.contains('r-shut'));let sv=null;try{sv=localStorage.getItem('tse.right');}catch(e){}set(sv==='0');}
  document.querySelectorAll('#dd button[data-d]').forEach(b=>b.onclick=()=>setDDTool(b.dataset.d));
@@ -2498,7 +2509,7 @@ function wire(){
  $('#gSave').onclick=()=>download(`${slug(S.meta.model)}_${$('#gPart').value}.nc`,gcode(),'text/plain');
  for(const[id,k]of[['#mBrand','brand'],['#mModel','model'],['#mDesigner','designer']])$(id).oninput=e=>{S.meta[k]=e.target.value;autosave();if(S.view==='spec')render();};
  $('#tCog').onchange=e=>{S.show.cog=e.target.checked;render();};
- $('#tTama').onchange=e=>{const nv=e.target.value;if(nv==='free'&&S.mode==='dd'&&S.show.tama!=='free'&&S.show.tama!=='none')ddAdoptPose();else VT.design.auto=true;S.show.tama=nv;if(S.mode==='dd'){if(S.show.tama==='free')DD.tool='free';else if(DD.tool==='free')DD.tool='point';syncDD();}tamaChip();render();};tamaChip();
+ $('#tTama').onchange=e=>{const nv=e.target.value;if(nv==='free'&&S.show.tama!=='free'&&S.show.tama!=='none')ddAdoptPose();else VT.design.auto=true;S.show.tama=nv;if(S.mode==='dd'){if(S.show.tama==='free')DD.tool='free';else if(DD.tool==='free')DD.tool='point';syncDD();}tamaChip();render();};tamaChip();
  $('#tEll').onclick=()=>{const on=S.show.ell=!S.show.ell,b=$('#tEll');S.ellHide={};b.classList.toggle('act',on);b.setAttribute('aria-pressed',on);b.querySelector('b').textContent=on?'On':'Off';render();};
  $('#bPage').onclick=()=>{S.page=S.page===1?2:1;$('#bPage').textContent=S.page===1?'Page 2 ›':'‹ Page 1';render();};
  $('#dSeg').onchange=e=>pickSeg(e.target.value);
@@ -2533,8 +2544,8 @@ function wire(){
  if(window.matchMedia)window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(started){render();syncStats();}});
 }
 function tamaChip(){const t=TRICKS.find(t=>t[0]===S.show.tama);$('#lTama b').textContent=S.show.tama==='free'?'Free':t?t[1]:'Off';}
-// the tama pill: Off + the tricks in the other views; in drag & draw the tama is always there, so Off becomes Free
-function tamaMode(){const dd=S.mode==='dd';if(dd&&S.show.tama==='none')S.show.tama='free';if(!dd&&S.show.tama==='free')S.show.tama='none';const sel=$('#tTama');sel.innerHTML='';sel.append(el('option',{value:dd?'free':'none'},dd?'Free':'Off'));for(const[v,t]of TRICKS.slice(1))sel.append(el('option',{value:v},t));sel.value=S.show.tama;if(DD.tool==='free'&&S.show.tama!=='free')DD.tool='point';tamaChip();}
+// the tama pill: Free (the tama where you last left it, shared by Markup and drag & draw) and the tricks. Markup can also turn it off; in drag & draw the tama is always there.
+function tamaMode(){const dd=S.mode==='dd';if(dd&&S.show.tama==='none')S.show.tama='free';const sel=$('#tTama');sel.innerHTML='';if(!dd)sel.append(el('option',{value:'none'},'Off'));sel.append(el('option',{value:'free'},'Free'));for(const[v,t]of TRICKS.slice(1))sel.append(el('option',{value:v},t));sel.value=S.show.tama;if(DD.tool==='free'&&S.show.tama!=='free')DD.tool='point';tamaChip();}
 buildParams();wire();setView('design');setMode('dd');showStart(false);
 // phones: the top bar keeps the name, undo/redo and a menu button; everything else opens from the menu
 {const mb=$('#bMenu'),hm=$('#hmenu'),setMenu=o=>{document.body.classList.toggle('m-menu',o);mb.setAttribute('aria-expanded',o);};
