@@ -77,6 +77,20 @@ for(const name of LIBS)test(`Library shape loads, draws and exports: ${name}`,as
  E(`setTool('rot');render();`);ok(E('M3&&M3.q.length')>500,'3D model builds');E(`setTool('front');`);
 });
 
+test('Bird ridge steps drawn in the CAD are kept in the one-swoop view',async({E,ok})=>{
+ E(`loadLib('P1')`);await sleep(30);
+ const r=E(`(()=>{const G=CUR.G,o=G.p.sarL/2,e=LIB.find(q=>q.name==='P1'),at=u=>{let b=null;for(const q of G.sarPts){const d=Math.abs(q[0]+o-u);if(!b||d<b.d)b={d,r:q[1]};}return b.r;};
+  let m=0;for(const[s,v]of G.sarPts){const u=s+o;if(Math.abs(u-11.67)<0.1||Math.abs(u-63.35)<0.1)continue;m=Math.max(m,Math.abs(v-interp(e.exact.sar,u)));}
+  return{mode:S.p.swoopMode,sm:S.p.smStepH,bg:S.p.bgStepH,R:G.swoopR[0],smFoot:at(11.75),bgFoot:at(63.3),dev:m};})()`);
+ ok(r.mode==='one','opens as one swoop surface');
+ ok(Math.abs(r.sm-3.01)<0.05&&Math.abs(r.bg-3.24)<0.05,`steps found: small ${r.sm}, big ${r.bg} mm (drawing 2.99 / 3.24)`);
+ ok(r.smFoot<21&&r.bgFoot<21.9,`swoop starts at the foot of each step (r ${r.smFoot.toFixed(2)} / ${r.bgFoot.toFixed(2)})`);
+ ok(Math.abs(r.R-34.26)<0.1,`one swoop radius R${r.R.toFixed(2)} matches the drawing's R34.26`);
+ ok(r.dev<0.05,`sarado outline within ${r.dev.toFixed(3)} mm of the CAD outline`);
+ const none=E(`LIB.filter(e=>e.name!=='P1').filter(e=>{const p=libDesign(e).p;return p.smStepH>0.01||p.bgStepH>0.01;}).map(e=>e.name)`);
+ ok(none.length===0,'shapes with rounded ridges get no step'+(none.length?': '+none.join(', '):''));
+});
+
 /* ---------- measures ---------- */
 test('Random measures always give a buildable shape (150 tries)',async({E,ok})=>{
  const bad=E(`(()=>{let s=12345;const rnd=()=>(s=(s*1103515245+12345)%2147483648)/2147483648;const bad=[];

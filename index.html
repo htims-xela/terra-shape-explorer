@@ -1644,6 +1644,10 @@ function libDesign(e){
  const d=cleanDesign({p:Object.assign({smFilletR:0,bgFilletR:0,smStepH:0,bgStepH:0,swoopMode:'two'},e.p),curves:{}}),p=d.p,curves={};
  if(e.hole)curves.baseHole=libHole(e,p);
  const K=e.exact.ken,SX=e.exact.sar,half=SX[SX.length-1][0]/2;
+ /* a cup face that drops (near) straight down from the bird ridge is a step: keep it as one, so the one-swoop surface starts at its foot instead of smoothing it away */
+ {const drop=(P,u0)=>{let top=null,bot=null;for(let i=0;i+1<P.length;i++){const a=P[i],b=P[i+1];if(b[0]<u0-0.3)continue;if(a[0]>u0+0.6)break;const du=b[0]-a[0],dr=b[1]-a[1];if(dr<0&&-dr>8*Math.max(du,0)){if(!top)top=a;bot=b;}else if(top)break;}return top&&top[1]-bot[1]>0.3?{h:top[1]-bot[1],l:Math.max(0,bot[0]-u0)}:null;};
+  const L=SX[SX.length-1][0],sides={sm:drop(SX,p.smBandL),bg:drop(SX.map(([u,r])=>[L-u,r]).reverse(),p.bgBandL)};
+  for(const pre in sides){const st=sides[pre];if(!st||(e.p[pre+'StepH']||0)>0.01)continue;p[pre+'StepH']=Math.round(st.h*1000)/1000;p[pre+'StepL']=Math.round(st.l*1000)/1000;p[pre+'StepTopR']=p[pre+'StepInR']=0;}}
  const exK=s=>interp(K,s),exS=s=>interp(SX,s+half);
  const ex={baseRidge:exK,flare:exK,swoopRing:exK,ringHandle:exK,smRidge:exS,swoopSm:exS,swoopBg:exS,bgRidge:exS}; // the cup hollows are one radius each, set by the cup Ø, rim and depth, like the base cup
  const dev=(pts,f)=>{let m=0;for(const[s,v]of pts)m=Math.max(m,Math.abs(v-f(s)));return m;};
