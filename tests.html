@@ -388,6 +388,79 @@ test('Japanese: every on-screen string is translated, and English comes back',as
  ok(w.document.querySelector('#topMan>summary').textContent==='Manual control','English is restored');
 });
 
+/* ---------- import from a photo ---------- */
+// a stand-in photo: a library shape's outline drawn in wood colour on paper, turned, blurred and grainy like a real photo
+const FAKE=`window.__fake=(lib,o={})=>{loadLib(lib);const G=CUR.G,sil=silhouette(G),s=o.s||9,ang=(o.ang??8)*Math.PI/180,W=o.W||2600,H=o.H||2000;
+ const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');x.fillStyle=o.bg||'#f2efe9';x.fillRect(0,0,W,H);
+ if(o.mat){let sd=3;const rr=()=>{sd=(sd*16807)%2147483647;return sd/2147483647;};for(let y=0;y<H;y+=3){const v=95+rr()*70|0;x.fillStyle='rgb('+v+','+v+','+(v+3)+')';x.fillRect(0,y,W,1+(rr()*3|0));}
+  const g=x.createLinearGradient(0,0,W,H);g.addColorStop(0,'rgba(255,255,255,.22)');g.addColorStop(1,'rgba(0,0,0,.25)');x.fillStyle=g;x.fillRect(0,0,W,H);}
+ const shape=(dx,dy,col,bl)=>{x.save();x.filter='blur('+bl+'px)';x.translate(W/2+dx,H/2+dy);x.rotate(ang);if(o.flipX)x.scale(-1,1);x.scale(s*(o.ax||1),-s);x.translate(0,-G.p.kenH/2);x.fillStyle=col;
+  if(!o.blank)for(const poly of[sil.ken,sil.sar]){x.beginPath();poly.forEach((q,i)=>i?x.lineTo(q[0],q[1]):x.moveTo(q[0],q[1]));x.closePath();x.fill();}
+  if(o.faces&&!o.blank)for(const[cx,cy,rx,ry]of[[G.xS-G.xw,G.yA,o.faces,G.p.smD/2],[G.xE-G.xw,G.yA,o.faces,G.p.bgD/2],[0,0,G.p.baseD/2,o.faces]]){x.beginPath();x.ellipse(cx,cy,rx,ry,0,0,7);x.fill();} // flat end faces seen a little from the side, as in a photo taken from close up
+  x.restore();};
+ if(o.shadow)shape(o.shadow,o.shadow*1.3,'rgba(0,0,0,.45)',12);shape(0,0,o.fg||'#6b4423',o.blur??1.2);
+ if(o.shade){x.save();x.globalCompositeOperation='source-atop';const g=x.createLinearGradient(W*0.4,0,W*0.6,0);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.18)');x.fillStyle=g;x.fillRect(0,0,W,H);x.restore();}
+ const im=x.getImageData(0,0,W,H),d=im.data;let seed=7;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647;};for(let i=0;i<d.length;i+=4){const n=((rnd()+rnd()+rnd())/3-0.5)*(o.noise??14);d[i]+=n;d[i+1]+=n;d[i+2]+=n;}x.putImageData(im,0,0);
+ const truth={};for(const k of PI_CHECK)truth[k]=k==='kenH'?G.p.kenH:G.p[k];truth.ken=G.kenPts.map(q=>q.slice());truth.sar=G.sarPts.map(([x,r])=>[x-G.xS,r]);truth.yA=G.yA;window.__F={c,truth};return truth;};
+ window.__read=(lib,o={})=>{const t=__fake(lib,o);piSetImage(__F.c);if(!PI.det)return{err:PI.err};PI.meas=o.meas?o.meas(t):{kenH:t.kenH};piRescale();const off={};for(const k of PI_CHECK)off[k]=PI.f[k]-t[k];
+  const ek=[],es=[];for(const[y,r]of t.ken){if(y<1||y>t.kenH-3||Math.abs(y-t.yA)<16)continue;ek.push(Math.abs(interp(PI.prof.ken,y)-r));}for(const[x,r]of t.sar){if(x<1||x>t.sarL-1)continue;es.push(Math.abs(interp(PI.prof.sar,x)-r));}
+  const md=a=>{a.sort((p,q)=>p-q);return a[a.length>>1];};return{off,ek:md(ek),es:md(es),warn:PI.det.warn};};`;
+test('Photo import: every library shape is traced back from a photo of it',async({E,ok})=>{
+ E(FAKE);const RIDGE=/BandD$/;
+ for(const name of LIBS){const r=E(`__read(${JSON.stringify(name)})`);if(r.err){ok(false,name+': '+r.err);continue;}
+  const bad=Object.entries(r.off).filter(([k,d])=>!RIDGE.test(k)&&Math.abs(d)>0.2).map(([k,d])=>k+' '+d.toFixed(2));
+  ok(bad.length===0,`${name}: every Ø and length within 0.2 mm${bad.length?' (off: '+bad.join(', ')+')':''}`);
+  ok(r.ek<0.02&&r.es<0.02,`${name}: the traced outline is within ${Math.max(r.ek,r.es).toFixed(3)} mm (median)`);}
+});
+test('Photo import: turned, mirrored, upside down, light wood on dark, a stretched photo',async({E,ok})=>{
+ E(FAKE);const worst=r=>Math.max(...Object.entries(r.off).filter(([k])=>!/BandD$/.test(k)).map(([,d])=>Math.abs(d)));
+ for(const[tag,o]of[['turned 95°','{ang:95}'],['mirrored and turned','{ang:-23,flipX:true}'],['upside down','{ang:183}'],['light wood on a dark background',"{bg:'#2a2a30',fg:'#d9b98a'}"],['half the pixels','{s:4.5,W:1300,H:1000}'],['light maple on a striped grey mat, uneven light, a cast shadow',"{mat:true,fg:'#e4cfac',shadow:14,ang:3}"],['taken from close up: the cup ends and the base show as ovals',"{faces:4,ang:-6}"],['close up, on the striped mat',"{faces:3,mat:true,fg:'#e4cfac',shadow:10,ang:2}"],['black and white, dark wood on light paper, a strong shadow to one side',"{bg:'#d8d8d8',fg:'#555555',shadow:18}"],['black and white, a heavy dark shadow',"{bg:'#d0d0d0',fg:'#5a5a5a',shadow:30,ang:-5}"],['black and white, a shadow and oval ends',"{bg:'#d0d0d0',fg:'#5a5a5a',shadow:18,faces:3,ang:-5}"]]){
+  const r=E(`__read('Kocho',${o})`);ok(!r.err&&worst(r)<0.35,`${tag}: read back within ${r.err?r.err:worst(r).toFixed(2)+' mm'}`);}
+ const one=E(`__read('Kocho',{ax:1.01})`),two=E(`__read('Kocho',{ax:1.01,meas:t=>({kenH:t.kenH,sarL:t.sarL})})`);
+ ok(worst(one)>0.4&&worst(two)<0.2,`a photo 1% wider than tall: ${worst(one).toFixed(2)} mm off with one measure, ${worst(two).toFixed(2)} mm with one along and one across`);
+ const b=E(`(()=>{__fake('Kocho',{blank:true});piSetImage(__F.c);return{det:!!PI.det,err:PI.err};})()`);ok(!b.det&&/No kendama/.test(b.err),'a photo with no kendama says so');
+});
+test('Photo import screens: set-up tips, photo, scale, check, fix, import',async({w,E,ok,fitView})=>{
+ E(FAKE);E(`loadLib('Kocho');setMode('dd');`);await sleep(30);
+ const D=w.document,btns=()=>[...D.querySelectorAll('#piAct button')],bt=t=>btns().find(b=>b.textContent===t),body=()=>D.querySelector('#piBody').innerText,step=()=>D.querySelector('#piSteps .on').textContent;
+ const set=(k,v)=>{const i=D.querySelector(`#piBody tr[data-k="${k}"] input`);i.value=v;i.dispatchEvent(new w.Event('input'));};
+ ok(!!D.querySelector('#sPhoto'),'the start screen offers Import from a photo');
+ E('newDesign("kocho");PI.meas={};PI.act={};PI.hid={};');D.querySelector('#sPhoto').click();
+ ok(D.querySelector('#pimp').classList.contains('show')&&step()==='Set up'&&D.querySelectorAll('#piBody .pitips li').length===6&&!!bt('Choose or take a photo'),'it opens on the set-up tips, with six tips and a photo button');
+ E(`__fake('Ditto',{ang:-14});piLoadCanvas(__F.c);`);const t=E('__F.truth');
+ ok(step()==='Photo'&&!bt('Next').disabled&&!!bt('Use another photo')&&!/could not|No kendama/.test(body()),'a good photo is traced and Next is on');
+ E(`__fake('Kocho',{blank:true});piLoadCanvas(__F.c);`);ok(bt('Next').disabled&&/No kendama/.test(body()),'a photo with no kendama shows why, and Next stays off');
+ E(`__fake('Ditto',{ang:-14,ax:1.006});piLoadCanvas(__F.c);`);bt('Next').click();ok(step()==='Scale'&&bt('Next').disabled,'Scale: Next waits for a measurement');
+ set('kenH',t.kenH.toFixed(2));ok(!bt('Next').disabled,'one measurement is enough to go on');set('sarL',t.sarL.toFixed(2));set('bgD',t.bgD.toFixed(2));
+ const rows=[...D.querySelectorAll('#piBody tr[data-k]')].map(r=>[r.dataset.k,r.children[2].textContent,r.children[3].textContent]);
+ ok(rows.every(r=>r[1]!=='')&&['kenH','sarL','bgD'].every(k=>Math.abs(+rows.find(r=>r[0]===k)[2]||0)<=0.1),'each measure shows the photo value and how far it is from the one typed in');
+ bt('Next').click();ok(step()==='Check'&&D.querySelectorAll('#piBody tr[data-k]').length===13,'Check lists 13 measures to compare with the real kendama');
+ ok(bt('Fix it for me').disabled,'nothing to fix until a real measurement differs');
+ set('waistD',(t.waistD+0.5).toFixed(2));set('ringD',t.ringD.toFixed(2));
+ const dcell=k=>D.querySelector(`#piBody tr[data-k="${k}"]`).children[3];ok(dcell('waistD').className.includes('pibad')&&/^-0\.[45]/.test(dcell('waistD').textContent),'a value that is off is flagged ('+dcell('waistD').textContent+')');
+ ok(!bt('Fix it for me').disabled,'Fix it for me turns on');bt('Fix it for me').click();
+ ok(/Redrawn to match/.test(body())&&Math.abs(E('PI.f.waistD')-(t.waistD+0.5))<0.02&&Math.abs(E('PI.f.ringD')-t.ringD)<0.02&&bt('Fix it for me').disabled,'Fix redraws the shape to the measurements typed in');
+ bt('Retake photo').click();ok(step()==='Set up'&&+E('PI.act.waistD')>0,'Retake photo goes back to the tips and keeps the measurements already typed in');
+ E(`piLoadCanvas(__F.c);`);bt('Next').click();bt('Next').click();ok(step()==='Check'&&D.querySelector('#piBody tr[data-k="waistD"] input').value===(t.waistD+0.5).toFixed(2),'after a retake the real measurements are still there');
+ bt('Fix it for me').click();const nm=D.querySelector('#piBody input[type=text]');nm.value='My Ditto';nm.dispatchEvent(new w.Event('input'));
+ const dep=D.querySelectorAll('#piBody table')[1].querySelectorAll('input');dep[1].value='9.25';dep[1].dispatchEvent(new w.Event('input'));
+ bt('Import this shape').click();await sleep(30);
+ ok(!D.querySelector('#pimp').classList.contains('show')&&E('S.meta.model')==='MY DITTO','Import closes the importer and opens the shape under its name');
+ ok(Math.abs(E('S.p.waistD')-(t.waistD+0.5))<0.02&&Math.abs(E('CUR.G.p.kenH')-t.kenH)<0.2&&E('S.p.smDepth')===9.25&&E('S.p.swoopMode')==='two','the imported design has the fixed waist, the right length, the typed-in cup depth and the traced swoops');
+ ok(E(`Object.keys(S.curves).filter(k=>S.curves[k].imp).length`)>=6&&E(`!!CUR.G&&isFinite(CUR.A.M)`),'its curves are kept from the photo and it balances');
+ ok(E(`S.mode==='dd'&&started`),'and it is ready to work on');
+});
+test('Photo import: every screen is translated into Japanese',async({w,E,ok})=>{
+ E(FAKE);E(`loadLib('Kocho');setLang('ja');tr.miss&&tr.miss.clear&&tr.miss.clear();`);await sleep(100);
+ let most=0;const D=w.document,left=[],look=()=>{most=Math.max(most,D.querySelectorAll('#pimp *').length);for(const n of D.querySelectorAll('#pimp *')){for(const c of n.childNodes)if(c.nodeType===3&&/[A-Za-z]{3}/.test(c.data))left.push(c.data.trim());if(n.title&&/[A-Za-z]{3}/.test(n.title))left.push(n.title);}};
+ E(`PI.meas={};PI.act={};PI.hid={};piOpen();`);await sleep(60);look();E(`__fake('Ditto');piLoadCanvas(__F.c);`);await sleep(60);look();
+ E(`PI.meas={kenH:__F.truth.kenH};piGo('scale');`);await sleep(60);look();E(`PI.act={waistD:__F.truth.waistD+0.5};piGo('check');`);await sleep(60);look();E(`piFix();piRender();`);await sleep(60);look();
+ E(`__fake('Kocho',{blank:true});piLoadCanvas(__F.c);`);await sleep(60);look();
+ ok(most>60,'the importer screens were shown ('+most+' elements on the busiest one)');
+ ok(left.length===0,'no English left on the importer screens'+(left.length?': '+left.slice(0,4).join(' | '):''));
+ E(`$('#pimp').classList.remove('show');setLang('en');`);await sleep(60);
+});
+
 /* ---------- phone layout ---------- */
 test('Phone width: one-row header, four tabs, no sideways scrolling',async({w,E,ok})=>{
  E(`loadLib('Kocho');`);await sleep(60);

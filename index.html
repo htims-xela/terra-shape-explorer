@@ -143,6 +143,18 @@ h3:first-child{margin-top:0}
 .choices button b{display:block;font-size:14px}
 .choices button small{color:var(--muted)}
 .choices button.pri small{color:inherit;opacity:.85}
+.card.pimp{width:min(880px,100%)}
+.pisteps{display:flex;gap:6px;margin:8px 0 12px;flex-wrap:wrap}.pisteps span{padding:3px 11px;border-radius:99px;border:1px solid var(--line);color:var(--muted);font-size:12px}
+.pisteps span.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}.pisteps span.done{color:var(--ink)}
+#piCv{display:block;max-width:100%;margin:8px auto;border-radius:8px;background:var(--canvas)}
+.pitips{padding-left:20px;margin:0;flex:1}.pitips li{margin:6px 0}.piinfo{display:flex;gap:18px;align-items:flex-start}.piinfo figure{margin:0;width:150px;flex:none;text-align:center}.piinfo figcaption{font-size:11px;color:var(--muted);margin-top:4px}#piEx{border-radius:8px}
+@media(max-width:600px){.piinfo{flex-direction:column;align-items:center}}
+.pitab{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0}.pitab th,.pitab td{padding:4px 6px;border-bottom:1px solid var(--line);text-align:left}.pitab th{color:var(--muted);font-weight:500}
+.pitab td,.pitab th{white-space:normal;overflow-wrap:anywhere}.pitab td.num{font-variant-numeric:tabular-nums;white-space:nowrap}.pitab input{width:78px}
+.pigrid{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,8fr);gap:16px;align-items:start}.pigrid #piCv{margin-top:0}@media(max-width:720px){.pigrid{grid-template-columns:minmax(0,1fr)}.pitab input{width:64px}.pitab th,.pitab td{padding:4px 3px}}
+#piAct{position:sticky;bottom:-22px;background:var(--panel);padding:10px 0 6px;margin-bottom:-6px}
+.pimp h3{font-size:14px;margin:14px 0 2px}.pierr{color:#c62828;font-weight:600}.piwarn{background:var(--warn-bg);color:var(--warn-ink);padding:6px 9px;border-radius:7px}
+.piok{color:#2e7d32}.pimid{color:#b26a00}.pibad{color:#c62828;font-weight:600}
 .libgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px}
 .libgrid button{padding:8px 10px;text-align:left}
 .impnote{font-size:11.5px;color:var(--muted);margin:6px 0 0;padding-left:10px;border-left:2px solid var(--line)}
@@ -300,6 +312,7 @@ body.r-shut .wrap{grid-template-columns:350px 1fr}body.r-shut aside.right{displa
   <div class="choices">
     <button data-t="scratch"><b>Start from scratch</b><small>A plain starter shape with no ring and simple curves.</small></button>
     <button id="sOpen"><b>Load a project file…</b><small>Open a saved .kendama.json project.</small></button>
+    <button id="sPhoto"><b>Import from a photo…</b><small>Trace a real kendama from a photo taken straight down.</small></button>
   </div>
   <p style="margin:14px 0 6px">Or start from a shape in the library</p>
   <div class="libgrid" id="sLib"></div>
@@ -323,6 +336,13 @@ body.r-shut .wrap{grid-template-columns:350px 1fr}body.r-shut aside.right{displa
   <textarea id="gOut" readonly></textarea>
   <div class="row" style="justify-content:flex-end;margin-top:10px"><button id="gClose">Close</button><button id="gGen">Preview</button><button id="gSave" class="pri">Download .nc</button></div>
 </div></div>
+<div class="modal" id="pimp"><div class="card pimp">
+  <h1>Import from a photo</h1>
+  <div class="pisteps" id="piSteps"></div>
+  <div id="piBody"></div>
+  <div class="row" id="piAct" style="justify-content:flex-end;margin-top:12px"></div>
+</div></div>
+<input type="file" id="fPhoto" accept="image/*" hidden>
 <input type="file" id="fOpen" accept=".json,application/json" hidden>
 <input type="file" id="fCmp" accept=".json,application/json" hidden>
 <div id="toast"></div>
@@ -824,6 +844,59 @@ const JA={
 "Big cup hollow": "大皿のくぼみ",
 "Sarado swoop (one surface)": "皿胴スウープ（1面）",
 "Tama outside": "玉の外側",
+"The ends of the cups or the base can be seen in the photo, so it was taken from close up or at an angle. This has been allowed for, but a photo from further away with zoom will be more accurate.": "写真に皿や台座の端面が写っているので、近くから、または斜めから撮影されています。補正はしていますが、離れてズームで撮るとより正確になります。",
+"Something touches the edge of the photo. If it is part of the kendama, leave a clear gap all the way round it.": "写真の端に何かが触れています。それがけん玉の一部なら、周り全体に余白を残してください。",
+"Import from a photo…": "写真から取り込む…",
+"Trace a real kendama from a photo taken straight down.": "真上から撮った写真から、実物のけん玉の形を取り込みます。",
+"Import from a photo": "写真から取り込む",
+"Set up": "準備",
+"Photo": "写真",
+"Scale": "縮尺",
+"Check": "確認",
+"A kendama is turned on a lathe, so a straight side-on photo shows its exact profile. A good photo makes a good shape:": "けん玉は旋盤で削られているので、真横からの写真にはその形がそのまま写ります。良い写真から良い形が取り込めます。",
+"Take the tama and string off, so only the ken and sarado are in the photo.": "玉と糸を外し、けんと皿胴だけが写るようにします。",
+"Lay the kendama on a plain sheet of white paper, with the cups pointing left and right. For light-coloured wood, use a dark sheet instead.": "無地の白い紙の上に、皿が左右を向くようにけん玉を置きます。明るい色の木なら、暗い色の紙を使います。",
+"Light it evenly, for example daylight from a window. Avoid sharp shadows next to the wood.": "窓からの自然光などで、むらなく照らします。木のすぐ横にくっきりした影ができないようにします。",
+"Shoot straight down from about 1 m away with 2× or 3× zoom, so the kendama fills most of the frame. Keep the phone level; the camera grid or level helps.": "約1 m離れた真上から、2倍か3倍のズームで撮り、けん玉が画面の大部分を占めるようにします。スマホは水平に保ちます（カメラのグリッドや水平器が役立ちます）。",
+"Leave a clear gap between the kendama and every edge of the photo.": "けん玉と写真の四辺との間に、しっかり余白を残します。",
+"Have calipers or a ruler ready. You will type in one or more measurements to set the scale, then check the result against the real kendama.": "ノギスか定規を用意します。縮尺を決めるために1つ以上の寸法を入力し、仕上がりを実物と照らし合わせます。",
+"A good photo: plain background, kendama square to the camera, a gap all round.": "良い写真の例：無地の背景、カメラに正対したけん玉、周りに余白。",
+"Why from further away: close up, the ends of the kendama look smaller than the middle. From a distance with zoom, the outline stays true.": "離れて撮る理由：近くからだと、けん玉の端が中央より小さく写ります。離れてズームすると、輪郭が正しく写ります。",
+"Choose or take a photo": "写真を選ぶ / 撮る",
+"The outline found in the photo is drawn on top. Check that it follows the edge of the wood all the way round, and that the base and the two cups are labelled correctly.": "写真から見つけた輪郭を重ねて表示しています。木の縁に沿って一周していること、そして台座と2つの皿の表示が正しいことを確認してください。",
+"Flip ken (base ↔ spike)": "けんを反転（台座 ↔ 剣先）",
+"Swap cups": "皿を入れ替える",
+"Back": "戻る",
+"Use another photo": "別の写真を使う",
+"Next": "次へ",
+"No kendama was found. Use a plain background that is much lighter (or darker) than the wood.": "けん玉が見つかりませんでした。木よりずっと明るい（または暗い）無地の背景を使ってください。",
+"The outline could not be read from this photo.": "この写真から輪郭を読み取れませんでした。",
+"The wood and the background are close in colour, so the outline may be rough. A plainer, more contrasting background helps.": "木と背景の色が近いため、輪郭が粗くなっているかもしれません。より無地でコントラストの強い背景にすると改善します。",
+"The ken could not be traced. Make sure the whole kendama is in the photo, on a plain background.": "けんをたどれませんでした。けん玉全体が無地の背景の上に写っているか確認してください。",
+"The kendama runs off the edge of the photo. Leave a clear gap all the way round it.": "けん玉が写真の端からはみ出しています。周り全体に余白を残してください。",
+"The sarado could not be found. Lay the kendama with the cups pointing left and right, square to the camera.": "皿胴が見つかりませんでした。皿が左右を向き、カメラに正対するように置いてください。",
+"The sarado could not be traced. Make sure the cups are not cut off and nothing touches the sarado.": "皿胴をたどれませんでした。皿が切れていないこと、皿胴に何も触れていないことを確認してください。",
+"The sarado looks tilted against the ken. Check that the kendama lies flat and the photo is taken straight down.": "皿胴がけんに対して傾いて見えます。けん玉が平らに置かれ、真上から撮っているか確認してください。",
+"The kendama is small in the photo. Zoom in or move closer so it fills most of the frame for a sharper outline.": "写真の中のけん玉が小さすぎます。ズームするか近づいて、画面の大部分を占めるようにすると輪郭がよりシャープになります。",
+"That file could not be opened as a picture.": "そのファイルは画像として開けませんでした。",
+"Measure the real kendama and type in one or more of these, in mm. The more you give, the better the scale. Some along the ken and some across it also correct a photo taken slightly at an angle.": "実物のけん玉を測り、次の中から1つ以上をmmで入力してください。多いほど縮尺が正確になります。けんの縦方向と横方向の両方を入れると、少し斜めに撮った写真も補正されます。",
+"Real kendama": "実物",
+"Difference": "差",
+"Type in at least one measurement to set the scale.": "縮尺を決めるため、少なくとも1つの寸法を入力してください。",
+"Set the scale first.": "先に縮尺を決めてください。",
+"Measure the real kendama with calipers and type in any values you can check, in mm. Leave a box empty to accept the photo’s value. Values you type in are used when you import.": "実物のけん玉をノギスで測り、確認できる値をmmで入力してください。空欄のままにすると写真の値を使います。入力した値は取り込むときに使われます。",
+"Redrawn to match your measurements. Check the outline and the numbers again, then import.": "入力した寸法に合わせて描き直しました。輪郭と数値をもう一度確認してから取り込んでください。",
+"Not visible in the photo": "写真に写らない寸法",
+"These start from the current design. Type in the real values if you know them.": "現在のデザインの値から始まります。実際の値が分かれば入力してください。",
+"Retake photo": "写真を撮り直す",
+"Fix it for me": "自動で修正",
+"Import this shape": "この形を取り込む",
+"Redraw the shape to match the measurements you typed in": "入力した寸法に合わせて形を描き直します",
+"Type in a real measurement that differs from the photo first": "先に、写真と異なる実測値を入力してください",
+"BASE": "台座",
+"Imported from the photo. Check the cup depths and the tama: a photo cannot show them.": "写真から取り込みました。皿の深さと玉を確認してください（写真には写りません）。",
+"a photo": "写真",
+"Traced from a photo. Curved contours follow the photo outline; cup depths, the tama and the string holes are not visible in a photo, so check them.": "写真からトレースしました。曲線の輪郭は写真の輪郭に沿っています。皿の深さ、玉、糸穴は写真に写らないので確認してください。",
 "HAND-SHAPED (Ø IS THE MEASURED BALL)": "手で成形（Øは元の球の寸法）",
 "Sarado swoop, small cup side": "皿胴スウープ（小皿側）",
 "Sarado swoop, big cup side": "皿胴スウープ（大皿側）",
@@ -2529,7 +2602,7 @@ function wire(){
  for(const e of LIB)$('#sLib').append(el('button',{title:e.file,onclick:()=>loadLib(e.name)},e.name));
  for(const e of LIB)$('#cmpLib').append(el('option',{value:e.name},e.name));
  $('#cmpLib').onchange=ev=>{const e=LIB.find(q=>q.name===ev.target.value);ev.target.value='';if(!e)return;const d=libDesign(e),x={id:'c'+Date.now()+Math.random().toString(36).slice(2,6),name:e.name,src:'library',p:d.p,curves:d.curves};S.cmp.push(x);S.cmpOn[x.id]=true;setView('compare');refresh();autosave();toast(`Added ${e.name} to the comparison.`);};
- $('#sOpen').onclick=()=>readFile($('#fOpen'),o=>loadProject(o));
+ $('#sOpen').onclick=()=>readFile($('#fOpen'),o=>loadProject(o));$('#sPhoto').onclick=()=>piOpen();
  $('#sCancel').onclick=()=>$('#start').classList.remove('show');
  $('#bNew').onclick=()=>showStart(true);
  $('#bSave').onclick=()=>{download(slug(S.meta.model)+'.kendama.json',JSON.stringify(projectData(),null,1),'application/json');toast('Project saved to your downloads folder.');};
@@ -2594,6 +2667,289 @@ document.querySelector('.drawbar>b').onclick=()=>{if(matchMedia('(max-width:760p
  document.querySelectorAll('#mnav button').forEach(b=>b.onclick=()=>setM(b.dataset.m));window.setM=setM;setM('view');}
 trObs.observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['title','placeholder']});
 document.querySelectorAll('#lang button').forEach(b=>b.onclick=()=>setLang(b.dataset.l));setLang(LANG.cur);
+
+/* ================= import from a photo =================
+   A kendama is turned on a lathe, so a straight side-on photo of the ken + sarado shows their profiles: half the width of the ken at each height is its radius there,
+   and half the height of the sarado at each point along it is the sarado's radius. The steps: set-up tips → photo (find the outline) → scale (one or more caliper
+   measures) → check (compare with the real kendama; fix or retake) → import, the same way a library shape is imported (measures fitted, curves kept as drawn). */
+const PI_SCALE=[['kenH','v'],['sarL','h'],['bgD','v'],['smD','v'],['baseD','h'],['sarTop','v']]; // v: along the ken (up the photo); h: across it
+const PI_CHECK=['kenH','baseD','baseBandD','swoopD','ringD','spikeD','sarTop','sarL','smD','smBandD','waistD','bgBandD','bgD'];
+const PI_HID=['baseDepth','smDepth','bgDepth','tamaD'];
+const PI_KEEP=/^(baseDepth|smDepth|bgDepth|rim|tama[A-Za-z]*|kenRho|sarRho|tamaRho|tol|sarTol|kenStr|sarStr[A-Za-z0-9]*|tip[A-Za-z]*|taperL)$/; // what a photo cannot show: kept from the current design
+const PI={step:'info',img:null,det:null,meas:{},act:{},hid:{},sc:null,prof:null,f:null,fixed:false,name:'Photo import',err:'',flip:{ken:false,cups:false}};
+const piMed=a=>{const b=Float32Array.from(a).sort();return b.length?b[b.length>>1]:0;};
+function piSetImage(src){
+ const W0=src.naturalWidth||src.width,H0=src.naturalHeight||src.height,k=Math.min(1,2400/Math.max(W0,H0)),w=Math.max(1,Math.round(W0*k)),h=Math.max(1,Math.round(H0*k));
+ const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(src,0,0,w,h);const d=x.getImageData(0,0,w,h).data;
+ PI.img={c,w,h,d};PI.flip={ken:false,cups:false};piRedetect();} // caliper values already typed in are kept: they are of the real kendama, not the photo
+function piRedetect(){PI.det=null;PI.prof=null;PI.f=null;PI.fixed=false;PI.err='';
+ try{const d=piDetect(PI.img,PI.flip);if(d.ok)PI.det=d;else PI.err=d.why;}catch(e){PI.err='The outline could not be read from this photo.';console.error(e);}
+ if(PI.det&&Object.keys(PI.meas).some(k=>+PI.meas[k]>0))piRescale();}
+// find the outline: background vs wood, the ken's axis, then the edges of the ken (row by row) and of the sarado (column by column), to a fraction of a pixel
+function piDetect(I,flip){
+ const{w,h,d:px4}=I,f=Math.max(1,Math.ceil(Math.max(w,h)/500)),sw=Math.floor(w/f),sh=Math.floor(h/f),N=sw*sh,SC=[new Float32Array(N),new Float32Array(N),new Float32Array(N)];
+ for(let y=0;y<sh;y++)for(let x=0;x<sw;x++){let r=0,g=0,b=0;for(let j=0;j<f;j++)for(let i=0;i<f;i++){const o=4*((y*f+j)*w+x*f+i);r+=px4[o];g+=px4[o+1];b+=px4[o+2];}const n=f*f,q=y*sw+x;SC[0][q]=r/n;SC[1][q]=g/n;SC[2][q]=b/n;}
+ // the background's own colour across the photo: a smooth surface per colour, fitted first to the photo's border, then to all the background round the kendama, so uneven light is not taken for wood
+ const feat=(x,y)=>[1,x,y,x*x,x*y,y*y];let cf=[null,null,null],sgn=0,t0=10,lo0=6;const D=new Float32Array(N),KC=1.5;
+ const bgC=(k,x,y)=>{const v=feat(x/sw,y/sh),c=cf[k];let s=0;for(let i=0;i<6;i++)s+=v[i]*c[i];return s;};
+ // how far a colour is from the background: brighter-than-background (or darker, for dark wood) plus any difference in hue; a shadow (darker, same hue) does not count
+ const dist=(r,g,b,x,y)=>{const dr=r-bgC(0,x,y),dg=g-bgC(1,x,y),db=b-bgC(2,x,y),dL=(dr+dg+db)/3,c1=dr-db,c2=dg-(dr+db)/2,l=sgn?Math.max(0,sgn*dL):Math.abs(dL);return Math.sqrt(l*l+KC*KC*(c1*c1+c2*c2));};
+ const model=use=>{const bx=[],by=[],bv=[[],[],[]];for(let y=0;y<sh;y+=2)for(let x=0;x<sw;x+=2)if(use(x,y)){bx.push(x/sw);by.push(y/sh);for(let k=0;k<3;k++)bv[k].push(SC[k][y*sw+x]);}if(bx.length<30)return false;
+  const fit=(k,keep)=>{const M=Array.from({length:6},()=>new Array(6).fill(0)),R=new Array(6).fill(0);for(let i=0;i<bx.length;i++){if(!keep[i])continue;const v=feat(bx[i],by[i]);for(let p=0;p<6;p++){R[p]+=v[p]*bv[k][i];for(let q=0;q<6;q++)M[p][q]+=v[p]*v[q];}}return solveN(M,R);};
+  let keep=bx.map(()=>true);for(let it=0;it<3;it++){const c=[0,1,2].map(k=>fit(k,keep));if(c.some(q=>!q))break;cf=c;if(it===2)break;
+   const res=bx.map((_,i)=>{let s=0;for(let k=0;k<3;k++){const v=feat(bx[i],by[i]);let m=0;for(let q=0;q<6;q++)m+=v[q]*cf[k][q];s+=Math.abs(bv[k][i]-m);}return s;}),lim=piMed(res)*3+3;keep=res.map(r=>r<=lim);} // ignore whatever on it is not background
+  if(!cf[0])cf=[0,1,2].map(k=>[piMed(bv[k]),0,0,0,0,0]);
+  if(!sgn){let np=0,nn=0;for(let y=Math.round(sh*0.15);y<sh*0.85;y+=2)for(let x=Math.round(sw*0.15);x<sw*0.85;x+=2){const q=y*sw+x,dL=(SC[0][q]+SC[1][q]+SC[2][q]-bgC(0,x+.5,y+.5)-bgC(1,x+.5,y+.5)-bgC(2,x+.5,y+.5))/3;if(dL>20)np++;else if(dL<-20)nn++;}sgn=np>=nn?1:-1;} // wood lighter or darker than the background: whichever covers more of the middle
+  const T=new Float32Array(N);for(let y=0;y<sh;y++)for(let x=0;x<sw;x++){const q=y*sw+x;T[q]=dist(SC[0][q],SC[1][q],SC[2][q],x+.5,y+.5);}
+  for(let y=0;y<sh;y++)for(let x=0;x<sw;x++){let a=0,n=0;for(let j=-1;j<=1;j++)for(let i=-1;i<=1;i++){const yy=y+j,xx=x+i;if(yy<0||xx<0||yy>=sh||xx>=sw)continue;a+=T[yy*sw+xx];n++;}D[y*sw+x]=a/n;} // texture (grain on a table, stripes on a mat) evened out for finding the outline; exact edges come later from the full-size photo
+  const bgD=[];for(let i=0;i<bx.length;i+=2)if(keep[i]){const x=Math.min(sw-1,Math.round(bx[i]*sw)),y=Math.min(sh-1,Math.round(by[i]*sh));bgD.push(D[y*sw+x]);}bgD.sort((p,q)=>p-q);
+  const p90=bgD[Math.floor(bgD.length*0.9)]||0,p99=bgD[Math.floor(bgD.length*0.99)]||0;t0=Math.max(10,p99*1.3,p90*2);lo0=Math.max(6,p90*1.2);return true;};
+ const band=Math.max(2,Math.round(Math.min(sw,sh)*0.06));model((x,y)=>x<band||y<band||x>=sw-band||y>=sh-band);
+ // masks: thin lines (texture, a stray thread) are cleared by an opening; then the largest patch, grown back to its own edge, holes filled
+ const morph=(m,r,grow)=>{const o=new Uint8Array(N),t=new Uint8Array(N);for(let y=0;y<sh;y++)for(let x=0;x<sw;x++){let v=grow?0:1;for(let k=-r;k<=r;k++){const xx=x+k;const q=xx<0||xx>=sw?(grow?0:1):m[y*sw+xx];if(grow?q:!q){v=grow?1:0;break;}}t[y*sw+x]=v;}
+  for(let y=0;y<sh;y++)for(let x=0;x<sw;x++){let v=grow?0:1;for(let k=-r;k<=r;k++){const yy=y+k;const q=yy<0||yy>=sh?(grow?0:1):t[yy*sw+x];if(grow?q:!q){v=grow?1:0;break;}}o[y*sw+x]=v;}return o;};
+ const largest=m=>{const lab=new Int32Array(N).fill(-1);let C=null;for(let s0=0;s0<N;s0++){if(lab[s0]!==-1||!m[s0])continue;const st=[s0],px=[];lab[s0]=s0;let edge=false;
+   while(st.length){const q=st.pop();px.push(q);const x=q%sw,y=(q/sw)|0;if(!x||!y||x===sw-1||y===sh-1)edge=true;for(const r of[x>0?q-1:-1,x<sw-1?q+1:-1,y>0?q-sw:-1,y<sh-1?q+sw:-1])if(r>=0&&lab[r]===-1&&m[r]){lab[r]=s0;st.push(r);}}
+   if(!C||px.length>C.px.length)C={px,edge};}return C;};
+ const fill=m=>{const out=new Uint8Array(N).fill(1),st=[];const push=q=>{if(out[q]&&!m[q]){out[q]=0;st.push(q);}};for(let x=0;x<sw;x++){push(x);push((sh-1)*sw+x);}for(let y=0;y<sh;y++){push(y*sw);push(y*sw+sw-1);}
+  while(st.length){const q=st.pop(),x=q%sw,y=(q/sw)|0;if(x>0)push(q-1);if(x<sw-1)push(q+1);if(y>0)push(q-sw);if(y<sh-1)push(q+sw);}return out;};
+ // clearly-wood pixels (over thr) are grown into touching pixels that are only a little brighter than the background (over lo), so shaded wood is kept
+ const pick=(thr,lo=thr)=>{const raw=new Uint8Array(N),st=[];for(let i=0;i<N;i++)if(D[i]>thr){raw[i]=1;st.push(i);}
+  const reach=lo<thr?morph(raw,3,true):raw; // only close to clearly-wood pixels, so the growth cannot crawl out along a light stripe
+  while(st.length){const q=st.pop(),x=q%sw;for(const r of[x>0?q-1:-1,x<sw-1?q+1:-1,q-sw,q+sw])if(r>=0&&r<N&&!raw[r]&&reach[r]&&D[r]>lo){raw[r]=1;st.push(r);}}const C0=largest(morph(morph(raw,2,false),2,true));if(!C0)return null;
+  const core=new Uint8Array(N);for(const q of C0.px)core[q]=1;const near=morph(core,2,true),m=new Uint8Array(N);for(let i=0;i<N;i++)m[i]=raw[i]&&near[i]?1:0;
+  const C1=largest(m);if(!C1)return null;const m1=new Uint8Array(N);for(const q of C1.px)m1[q]=1;const m2=fill(morph(morph(m1,2,true),2,false));const px=[];for(let i=0;i<N;i++)if(m2[i])px.push(i);return{m:m2,px,edge:C1.edge};};
+ let C=pick(t0,lo0);if(C){const ex=morph(C.m,8,true);if(model((x,y)=>!ex[y*sw+x]))C=pick(t0,lo0)||C;} // refit the background to everything round the first outline
+ if(!C||C.px.length<N*0.004)return{ok:false,why:'No kendama was found. Use a plain background that is much lighter (or darker) than the wood.'};
+ const er=morph(C.m,2,false),inner=[];for(let i=0;i<N;i++)if(er[i])inner.push(D[i]);const ob=piMed(inner.length>20?inner:C.px.map(q=>D[q]));
+ const thrF=Math.max(t0,ob*0.5);C=pick(thrF,Math.max(lo0,ob*0.3))||C;
+ const warn=[];if(ob<40)warn.push('The wood and the background are close in colour, so the outline may be rough. A plainer, more contrasting background helps.');
+ if(C.edge)warn.push('Something touches the edge of the photo. If it is part of the kendama, leave a clear gap all the way round it.');
+ let mx=0,my=0;const P=C.px.map(q=>[(q%sw+0.5)*f,(((q/sw)|0)+0.5)*f]);for(const[x,y]of P){mx+=x;my+=y;}mx/=P.length;my/=P.length;
+ let sxx=0,syy=0,sxy=0;for(const[x,y]of P){sxx+=(x-mx)**2;syy+=(y-my)**2;sxy+=(x-mx)*(y-my);}let th=0.5*Math.atan2(2*sxy,sxx-syy); // longest direction: the ken
+ // brightness above the background (positive on the wood) and the cleaned outline, both read at any point of the full-size photo
+ const samp=(x,y)=>{if(x<0||y<0||x>w-1.001||y>h-1.001)return 0;const x0=x|0,y0=y|0,a=x-x0,b=y-y0,o=4*(y0*w+x0),o2=o+4*w,ch=k=>(px4[o+k]*(1-a)+px4[o+4+k]*a)*(1-b)+(px4[o2+k]*(1-a)+px4[o2+4+k]*a)*b;return dist(ch(0),ch(1),ch(2),x/f,y/f);};
+ const mk=(x,y)=>{const u=x/f-0.5,v=y/f-0.5;if(u<0||v<0||u>sw-1.001||v>sh-1.001)return 0;const x0=u|0,y0=v|0,a=u-x0,b=v-y0,i=y0*sw+x0,m=C.m;return(m[i]*(1-a)+m[i+1]*a)*(1-b)+(m[i+sw]*(1-a)+m[i+sw+1]*a)*b;};
+ // the photo turned so the ken runs straight down the rows (j) and the sarado along the columns (i)
+ const canon=th=>{const V=[Math.cos(th),Math.sin(th)],U=[-V[1],V[0]];let v0=1e9,v1=-1e9,u0=1e9,u1=-1e9;
+  for(const[x,y]of P){const v=(x-mx)*V[0]+(y-my)*V[1],u=(x-mx)*U[0]+(y-my)*U[1];v0=Math.min(v0,v);v1=Math.max(v1,v);u0=Math.min(u0,u);u1=Math.max(u1,u);}
+  const m=0.04*(v1-v0)+3*f;v0-=m;v1+=m;u0-=m;u1+=m;const H=Math.ceil(v1-v0),W=Math.ceil(u1-u0),A=new Float32Array(W*H),Mk=new Uint8Array(W*H);
+  for(let j=0;j<H;j++){const v=v0+j,bx=mx+V[0]*v,by=my+V[1]*v;for(let i=0;i<W;i++){const u=u0+i,x=bx+U[0]*u,y=by+U[1]*u;A[j*W+i]=samp(x,y);Mk[j*W+i]=mk(x,y)>0.5?1:0;}}
+  return{A,Mk,W,H,ic:-u0,to:(i,j)=>[mx+V[0]*(v0+j)+U[0]*(u0+i),my+V[1]*(v0+j)+U[1]*(u0+i)]};};
+ // an edge: walk the cleaned outline to its boundary, then find where the brightness crosses half-way, close to that boundary only
+ // an edge: the sharpest step out of the wood. Walking out from deep inside (the axis), past the cleaned outline, to where it is clearly background,
+ // the edge is put at the steepest drop, at the half-way level of the brightness just either side of it. A soft shadow beyond the wood, or a stripe touching it,
+ // makes only a gentle step, so the edge stays on the wood; shading on one side does not move it either.
+ const R0=Math.max(3,Math.round(1.5*f)),edge=(get,kIn,dir,kMin,out=3*R0+4)=>{const S0=Math.max(1,Math.abs(kIn-kMin)),at=t=>get(kIn+dir*t);
+   const ins=[];for(let t=-S0;t<=0;t+=Math.max(1,Math.round(S0/40))){const v=at(t);if(v!=null)ins.push(v);}ins.sort((p,q)=>p-q);const vRef=ins.length?ins[Math.floor(ins.length*0.75)]:thrF*2;
+   let end=out;for(let t=-Math.min(S0,R0);t<=out;t++){const v=at(t);if(v==null){end=t-1;break;}if(v<0.3*vRef){let k=1;while(k<4&&at(t+k)!=null&&at(t+k)<0.3*vRef)k++;if(k>=4){end=t;break;}}}
+   let tg=null,gv=0;for(let t=-S0+2;t<=end;t++){const a=at(t-2),b=at(t+2);if(a==null||b==null)continue;const g=a-b;if(g>gv){gv=g;tg=t;}}
+   if(tg==null||gv<Math.max(4,thrF*0.12))return kIn+dir*0.5; // a dark shadow next to the wood can leave only a small (but sharp) step at the real edge
+   const hi=at(tg-4)??at(tg-2),lo=at(tg+4)??at(tg+2),lv=(hi+lo)/2;let best=null;
+   for(let t=tg-3;t<=tg+3;t++){const a=at(t),b=at(t+1);if(a==null||b==null)continue;if(a>=lv&&b<lv){const p=t+(a-lv)/(a-b);if(best==null||Math.abs(p-tg)<Math.abs(best-tg))best=p;}}
+   return kIn+dir*(best??tg);};
+ const rowSpan=(c,j,i0)=>{const{A,Mk,W}=c,o=j*W;i0=Math.round(i0);if(j<0||j>=c.H||i0<1||i0>W-2||!Mk[o+i0])return null;const g=i=>i<0||i>=W?null:A[o+i];
+  let k=i0;while(k>0&&Mk[o+k-1])k--;if(k<=0)return null;const l=edge(g,k,-1,i0);k=i0;while(k<W-1&&Mk[o+k+1])k++;if(k>=W-1)return null;return{l,r:edge(g,k,1,i0)};};
+ const colSpan=(c,i,j0)=>{const{A,Mk,W,H}=c;j0=Math.round(j0);if(i<0||i>=W||j0<1||j0>H-2||!Mk[j0*W+i])return null;const g=j=>j<0||j>=H?null:A[j*W+i];
+  let k=j0;while(k>0&&Mk[(k-1)*W+i])k--;if(k<=0)return null;const t=edge(g,k,-1,j0);k=j0;while(k<H-1&&Mk[(k+1)*W+i])k++;if(k>=H-1)return null;return{t,b:edge(g,k,1,j0)};};
+ const fitLine=pts=>{const ls=use=>{let n=use.length,sx=0,sy=0,sxx=0,sxy=0;for(const[x,y]of use){sx+=x;sy+=y;sxx+=x*x;sxy+=x*y;}const d=n*sxx-sx*sx,b=d?(n*sxy-sx*sy)/d:0;return{a:(sy-b*sx)/n,b};};
+   if(pts.length<12)return ls(pts);let sd=12345;const rnd=()=>{sd=(sd*16807)%2147483647;return sd/2147483647;},span=pts[pts.length-1][0]-pts[0][0],tol=1.5;let best=null,bn=-1;
+   for(let k=0;k<300;k++){const p=pts[Math.floor(rnd()*pts.length)],q=pts[Math.floor(rnd()*pts.length)];if(Math.abs(q[0]-p[0])<0.2*Math.abs(span))continue;const b=(q[1]-p[1])/(q[0]-p[0]),a=p[1]-b*p[0];let n=0;for(const[x,y]of pts)if(Math.abs(y-a-b*x)<tol)n++;if(n>bn){bn=n;best={a,b};}}
+   if(!best||bn<0.2*pts.length)return ls(pts);const inl=pts.filter(([x,y])=>Math.abs(y-best.a-best.b*x)<tol*2);return inl.length>=8?ls(inl):best;};
+ let c,ax=null,spans;
+ const pass=()=>{c=canon(th);spans=[];let mW=0;for(let j=0;j<c.H;j++){const s=rowSpan(c,j,ax?ax.a+ax.b*j:c.ic);spans[j]=s;if(s)mW=Math.max(mW,s.r-s.l);}
+  const mid=[];for(let j=0;j<c.H;j++){const s=spans[j];if(s&&s.r-s.l<0.6*mW&&s.r-s.l>3)mid.push([j,(s.l+s.r)/2]);}if(mid.length<20)return false;ax=fitLine(mid);return mW;};
+ for(let it=0;it<5;it++){if(pass()===false)return{ok:false,why:'The ken could not be traced. Make sure the whole kendama is in the photo, on a plain background.'};if(Math.abs(ax.b)<1e-4)break;th+=Math.atan(ax.b);ax={a:ax.a,b:0};}
+ // which end is the base: the wider one, unless the user flipped it
+ const rows=()=>{let a=-1,b=-1;for(let j=0;j<c.H;j++)if(spans[j]){if(a<0)a=j;b=j;}return[a,b];};
+ let[jT,jB]=rows();const endW=(j0,j1)=>{let s=0,n=0;for(let j=j0;j<=j1;j++)if(spans[j]){s+=spans[j].r-spans[j].l;n++;}return n?s/n:0;},n5=Math.max(2,Math.round((jB-jT)*0.05));
+ if((endW(jT,jT+n5)>endW(jB-n5,jB))!==!!flip.ken){th+=Math.PI;ax=null;pass();pass();}
+ const mW=pass();[jT,jB]=rows();const a=ax.a;
+ const ce=(j,dir)=>{const{A,Mk,W,H}=c,i=Math.round(a);let n=0;while(n<30&&j>0&&j<H-1&&!Mk[j*W+i]){j-=dir;n++;}if(!Mk[j*W+i])return null;let k=j; /* the very tip may sit a pixel off the axis column: step in until on the wood */while(k+dir>0&&k+dir<H-1&&Mk[(k+dir)*W+i])k+=dir;if(k+dir<=0||k+dir>=H-1)return null;return edge(q=>q<0||q>=H?null:A[q*W+i],k,dir,k-dir*Math.max(6*R0+12,Math.round(0.08*Math.abs(jB-jT))),6*R0+12);}; // from well inside the wood (a dark shadow can make the cleaned outline run on past the end) // the ends: the spike tip is thin, so the cleaned outline may stop short of it
+ const yb=ce(jB,1),jt=ce(jT,-1);if(yb==null||jt==null)return{ok:false,why:'The kendama runs off the edge of the photo. Leave a clear gap all the way round it.'};
+ // the sarado: the rows where the outline through the ken axis is much wider than the ken
+ let wj=-1,ww=0;for(let j=jT;j<=jB;j++){const s=spans[j];if(s&&s.r-s.l>ww){ww=s.r-s.l;wj=j;}}
+ let b0=wj,b1=wj;while(b0>jT&&spans[b0-1]&&spans[b0-1].r-spans[b0-1].l>0.75*mW)b0--;while(b1<jB&&spans[b1+1]&&spans[b1+1].r-spans[b1+1].l>0.75*mW)b1++;
+ if(b1-b0<3||ww<1.4*endW(jB-n5,jB))return{ok:false,why:'The sarado could not be found. Lay the kendama with the cups pointing left and right, square to the camera.'};
+ let jA=(b0+b1)/2;const sx=spans[Math.round(jA)];
+ let rk=0;for(let d=3;d<=60;d++)for(const j of[b0-d,b1+d]){const s=spans[j];if(s&&s.r-s.l<0.3*mW&&d<=12+(rk?0:48))rk=Math.max(rk,(s.r-s.l)/2);} // the ken's width beside the sarado, from rows that are clearly ken only (a swoop meeting the ken a little lower on one side must not count)
+ if(!rk)rk=0.06*mW;
+ while(b0>jT&&spans[b0-1]&&spans[b0-1].r-spans[b0-1].l>2.4*rk+6)b0--;while(b1<jB&&spans[b1+1]&&spans[b1+1].r-spans[b1+1].l>2.4*rk+6)b1++; // every row still joined to the sarado on either side belongs to it, not to the ken
+ let rkS=rk;{const reach=Math.round(0.35*(b1-b0));for(let d=1;d<=reach;d++)for(const j of[b0-d,b1+d]){const q=spans[j];if(q&&q.r-q.l<0.3*mW)rkS=Math.max(rkS,(q.r-q.l)/2);}} // the sarado is hidden wherever the ken is as wide as it gets near the sarado (a handle often widens just below it)
+ const col=[],mid=[];for(let i=Math.ceil(sx.l)+3;i<=Math.floor(sx.r)-3;i++){if(Math.abs(i-a)<rkS+3){col.push([i,null]);continue;}const s=colSpan(c,i,jA);if(!s){col.push([i,null]);continue;}col.push([i,s]);mid.push([i,(s.t+s.b)/2]);}
+ if(mid.length<20)return{ok:false,why:'The sarado could not be traced. Make sure the cups are not cut off and nothing touches the sarado.'};
+ const sl=fitLine(mid);jA=sl.a+sl.b*a;if(Math.abs(Math.atan(sl.b))>3*Math.PI/180)warn.push('The sarado looks tilted against the ken. Check that the kendama lies flat and the photo is taken straight down.');
+ // sarado half-heights; where the ken hides the sarado's edge (or a column runs on up the ken), bridge it with a smooth curve from either side
+ const sym=(p,q)=>Math.abs(p-q)>0.03*(p+q)+1.5?Math.min(p,q):(p+q)/2; // a turned part is the same either side of its axis; a shadow or clutter falls on one side only
+ let sar=col.map(([i,s])=>{if(!s)return[i-sx.l,null];const m=jA+sl.b*(i-a);return[i-sx.l,sym(m-s.t,s.b-m)];});{const L=sx.r-sx.l,ends=sar.filter(q=>q[1]!=null&&(q[0]<0.15*L||q[0]>0.85*L)).map(q=>q[1]),cap=ends.length?1.15*Math.max(...ends):1e9;for(const q of sar)if(q[1]!=null&&q[1]>cap)q[1]=null;}
+ for(let g0=0;g0<sar.length;g0++){if(sar[g0][1]!=null)continue;let g1=g0;while(g1<sar.length-1&&sar[g1+1][1]==null)g1++;
+  const G=Math.max(0.6*(g1-g0+1),20),nb=sar.filter(q=>q[1]!=null&&q[0]>=sar[g0][0]-G&&q[0]<=sar[g1][0]+G);
+  if(nb.length>6&&nb.some(q=>q[0]<sar[g0][0])&&nb.some(q=>q[0]>sar[g1][0])){const xm=(sar[g0][0]+sar[g1][0])/2;
+   // a swoop is close to a circular arc: fit a circle to the stretch either side (x² + r² + Dx + Er + F = 0) and run it across; a parabola if that fails
+   let M=[[0,0,0],[0,0,0],[0,0,0]],Rv=[0,0,0];for(const[x,r]of nb){const t=x-xm,v=[t,r,1],z=-(t*t+r*r);for(let p=0;p<3;p++){Rv[p]+=v[p]*z;for(let q=0;q<3;q++)M[p][q]+=v[p]*v[q];}}
+   const cs=solve3(M,Rv);let done=false;if(cs){const cx=-cs[0]/2,cy=-cs[1]/2,R2=cx*cx+cy*cy-cs[2];if(R2>0){const Rr=Math.sqrt(R2),near=nb.reduce((a,q)=>a+Math.abs(q[1]-(cy-Math.sqrt(Math.max(0,R2-(q[0]-xm-cx)**2)))),0)/nb.length;
+     if(near<1.5&&Math.abs(cx)<Rr){for(let k=g0;k<=g1;k++){const t=sar[k][0]-xm;sar[k][1]=cy-Math.sqrt(Math.max(0,R2-(t-cx)**2));}done=true;}}}
+   if(!done){M=[[0,0,0],[0,0,0],[0,0,0]];Rv=[0,0,0];for(const[x,r]of nb){const t=x-xm,v=[1,t,t*t];for(let p=0;p<3;p++){Rv[p]+=v[p]*r;for(let q=0;q<3;q++)M[p][q]+=v[p]*v[q];}}
+    const sol=solve3(M,Rv);if(sol)for(let k=g0;k<=g1;k++){const t=sar[k][0]-xm;sar[k][1]=sol[0]+sol[1]*t+sol[2]*t*t;}}}g0=g1;}
+ sar=sar.filter(q=>q[1]!=null);let sL=sx.r-sx.l;
+ const endMax=(lo,hi)=>Math.max(...sar.filter(q=>q[0]>=lo&&q[0]<=hi).map(q=>q[1]));let dir=1;if((endMax(0,0.35*sL)>endMax(0.65*sL,sL))!==!!flip.cups)dir=-1; // small cup first
+ if(dir<0)sar=sar.map(([x,r])=>[sL-x,r]).reverse();sar=piSmooth(sar);
+ // a cup's flat end face, seen a little from the side, shows as an oval that rounds the outline off: the cup really ends where the outline levels out
+ const capS=piCap(sar,0,1,0.18*sL),capE=piCap(sar,sL,-1,0.18*sL);let sI0=dir>0?sx.l:sx.r;if(capS||capE){sar=sar.filter(([x])=>x>=capS&&x<=sL-capE).map(([x,r])=>[x-capS,r]);sI0+=dir*capS;sL-=capS+capE;}
+ const e0=piEnd(sar,0,1),e1=piEnd(sar,sL,-1);sar.unshift([0,e0]);sar.push([sL,e1]);
+ // ken radii row by row, from the base up; under the sarado the ken is hidden, so that stretch is bridged straight across
+ const hb0=Math.floor(Math.min(b0,jA-rk))-3,hb1=Math.ceil(Math.max(b1,jA+rk))+3;let ken=[];
+ for(let j=Math.floor(yb)-3;j>Math.ceil(jt);j--){if(j>=hb0&&j<=hb1)continue;const s=spans[j];if(s)ken.push([yb-j,sym(a-s.l,s.r-a)]);}
+ ken=piSmooth(ken);const capB=piCap(ken,0,1,0.1*(yb-jt));let ybF=yb;if(capB){ken=ken.filter(([y])=>y>=capB).map(([y,r])=>[y-capB,r]);ybF=yb-capB;} // the base face seen at an angle, likewise
+ ken.unshift([0,piEnd(ken,0,1)]);ken.push([ybF-jt,0]);
+ if(Math.max(capS,capE,capB)>0.012*(yb-jt))warn.push('The ends of the cups or the base can be seen in the photo, so it was taken from close up or at an angle. This has been allowed for, but a photo from further away with zoom will be more accurate.');
+ if((yb-jt)<500)warn.push('The kendama is small in the photo. Zoom in or move closer so it fills most of the frame for a sharper outline.');
+ return{ok:true,warn,c:{to:c.to},a,yb:ybF,jt,jA,sTilt:sl.b,sI0,sDir:dir,ken,sar,sarL:sL,yA:ybF-jA,kenH:ybF-jt,hid:[ybF-hb1,ybF-hb0]};}
+// how much of an end is the oval of a flat end face seen slightly from the side (px along the axis): from the very end inward, the outline climbs steeply until it levels out at the face's edge
+function piCap(p,x0,dir,maxC){const r=x=>interp(p,x),h=3,Wn=Math.max(10,0.012*Math.abs(p[p.length-1][0]-p[0][0]));for(let u=0;u<=maxC;u+=0.5){let ok=true;for(let k=0;k<=8;k+=2){const xa=x0+dir*(u+k);if((r(xa+dir*h)-r(xa))/h>0.35){ok=false;break;}}
+  if(ok){const r0=r(x0+dir*u);for(let k=0;k<=Wn;k+=2)if(r0<0.955*r(x0+dir*(u+k))){ok=false;break;}} /* and it must be (nearly) as wide as the outline just inside: a short flat stretch partway up the oval is not the end */if(ok)return u<4?0:u+0.35*u*u/Math.max(1,r(x0+dir*u));}return 0;} // the outline levels to that slope a little short of the face's edge on an oval (by 0.35·b²/R)
+// the radius right at an end face: a straight line through the first 12 px inside it, carried out to the face
+function piEnd(p,x0,dir){const q=p.filter(([x])=>dir*(x-x0)>=0&&dir*(x-x0)<=15);if(q.length<4)return interp(p,x0);let n=0,sx=0,sy=0,sxx=0,sxy=0;for(const[x,y]of q){n++;sx+=x;sy+=y;sxx+=x*x;sxy+=x*y;}const b=(n*sxy-sx*sy)/((n*sxx-sx*sx)||1);return(sy-b*sx)/n+b*x0;}
+function solveN(M,R){const n=R.length,A=M.map((r,i)=>[...r,R[i]]);for(let i=0;i<n;i++){let p=i;for(let k=i+1;k<n;k++)if(Math.abs(A[k][i])>Math.abs(A[p][i]))p=k;[A[i],A[p]]=[A[p],A[i]];if(Math.abs(A[i][i])<1e-12)return null;
+ for(let k=0;k<n;k++)if(k!==i){const m=A[k][i]/A[i][i];for(let q=i;q<=n;q++)A[k][q]-=m*A[i][q];}}return A.map((r,i)=>r[n]/r[i]);}
+function solve3(M,R){const A=M.map((r,i)=>[...r,R[i]]);for(let i=0;i<3;i++){let p=i;for(let k=i+1;k<3;k++)if(Math.abs(A[k][i])>Math.abs(A[p][i]))p=k;[A[i],A[p]]=[A[p],A[i]];if(Math.abs(A[i][i])<1e-12)return null;
+ for(let k=0;k<3;k++)if(k!==i){const m=A[k][i]/A[i][i];for(let q=i;q<4;q++)A[k][q]-=m*A[i][q];}}return A.map((r,i)=>r[3]/r[i]);}
+// light clean-up of pixel noise: median of 5, then mean of 3
+function piSmooth(p){const n=p.length,r=p.map(q=>q[1]),m=r.map((_,i)=>piMed(r.slice(Math.max(0,i-2),Math.min(n,i+3))));return p.map((q,i)=>[q[0],(m[Math.max(0,i-1)]+m[i]+m[Math.min(n-1,i+1)])/3]);}
+// the photo's own size of each scale measure, in pixels
+function piPx(d){const K=d.ken,X=d.sar,L=d.sarL,big=Math.max(...X.filter(q=>q[0]>=0.6*L).map(q=>q[1]));
+ return{kenH:d.kenH,sarL:L,bgD:2*X[X.length-1][1],smD:2*X[0][1],baseD:2*K[0][1],sarTop:d.yA+big};}
+// mm per pixel, along the ken (v) and across it (h): a least-squares fit to every measure given; with measures one way only, both use that scale
+function piScaleFit(d,meas){const px=piPx(d),S={v:[0,0],h:[0,0]};for(const[k,dir]of PI_SCALE){const m=+meas[k];if(!(m>0))continue;S[dir][0]+=m*px[k];S[dir][1]+=px[k]*px[k];}
+ let sv=S.v[1]?S.v[0]/S.v[1]:0,sh=S.h[1]?S.h[0]/S.h[1]:0;if(!sv&&!sh)return null;return{sv:sv||sh,sh:sh||sv};}
+function piProfiles(d,sc){return{ken:d.ken.map(([y,r])=>[y*sc.sv,r*sc.sh]),sar:d.sar.map(([x,r])=>[x*sc.sh,r*sc.sv]),yA:d.yA*sc.sv};}
+// the app's measures, read off the profiles the same way they are drawn on a spec sheet
+function piFeatures(pr){
+ const K=pr.ken,X=pr.sar,yA=pr.yA,rK=y=>interp(K,y),L=X[X.length-1][0],rX=x=>interp(X,x),kenH=K[K.length-1][0];
+ const amax=(fn,a,b)=>{let bx=a,bv=-1e9;for(let s=a;s<=b+1e-9;s+=0.05){const v=fn(s);if(v>bv){bv=v;bx=s;}}return[bx,bv];},amin=(fn,a,b)=>{const[x,v]=amax(s=>-fn(s),a,b);return[x,-v];};
+ const o={kenH,sarL:L,baseD:2*K[0][1]},rW=rX(L/2);
+ // a ridge (handle stall, bird ridges) is measured at its far corner: from its widest point, on along it until the outline starts to drop away steeply
+ const corner=(fn,a,b)=>{const[m]=amax(fn,a,b),sl=x=>(fn(x+0.25)-fn(x))/0.25;let xs=m,sv=0;for(let x=m;x<=Math.min(b,m+8);x+=0.05){const v=sl(x);if(v<sv){sv=v;xs=x;}}
+  let x=m;if(sv<-3.5){x=xs;while(x>m&&sl(x-0.05)<-2)x-=0.05;}else while(x<b&&sl(x)>-0.5)x+=0.05; // a step: the top of its face; otherwise where the rounding starts to drop steeply
+  return[x,fn(x)];};
+ const[yb,rb]=corner(rK,0.3,Math.min(25,yA*0.25));o.baseBandL=yb;o.baseBandD=2*rb;const dr=rb-rK(yb+0.6);o.hsStepH=dr>0.4?dr:0;
+ const top=Math.max(yb+3.1,Math.min(yA-rW-4,0.62*yA));let yr=null,bv=-1,by=top;for(let y=top;y>=yb+3;y-=0.05){const r=rK(y);if(r>bv){bv=r;by=y;}else if(bv-r>0.6&&rK(y-1)<bv-0.6){yr=by;break;}}if(yr==null)yr=by; // a ring stands clearly proud of the handle below it (not a small wobble in the outline); rings sit in the lower part of the handle // scanning down from the sarado, the handle widens to the ring stall, then narrows into the swoop
+ const rr=rK(yr);let r0=yr,r1=yr;while(r0>yb+1&&rK(r0-0.05)>rr-0.08)r0-=0.05;while(r1<top&&rK(r1+0.05)>rr-0.08)r1+=0.05;
+ o.ringD=2*rr;o.ringPos=(r0+r1)/2;o.ringW=Math.min(10,r1-r0);const[ys,rs]=amin(rK,yb+0.6,Math.max(yb+0.7,r0));o.swoopD=2*rs;o.swoopPos=ys;
+ const t0=Math.max(yA+rW+3,kenH-38),t1=Math.max(t0+4,kenH-14);let n=0,sx=0,sy=0,sxx=0,sxy=0;for(let y=t0;y<=t1;y+=0.25){const r=rK(y);n++;sx+=y;sy+=r;sxx+=y*y;sxy+=y*r;}
+ const be=(n*sxy-sx*sy)/((n*sxx-sx*sx)||1),al=(sy-be*sx)/n;let bev=kenH-8;for(let y=kenH-2;y>=kenH-20;y-=0.05)if(rK(y)>=al+be*y-0.12){bev=y;break;}
+ o.baseToBevel=bev;o.bevelL=kenH-bev;o.spikeD=2*(al+be*bev);
+ o.smD=2*X[0][1];o.bgD=2*X[X.length-1][1];const[xs,rs2]=corner(rX,0.3,0.4*L);o.smBandL=xs;o.smBandD=2*rs2;const[xm,rb2]=corner(x=>rX(L-x),0.3,0.4*L);o.bgBandL=xm;o.bgBandD=2*rb2;
+ o.waistD=2*rX(L/2+(o.smBandL-o.bgBandL)/2);o.sarTop=yA+Math.max(o.bgD,o.bgBandD)/2;return o;}
+function piRescale(){PI.sc=piScaleFit(PI.det,PI.meas);PI.prof=PI.sc?piProfiles(PI.det,PI.sc):null;PI.f=PI.prof?piFeatures(PI.prof):null;PI.fixed=false;}
+const piOff=k=>{const a=+PI.act[k];return a>0&&PI.f?a-PI.f[k]:null;};
+// fix: first the scale is refitted with every caliper measure that sets it; then whatever is still off is redrawn where it is: a Ø eased in or out around that spot, a length by stretching the part it spans
+function piFix(){
+ const all=Object.assign({},PI.meas);for(const[k]of PI_SCALE)if(+PI.act[k]>0)all[k]=+PI.act[k];PI.sc=piScaleFit(PI.det,all);PI.prof=piProfiles(PI.det,PI.sc);PI.f=piFeatures(PI.prof);
+ for(let pass=0;pass<4;pass++){let any=false;for(const k of PI_CHECK){const d=piOff(k);if(d==null||Math.abs(d)<0.01)continue;any=true;piCorrect(k,d,PI.f);}if(!any)break;PI.f=piFeatures(PI.prof);}
+ PI.fixed=true;}
+function piCorrect(k,d,f){
+ const P=PI.prof,K=P.ken,X=P.sar,L=X[X.length-1][0],top=K[K.length-1][0],bump=(pts,c,amt,sg)=>{for(const q of pts)q[1]=Math.max(0.05,q[1]+amt*Math.exp(-(((q[0]-c)/sg)**2)/2));};
+ const KD={baseD:[0,2.5],baseBandD:[f.baseBandL,2],swoopD:[f.swoopPos,2],ringD:[f.ringPos,2],spikeD:[f.baseToBevel,6]},SD={smD:[0,2.5],smBandD:[f.smBandL,2.5],waistD:[L/2+(f.smBandL-f.bgBandL)/2,8],bgBandD:[L-f.bgBandL,2.5],bgD:[L,2.5]};
+ if(KD[k]){const[c,s]=KD[k];bump(K,c,d/2,s);K[K.length-1][1]=0;}
+ else if(SD[k]){const[c,s]=SD[k];bump(X,c,d/2,s);}
+ else if(k==='sarL'){const s=(L+d)/L;for(const q of X)q[0]*=s;}
+ else if(k==='kenH'){const y0=P.yA,s=(top+d-y0)/(top-y0);for(const q of K)if(q[0]>y0)q[0]=y0+(q[0]-y0)*s;}
+ else if(k==='sarTop'){const yA=P.yA,n=yA+d;for(const q of K)q[0]=q[0]<=yA?q[0]*n/yA:n+(q[0]-yA)*(top-n)/(top-yA);P.yA=n;}}
+// the design to import: measures from the photo, everything the photo cannot show from the current design (or typed in), and the photo's own curves
+function piDesign(){
+ const f=PI.f,base=started?S.p:defaults(),p={},r3=v=>Math.round(v*1000)/1000;for(const k in base)if(PI_KEEP.test(k))p[k]=base[k];
+ for(const k of['baseToBevel','bevelL','spikeD','baseD','baseBandD','baseBandL','hsStepH','ringD','ringW','ringPos','swoopD','swoopPos','sarTop','sarL','waistD','smD','smBandD','smBandL','bgD','bgBandD','bgBandL'])p[k]=r3(f[k]);
+ p.hsStepL=0;for(const k of PI_HID)if(+PI.hid[k]>0)p[k]=+PI.hid[k];
+ const thin=(pts,st)=>{const o=[pts[0]];for(const q of pts.slice(1,-1))if(q[0]-o[o.length-1][0]>=st)o.push(q);o.push(pts[pts.length-1]);return o.map(q=>[r3(q[0]),r3(q[1])]);};
+ return{name:PI.name,p,exact:{ken:thin(PI.prof.ken,0.1),sar:thin(PI.prof.sar,0.1)}};}
+function piImport(){
+ if(PI_CHECK.some(k=>{const d=piOff(k);return d!=null&&Math.abs(d)>0.05;}))piFix(); // real measurements typed on the check step are always used, even without pressing Fix it for me
+ const e=piDesign(),d=libDesign(e),nm=(PI.name||'Photo import').trim()||'Photo import';d.p.swoopMode='two';sanitize(d.p); // the two swoop surfaces keep the photo's own curves (one surface would refit them as a single arc)
+ S.p=d.p;S.curves=d.curves;S.locks={};S.snaps=[];S.cmp=[];S.cmpOn={current:true};
+ S.meta={brand:S.meta.brand||'',model:nm.toUpperCase(),designer:S.meta.designer||'',tolLocked:true,imported:{file:'a photo',notes:['Traced from a photo. Curved contours follow the photo outline; cup depths, the tama and the string holes are not visible in a photo, so check them.']}};
+ $('#pimp').classList.remove('show');begin();toast('Imported from the photo. Check the cup depths and the tama: a photo cannot show them.');}
+
+/* ---------- the photo import screens ---------- */
+const PI_STEPS=[['info','Set up'],['photo','Photo'],['scale','Scale'],['check','Check']];
+function piOpen(){PI.step='info';PI.name='Photo import';piRender();$('#pimp').classList.add('show');}
+function piGo(s){PI.step=s;if(s==='check'&&!PI.f)piRescale();piRender();}
+function piPick(){const inp=$('#fPhoto');inp.onchange=()=>{const fl=inp.files[0];inp.value='';if(!fl)return;const u=URL.createObjectURL(fl),im=new Image();
+  im.onload=()=>{piSetImage(im);URL.revokeObjectURL(u);PI.step='photo';piRender();};im.onerror=()=>{URL.revokeObjectURL(u);toast('That file could not be opened as a picture.');};im.src=u;};inp.click();}
+function piLoadCanvas(cv){piSetImage(cv);PI.step='photo';piRender();} // for the self tests
+function piRender(){
+ const B=$('#piBody'),Ac=$('#piAct'),st=$('#piSteps'),btn=(t,fn,o={})=>el('button',Object.assign({onclick:fn},o.pri?{class:'pri'}:{},o.dis?{disabled:''}:{},o.id?{id:o.id}:{}),t);
+ st.innerHTML='';const at=PI_STEPS.findIndex(s=>s[0]===PI.step);PI_STEPS.forEach(([k,t],i)=>st.append(el('span',{class:i===at?'on':i<at?'done':''},t)));B.innerHTML='';Ac.innerHTML='';
+ if(PI.step==='info'){
+  const ex=el('canvas',{id:'piEx'});B.append(el('p',{},'A kendama is turned on a lathe, so a straight side-on photo shows its exact profile. A good photo makes a good shape:'),
+   el('div',{class:'piinfo'},el('ol',{class:'pitips'},...['Take the tama and string off, so only the ken and sarado are in the photo.',
+    'Lay the kendama on a plain sheet of white paper, with the cups pointing left and right. For light-coloured wood, use a dark sheet instead.',
+    'Light it evenly, for example daylight from a window. Avoid sharp shadows next to the wood.',
+    'Shoot straight down from about 1 m away with 2× or 3× zoom, so the kendama fills most of the frame. Keep the phone level; the camera grid or level helps.',
+    'Leave a clear gap between the kendama and every edge of the photo.',
+    'Have calipers or a ruler ready. You will type in one or more measurements to set the scale, then check the result against the real kendama.'].map(t=>el('li',{},t))),
+   el('figure',{},ex,el('figcaption',{},'A good photo: plain background, kendama square to the camera, a gap all round.'))),
+   el('p',{class:'gnote'},'Why from further away: close up, the ends of the kendama look smaller than the middle. From a distance with zoom, the outline stays true.'));
+  Ac.append(btn('Cancel',()=>$('#pimp').classList.remove('show')),btn('Choose or take a photo',piPick,{pri:1}));piExample(ex);return;}
+ if(PI.step==='photo'){
+  const cvs=el('canvas',{id:'piCv'});B.append(cvs);
+  if(PI.err)B.append(el('p',{class:'pierr'},PI.err));else{B.append(el('p',{},'The outline found in the photo is drawn on top. Check that it follows the edge of the wood all the way round, and that the base and the two cups are labelled correctly.'));
+   B.append(el('div',{class:'row'},btn('Flip ken (base ↔ spike)',()=>{PI.flip.ken=!PI.flip.ken;piRedetect();piRender();}),btn('Swap cups',()=>{PI.flip.cups=!PI.flip.cups;piRedetect();piRender();})));}
+  if(PI.det)for(const t of PI.det.warn)B.append(el('p',{class:'piwarn'},t));
+  Ac.append(btn('Back',()=>piGo('info')),btn('Use another photo',piPick),btn('Next',()=>piGo('scale'),{pri:1,dis:!PI.det}));piDraw(cvs);return;}
+ if(PI.step==='scale'){
+  B.append(el('p',{},'Measure the real kendama and type in one or more of these, in mm. The more you give, the better the scale. Some along the ken and some across it also correct a photo taken slightly at an angle.'));
+  const tb=el('table',{class:'pitab'},el('tr',{},el('th',{},'Measure'),el('th',{},'Real kendama'),el('th',{},'Photo'),el('th',{},'Difference')));
+  for(const[k]of PI_SCALE){const inp=el('input',{type:'number',step:'0.01',min:'0',value:PI.meas[k]||'','data-k':k}),ph=el('td',{class:'num'}),df=el('td',{class:'num'});
+   inp.oninput=()=>{PI.meas[k]=inp.value;piRescale();sync();};tb.append(el('tr',{'data-k':k},el('td',{},PD[k].label),el('td',{},inp),ph,df));}
+  B.append(tb,el('p',{class:'gnote',id:'piSc'}));
+  const nx=btn('Next',()=>piGo('check'),{pri:1,id:'piNext'});Ac.append(btn('Back',()=>piGo('photo')),nx);
+  const sync=()=>{const px=PI.det&&piPx(PI.det);for(const tr of tb.querySelectorAll('tr[data-k]')){const k=tr.dataset.k,c=tr.children,m=+PI.meas[k];
+    c[2].textContent=PI.sc?f2(px[k]*(PI_SCALE.find(q=>q[0]===k)[1]==='v'?PI.sc.sv:PI.sc.sh)):'';const d=m>0&&PI.sc?px[k]*(PI_SCALE.find(q=>q[0]===k)[1]==='v'?PI.sc.sv:PI.sc.sh)-m:null;
+    c[3].textContent=piDiff(d);c[3].className='num '+piCls(d);}
+   nx.disabled=!PI.sc;$('#piSc').textContent=PI.sc?'':'Type in at least one measurement to set the scale.';};
+  sync();return;}
+ if(PI.step==='check'){
+  if(!PI.f){B.append(el('p',{class:'pierr'},'Set the scale first.'));Ac.append(btn('Back',()=>piGo('scale')));return;}
+  const nm=el('input',{type:'text',value:PI.name,maxlength:'40'});nm.oninput=()=>PI.name=nm.value;
+  const cvs=el('canvas',{id:'piCv'}),R=el('div',{});B.append(el('div',{class:'row'},el('span',{},'Shape name'),nm),el('div',{class:'pigrid'},el('div',{},cvs),R));
+  R.append(el('p',{style:'margin-top:0'},'Measure the real kendama with calipers and type in any values you can check, in mm. Leave a box empty to accept the photo’s value. Values you type in are used when you import.'));
+  if(PI.fixed)R.append(el('p',{class:'piok'},'Redrawn to match your measurements. Check the outline and the numbers again, then import.'));
+  const tb=el('table',{class:'pitab'},el('tr',{},el('th',{},'Measure'),el('th',{},'Photo'),el('th',{},'Real kendama'),el('th',{},'Difference')));
+  for(const k of PI_CHECK){const inp=el('input',{type:'number',step:'0.01',min:'0',value:PI.act[k]||''}),ph=el('td',{class:'num'}),df=el('td',{class:'num'});
+   inp.oninput=()=>{PI.act[k]=inp.value;sync();};tb.append(el('tr',{'data-k':k},el('td',{},PD[k].label),ph,el('td',{},inp),df));}
+  const hb=el('table',{class:'pitab'});const base=started?S.p:defaults();
+  for(const k of PI_HID){const inp=el('input',{type:'number',step:'0.01',min:'0',value:PI.hid[k]||f2(base[k])});inp.oninput=()=>PI.hid[k]=inp.value;hb.append(el('tr',{},el('td',{},PD[k].label),el('td',{},inp)));}
+  R.append(tb,el('h3',{},'Not visible in the photo'),el('p',{class:'gnote'},'These start from the current design. Type in the real values if you know them.'),hb);
+  const fx=btn('Fix it for me',()=>{piFix();piRender();},{id:'piFix'});
+  Ac.append(btn('Retake photo',()=>{PI.step='info';piRender();}),fx,btn('Import this shape',piImport,{pri:1}));
+  const sync=()=>{let off=false;for(const tr of tb.querySelectorAll('tr[data-k]')){const k=tr.dataset.k,c=tr.children,d=piOff(k);c[1].textContent=f2(PI.f[k]);c[3].textContent=piDiff(d==null?null:-d);c[3].className='num '+piCls(d);if(d!=null&&Math.abs(d)>0.05)off=true;}
+   fx.disabled=!off;fx.title=off?'Redraw the shape to match the measurements you typed in':'Type in a real measurement that differs from the photo first';};
+  sync();piDraw(cvs);}}
+const piDiff=d=>d==null?'':Math.abs(d)<0.005?'0.00':(d>0?'+':'')+f2(d);
+const piCls=d=>d==null?'':Math.abs(d)<=0.1?'piok':Math.abs(d)<=0.3?'pimid':'pibad';
+// the set-up screen's example: the current design, seen from above on a sheet of paper inside a phone-shaped frame
+function piExample(cv){ // always the Kocho shape, fitted inside the frame by its own outline, whatever design is open
+ if(!piExample.G){const e=LIB.find(q=>q.name==='Kocho')||LIB[0],d=libDesign(e);piExample.G=build(d.p,d.curves);}
+ const G=piExample.G,sil=silhouette(G),W=150,H=200,dpr=window.devicePixelRatio||1,pts=[...sil.ken,...sil.sar];cv.width=W*dpr;cv.height=H*dpr;cv.style.width=W+'px';cv.style.height=H+'px';
+ const x0=Math.min(...pts.map(q=>q[0])),x1=Math.max(...pts.map(q=>q[0])),y0=Math.min(...pts.map(q=>q[1])),y1=Math.max(...pts.map(q=>q[1])),z=Math.min((W-56)/(x1-x0),(H-56)/(y1-y0));
+ const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);c.fillStyle='#f4f1ea';c.fillRect(0,0,W,H);c.strokeStyle='#9aa0a6';c.lineWidth=2;c.strokeRect(1,1,W-2,H-2);
+ c.save();c.translate(W/2-(x0+x1)/2*z,H/2+(y0+y1)/2*z);c.scale(z,-z);c.fillStyle='#6b4423';for(const poly of[sil.ken,sil.sar]){c.beginPath();poly.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.closePath();c.fill();}c.restore();
+ c.setLineDash([4,3]);c.strokeStyle='#c0392b';c.lineWidth=1;c.strokeRect(12,12,W-24,H-24);c.setLineDash([]);}
+// the photo with the outline found (or the shape being imported) drawn over it
+function piDraw(cv){
+ const I=PI.img;if(!I)return;const box=cv.parentElement.getBoundingClientRect(),Wd=Math.max(260,Math.min(box.width||820,820)),z=Math.min(Wd/I.w,(innerHeight*0.5)/I.h),dpr=window.devicePixelRatio||1;
+ cv.width=Math.round(I.w*z*dpr);cv.height=Math.round(I.h*z*dpr);cv.style.width=I.w*z+'px';cv.style.height=I.h*z+'px';const c=cv.getContext('2d');c.setTransform(z*dpr,0,0,z*dpr,0,0);c.drawImage(I.c,0,0);
+ const d=PI.det;if(!d)return;const sc=PI.sc,pr=PI.prof,lw=2/z;c.lineWidth=lw;c.lineJoin='round';
+ const K=pr?pr.ken.map(([y,r])=>[y/sc.sv,r/sc.sh]):d.ken,X=pr?pr.sar.map(([x,r])=>[x/sc.sh,r/sc.sv]):d.sar,yA=pr?pr.yA/sc.sv:d.yA;
+ const P=(i,j)=>d.c.to(i,j),line=(pts,col)=>{c.strokeStyle=col;c.beginPath();pts.forEach((q,i)=>{const p=P(q[0],q[1]);i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]);});c.stroke();};
+ const kc='#ff4d6d',sc2='#2bb3ff',jA=d.yb-yA;
+ for(const s of[1,-1])line(K.map(([y,r])=>[d.a+s*r,d.yb-y]),kc);
+ for(const s of[1,-1])line(X.map(([x,r])=>[d.sI0+d.sDir*x,jA+d.sTilt*(d.sI0+d.sDir*x-d.a)-s*r]),sc2);
+ c.setLineDash([6/z,5/z]);c.lineWidth=1/z;line([[d.a,d.yb+8],[d.a,d.jt-8]],kc);line([[d.sI0-8*d.sDir,jA],[d.sI0+d.sDir*(X[X.length-1][0]+8),jA]],sc2);c.setLineDash([]);
+ // which end the app takes for the base and which cup for the small one, so a wrong guess can be flipped
+ const tag=(t,i,j,col)=>{const q=P(i,j),fs=13/z;c.font=`600 ${fs}px -apple-system,Helvetica,Arial,sans-serif`;const w=c.measureText(t).width;q[0]=clamp(q[0],w/2+6/z,I.w-w/2-6/z);q[1]=clamp(q[1],fs,I.h-fs*0.6);c.fillStyle='rgba(255,255,255,.88)';c.fillRect(q[0]-w/2-4/z,q[1]-fs*0.8,w+8/z,fs*1.25);c.fillStyle=col;c.textAlign='center';c.fillText(t,q[0],q[1]+fs*0.3);c.textAlign='left';};
+ const g=24/z;tag(tr('BASE'),d.a,d.yb+g,kc);tag(tr('SMALL CUP'),d.sI0-d.sDir*g*2.4,jA,sc2);tag(tr('BIG CUP'),d.sI0+d.sDir*(X[X.length-1][0]+g*2.2),jA,sc2);}
 </script>
 </body>
 </html>
