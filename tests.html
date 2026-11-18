@@ -91,6 +91,137 @@ test('Bird ridge steps drawn in the CAD are kept in the one-swoop view',async({E
  ok(none.length===0,'shapes with rounded ridges get no step'+(none.length?': '+none.join(', '):''));
 });
 
+test('Hand-drawn in the measures panel opens Drag & draw on that contour',async({E,ok})=>{
+ E(`loadLib('Kocho');setMode('manual');`);await sleep(30);
+ E(`setDrawn('flare',true)`);await sleep(20);
+ ok(E('S.mode')==='dd'&&E('S.view')==='design','Drag & draw opens');
+ ok(E('DD.tool')==='draw'&&E('DD.focus')==='flare','Redraw is picked and the contour is highlighted');
+ E(`setMode('manual');setDrawn('smCup',true)`);await sleep(20);
+ ok(E('S.mode')==='dd'&&E('DD.tool')==='point'&&!E('DD.focus'),'a cup (set by its measures only) opens on Points');
+});
+
+test('Straight line tool makes the part between two clicks straight',async({E,ok,click,PP})=>{
+ E(`loadLib('Kocho');setMode('dd');setDDTool('line');VT.design.auto=true;render();`);await sleep(30);
+ const r=E(`(()=>{const sg=CUR.G.segs.flare;return{a:sg.s0+(sg.s1-sg.s0)*0.25,b:sg.s0+(sg.s1-sg.s0)*0.75};})()`);
+ const at=s=>PP(E(`[ddRadAt(CUR.G.segs.flare,${s}),${s}]`));
+ click(at(r.a));ok(E('DD.lA&&DD.lA.id')==='flare','first click marks one end');
+ click(at(r.b));ok(!E('DD.lA')&&E('!!S.curves.flare'),'second click straightens the contour');
+ const dev=E(`(()=>{const sg=CUR.G.segs.flare,a=${r.a},b=${r.b},va=ddRadAt(sg,a),vb=ddRadAt(sg,b);let m=0;for(let i=1;i<20;i++){const s=a+(b-a)*i/20;m=Math.max(m,Math.abs(ddRadAt(sg,s)-(va+(vb-va)*i/20)));}return m;})()`);
+ ok(dev<0.02,`straight between the two points (within ${dev.toFixed(3)} mm)`);
+ E(`setDDTool('line')`);const tb=E(`(()=>{const sg=CUR.G.segs.tamaBall;return sg?1:0;})()`);ok(tb===1,'tama contour exists for the next check');
+ ok(!E(`ddLine('tamaBall',1,10)`),'the tama outside is not straightened');
+});
+
+test('Two points: Push / pull pulls the stretch about like a curve tool, keeping its shape; Smooth acts on it',async({E,ok,ev,PP})=>{
+ E(`loadLib('Kocho');setMode('dd');setDDTool('push');DD.range=true;VT.design.auto=true;syncDD();render();`);await sleep(30);
+ const r=E(`(()=>{const sg=CUR.G.segs.flare,sp=sg.s1-sg.s0;return{a:sg.s0+sp*0.2,b:sg.s0+sp*0.8,before:sg.out.map(q=>[q[0],q[1]])};})()`);
+ const W=s=>E(`[ddRadAt(CUR.G.segs.flare,${s}),${s}]`),tap=w=>{const p=PP(w);ev('pointerdown',p[0],p[1]);ev('pointerup',p[0],p[1]);};
+ tap(W(r.a));tap(W(r.b));ok(E('!!DD.rng&&DD.rng.id')==='flare','two clicks set the area');
+ ok(/Two points/.test(E(`$('#ddOpts').textContent`))&&/Clear points/.test(E(`$('#ddOpts').textContent`)),'the dock shows the area and Clear points');
+ const m=(r.a+r.b)/2,w0=W(m),p0=PP(w0),p1=PP([w0[0]+4,w0[1]]);ev('pointerdown',p0[0],p0[1]);for(let k=1;k<=5;k++)ev('pointermove',p0[0]+(p1[0]-p0[0])*k/5,p0[1]+(p1[1]-p0[1])*k/5);ev('pointerup',p1[0],p1[1]);
+ const res=E(`(()=>{const o=CUR.G.segs.flare.out.map(q=>[q[0],q[1]]).sort((x,y)=>x[0]-y[0]),b=${JSON.stringify(r.before)}.sort((x,y)=>x[0]-y[0]),a=${r.a},bb=${r.b},off=DD.ctl.off;
+  let worst=0;for(const u of[0.1,0.25,0.4,0.5,0.6,0.75,0.9]){const s=a+(bb-a)*u,got=interp(o,s)-interp(b,s),want=2*u*(1-u)*off[1];worst=Math.max(worst,Math.abs(got-want));}
+  return{off,worst,out:Math.max(Math.abs(interp(o,a-2)-interp(b,a-2)),Math.abs(interp(o,bb+2)-interp(b,bb+2)))};})()`);
+ ok(Math.abs(res.off[1]-4)<0.3&&Math.abs(res.off[0])<0.3,`the control point follows the pointer (${res.off[1].toFixed(2)} mm out)`);
+ ok(res.worst<0.03,`the stretch keeps its shape: each spot moves by 2t(1-t) of the pull (off by at most ${res.worst.toFixed(3)} mm)`);
+ ok(res.out<0.01,'unchanged outside the points');
+ const o1=E('DD.ctl.off[1]');ev('pointerdown',p1[0],p1[1]);ev('pointermove',p1[0]+(p1[0]-p0[0])/4,p1[1]);ev('pointerup',p1[0]+(p1[0]-p0[0])/4,p1[1]);
+ ok(E('DD.ctl.off[1]')>o1+0.5,'a second drag carries on from where the first left off');
+ E(`setDDTool('smooth');DD.range=true;syncDD();`);ok(E('!!DD.rng')&&!E(`$('#ddOpts button:last-child').disabled`),'the area carries over to Smooth, and Smooth here is ready');
+});
+
+test('Mark-up tools open from the Drag & draw bar and draw over the shape',async({E,ok,ev,PP,fitView})=>{
+ E(`loadLib('Kocho');setMode('dd');MK.items=[];setDDTool('mark');`);await sleep(30);fitView();
+ const ids=E(`[...$('#ddOpts').querySelectorAll('button')].map(b=>b.dataset.t||b.dataset.a).join(',')`);
+ ok(ids==='move,rot,spin,front,line,plane,circle,measure,pen,undo,redo,del,clear','the mark-up tools pop out above the bar ('+ids+')');
+ E(`$('#ddOpts button[data-t=line]').click()`);ok(E('MK.tool')==='line','picking a mark-up tool');
+ const a=PP([-30,40]),b=PP([10,80]);ev('pointerdown',a[0],a[1]);ev('pointermove',(a[0]+b[0])/2,(a[1]+b[1])/2);ev('pointermove',b[0],b[1]);ev('pointerup',b[0],b[1]);
+ ok(E('MK.items.length')===1,'a line is drawn on the canvas');
+ E(`$('#ddOpts button[data-t=rot]').click()`);ok(E('V3.on'),'3D turn is available');
+ E(`setDDTool('push')`);ok(!E('V3.on'),'a shaping tool goes back to the flat view');
+});
+
+test('Sarado apart: off the ken, moved, turned, still shaped, and back',async({E,ok,drag,PP,fitView,finite})=>{
+ E(`loadLib('Kocho');setMode('dd');`);await sleep(30);
+ E(`ddSarToggle()`);await sleep(20);fitView();
+ ok(E('sarApart()')&&E('DD.tool')==='free','taken off, with Move pieces picked');
+ const c0=E('[DD.sar.C.x,DD.sar.C.y]');ok(c0[0]<-20,'starts beside the ken ('+c0[0].toFixed(1)+' mm)');
+ const p=PP(E(`(()=>{const G=CUR.G;return sarW(0,3);})()`)),q=[p[0],p[1]+30];drag(p,q,6);
+ const c1=E('[DD.sar.C.x,DD.sar.C.y]');ok(Math.abs(c1[1]-c0[1])>3,'dragging moves it');
+ E(`DD.sar.a=Math.PI/4;render();`);
+ const rt=E(`(()=>{const G=CUR.G,sg=G.segs.swoopAll,s=(sg.s0+sg.s1)/2,v=ddRadAt(sg,s),w=ddFrom(G,sg,s,v,1),b=ddTo(G,sg,w[0],w[1]);return Math.hypot(b[0]-s,b[1]-v);})()`);
+ ok(rt<1e-6,'contour points map to and from the turned sarado');
+ const h=E(`(()=>{const H=ddHandles();return{w:!!H.find(x=>x.id==='waist'&&x.loc),pos:!!H.find(x=>x.id==='sarPos')};})()`);ok(h.w&&!h.pos,'its points ride with it (no sarado-height point while apart)');
+ const w0=E('S.p.waistD');E(`setDDTool('point')`);const wh=E(`(()=>{const x=ddHandles().find(q=>q.id==='waist');return[x.X,x.Y,x.loc.ey[0],x.loc.ey[1]];})()`);
+ const a=PP([wh[0],wh[1]]),b=PP([wh[0]+wh[2]*1.5,wh[1]+wh[3]*1.5]);drag(a,b,5);ok(E('S.p.waistD')>w0+1,'dragging the waist point outward in the sarado frame widens the waist');
+ ok(finite(),'outline and balance stay finite');
+ const keep=E('JSON.stringify([DD.sar.C,DD.sar.a])');E(`ddSarToggle()`);ok(!E('sarApart()'),'back on the ken');
+ E(`ddSarToggle()`);ok(E('JSON.stringify([DD.sar.C,DD.sar.a])')===keep,'taken off again, it comes back to the same place');
+ E(`ddSarToggle()`);
+});
+
+test('Compare tool: add shapes, show / hide, move, turn and remove each one',async({E,ok,ev,PP,fitView})=>{
+ E(`loadLib('Kocho');setMode('dd');setDDTool('cmp');`);await sleep(30);
+ ok(!E(`!!document.querySelector('#cmpLib')`),'the side-panel library menu is gone');
+ E(`[...$('#ddOpts').querySelectorAll('button')].find(b=>b.textContent==='Add a shape').click()`);
+ ok(E(`$('#ddOpts .dd-list').querySelectorAll('button').length`)>=10,'the list holds every library shape');
+ E(`[...$('#ddOpts .dd-list').querySelectorAll('button')].find(b=>b.textContent==='Gyro').click()`);
+ ok(E('S.ovl.length')===1&&E('S.ovl[0].name')==='Gyro','Gyro added');
+ ok(E(`$('#ddOpts').querySelectorAll('.dd-chip').length`)===1&&!!E(`!!$('#ddOpts .dd-pop')`),'it gets a button, and its controls pop out');
+ fitView();const a=PP([0,30]),b=PP([20,30]);ev('pointerdown',a[0],a[1]);ev('pointermove',(a[0]+b[0])/2,a[1]);ev('pointermove',b[0],b[1]);ev('pointerup',b[0],b[1]);
+ ok(Math.abs(E('S.ovl[0].x')-20)<0.5,'dragging its outline moves it');
+ E(`[...$('#ddOpts .dd-pop').querySelectorAll('button')].find(b=>b.textContent==='+').click()`);ok(Math.round(E('S.ovl[0].a')*180/Math.PI)===5,'turn + turns it 5°');
+ E(`$('#ddOpts .dd-pop [data-k=eye]').click()`);ok(E('S.ovl[0].on')===false,'hide');
+ ok(E('projectData().ovl.length')===1,'kept with the project');
+ ok(E(`[...$('#ddOpts .dd-pop').children].map(b=>b.dataset.k||(b.classList.contains('dd-st')?'turn':'name')).join(',')`)==='name,eye,reset,remove,turn','its toolbar is name, eye, reset place, bin, turn');
+ ok(!/Drag its outline/.test(E(`$('#ddOpts').textContent`)),'no drag hint text');
+ E(`$('#ddOpts [data-k=outline]').click()`);ok(E('DD.outline')&&E(`$('#ddOpts [data-k=outline]').textContent.trim()`)==='','an icon button turns this design into an outline');
+ E(`DD.outline=false;syncDD();`);
+ E(`$('#ddOpts .dd-pop [data-k=remove]').click()`);ok(E('S.ovl.length')===0,'remove');
+});
+
+test('Sarado apart: every piece still bumps into the others',async({E,ok})=>{
+ E(`loadLib('Kocho');setMode('dd');ddSarToggle();`);await sleep(20);
+ const r=E(`(()=>{const f=ddFree(),o={};const x0=DD.sar.C.x;ddSarMove(80,0);o.sarMoved=DD.sar.C.x-x0;o.sarClear=!sarKenHit(DD.sar);const x1=DD.sar.C.x;ddSarMove(0.5,0);o.stuck=Math.abs(DD.sar.C.x-x1)<0.01;
+  ddSarMove(-60,0);f.C={x:DD.sar.C.x,y:DD.sar.C.y+80};const y0=f.C.y;ddTamaMove(0,-80);o.tamaMoved=y0-f.C.y;o.tamaTouch=ddFreeHit({x:f.C.x,y:f.C.y-0.6},f.u);o.tamaClear=!ddFreeHit(f.C,f.u);return o;})()`);
+ ok(r.sarMoved>5&&r.sarMoved<79&&r.sarClear&&r.stuck,`the sarado stops against the ken (moved ${r.sarMoved.toFixed(1)} of 80 mm)`);
+ ok(r.tamaMoved>5&&r.tamaMoved<79&&r.tamaTouch&&r.tamaClear,`the tama stops against the sarado (moved ${r.tamaMoved.toFixed(1)} of 80 mm)`);
+ const k=E(`(()=>{const f=ddFree();ddSarMove(30,0);f.C={x:200,y:300};const k=ddKenMove(-400*VT.design.z,0);return{k,touch:sarKenHit({C:{x:DD.sar.C.x+0.5,y:DD.sar.C.y},a:DD.sar.a})};})()`);
+ ok(k.k<1&&k.touch,'moving the ken stops against the sarado');
+ E(`ddSarToggle()`);
+});
+
+test('Measurements are mark-ups: they stay until selected and deleted',async({E,ok,click,ev,PP,fitView})=>{
+ E(`loadLib('Kocho');setMode('dd');MK.items=[];setDDTool('mark');setTool('measure');`);await sleep(30);fitView();
+ click(PP(E('[CUR.G.p.baseD/2,0]')));ok(!!E('MK.mA'),'first click marks one end');click(PP(E('[CUR.G.p.ringD/2,CUR.G.p.ringPos]')));
+ ok(E('MK.items.length')===1&&E('MK.items[0].type')==='meas'&&!E('MK.mA'),'second click makes a measurement');
+ ok(/mm/.test(E(`$('#ddOpts').textContent`)),'the dock shows its length');
+ const a=PP([-20,40]),b=PP([0,80]);ev('pointerdown',a[0],a[1]);ev('pointermove',(a[0]+b[0])/2,(a[1]+b[1])/2);ev('pointermove',b[0],b[1]);ev('pointerup',b[0],b[1]);ok(E('MK.items.length')===2,'dragging makes one too');
+ E(`setDDTool('push');setDDTool('point');`);ok(E('MK.items.length')===2,'they stay when the tool changes');
+ E(`setDDTool('mark');MK.sel=0;mkAct('del');`);ok(E('MK.items.length')===1,'a selected one is deleted with the mark-up delete');
+ ok(!E(`!!document.querySelector('#dd button[data-d=measure]')`),'Measure is no longer on the main bar');
+ E(`MK.items=[];setDDTool('point');`);
+});
+
+test('Restore goes back to the contours as they were when the design was opened',async({E,ok})=>{
+ E(`loadLib('Kocho');setMode('dd');`);await sleep(30);
+ const imp=E('JSON.stringify(S.curves.ringHandle)');ok(!!E('S.curves.ringHandle'),'Kocho opens with an imported handle contour');
+ E(`(()=>{const sg=CUR.G.segs.ringHandle;ddLine('ringHandle',sg.s0+5,sg.s1-5);})()`);ok(E(`ddChanged('ringHandle')`),'changed by Straight line');
+ E(`ddRestore('ringHandle')`);ok(E('JSON.stringify(S.curves.ringHandle)')===imp,'Restore on that contour puts the imported one back');
+ E(`ddPush('flare',20,ddBase(CUR.G.segs.flare),1);commit();`);ok(E(`ddChanged('flare')`),'flare pushed');
+ E(`setDDTool('reset');syncDD();`);ok(/Restore/.test(E(`$('#ddList').textContent`))&&!E(`[...$('#ddOpts').querySelectorAll('button')].find(b=>/Restore all/.test(b.textContent)).disabled`),'it is listed, and Restore all is ready');
+ E('ddRestore()');ok(!E(`DD_SEGS.some(ddChanged)`)&&E('JSON.stringify(S.curves.ringHandle)')===imp,'Restore all: every contour is back as it was when opened');
+ const rt=E(`(()=>{const o=JSON.parse(JSON.stringify(projectData()));o.base.flare={d:[0,0.5,1,0.5,0],smooth:false,strength:3,bin:5,on:true};loadProject(o);return!!S.base.flare&&S.base.ringHandle!=null;})()`);
+ ok(rt,'the "as opened" contours are saved with the project');
+});
+
+test('No helper text for Measure, Straight line or Sarado apart, and no review rings',async({E,ok})=>{
+ E(`loadLib('Kocho');setMode('dd');setDDTool('line');`);await sleep(20);ok(E(`$('#ddOpts').textContent.trim()`)==='','Straight line has no text above it');
+ E(`setDDTool('mark');setTool('measure');`);ok(!/Click|drag/i.test(E(`$('#ddOpts').textContent`)),'Measure has no instructions');
+ const n=E(`(()=>{let k=0;const t0=toast;toast=()=>k++;try{ddSarToggle();ddSarToggle();}finally{toast=t0;}return k;})()`);ok(n===0,'no pop-ups when the sarado comes off or goes back');
+ ok(E(`document.querySelectorAll('.dup').length`)===0,'no amber rings');
+});
+
 /* ---------- measures ---------- */
 test('Random measures always give a buildable shape (150 tries)',async({E,ok})=>{
  const bad=E(`(()=>{let s=12345;const rnd=()=>(s=(s*1103515245+12345)%2147483648)/2147483648;const bad=[];
@@ -135,7 +266,7 @@ for(const[lib,two]of DD_CASES)test(`Drag & draw: every contour against every poi
    ok(!(chg&&moved<0.02),`${id} hand-shaped: point "${h0.id}" changed a measure but did not move`);
   }}
   load(pushed);E(`setDDTool('reset')`);m=mid(id);click(PP(m.w));
-  ok(!E(`!!S.curves[${JSON.stringify(id)}]`),id+': Restore removes the hand shaping');
+  ok(!E(`ddChanged(${JSON.stringify(id)})`),id+': Restore puts the contour back as it was when the design was opened');
   if(!had)ok(out(id)===orig,id+': Restore gives back the original shape');
  }
  load(base);
@@ -149,12 +280,12 @@ test('Drag & draw tools: nudge, smooth, redraw, restore all, measure, turn',asyn
  E(`setDDTool('smooth')`);q=at();const r2=r();drag(q,[q[0]+12,q[1]]);ok(r()!==r2&&finite(),'smooth changes the contour');
  E(`setDDTool('draw')`);const pts=E(`(()=>{const G=CUR.G,sg=G.segs.swoopAll;return sg.out.filter((_,i)=>i>10&&i<sg.out.length-10).map(p=>ddFrom(G,sg,p[0],p[1]+1.5,1));})()`).map(PP);
  const r3=r();ev('pointerdown',pts[0][0],pts[0][1]);pts.forEach(p=>ev('pointermove',p[0],p[1]));ev('pointerup',pts[pts.length-1][0],pts[pts.length-1][1]);ok(Math.abs(r()-r3)>0.3,'redraw replaces the drawn part');
- E('ddRestore()');ok(!E(`DD_SEGS.some(k=>S.curves[k])`),'Restore all clears every hand-shaped contour');
- E(`setDDTool('measure')`);const a=PP(E('[CUR.G.p.baseD/2,0]')),b=PP(E('[CUR.G.p.ringD/2,CUR.G.p.ringPos]'));click(a);click(b);
- const d=E('DD.meas.length===2?Math.hypot(DD.meas[1][0]-DD.meas[0][0],DD.meas[1][1]-DD.meas[0][1]):-1'),exp=E('Math.hypot(CUR.G.p.ringD/2-CUR.G.p.baseD/2,CUR.G.p.ringPos)');
+ E('ddRestore()');ok(!E(`DD_SEGS.some(ddChanged)`)&&E(`JSON.stringify(S.curves.ringHandle)===JSON.stringify(S.base.ringHandle)`)&&E('!!S.curves.ringHandle'),'Restore all puts every contour back as imported (the imported handle curve stays)');
+ E(`MK.items=[];setDDTool('mark');setTool('measure');`);const a=PP(E('[CUR.G.p.baseD/2,0]')),b=PP(E('[CUR.G.p.ringD/2,CUR.G.p.ringPos]'));click(a);click(b);
+ const d=E('(()=>{const m=MK.items.find(q=>q.type==="meas");return m?Math.hypot(m.pts[1][0]-m.pts[0][0],m.pts[1][1]-m.pts[0][1]):-1;})()'),exp=E('Math.hypot(CUR.G.p.ringD/2-CUR.G.p.baseD/2,CUR.G.p.ringPos)');
  ok(Math.abs(d-exp)<0.05,'measure snaps to the two points ('+d.toFixed(2)+' vs '+exp.toFixed(2)+' mm)');
  E(`setDDTool('pan')`);const ox=E('VT.design.ox');const mid=E('[CW/2,CH/2]');drag(mid,[mid[0]+30,mid[1]]);ok(Math.abs(E('VT.design.ox')-ox-30)<1e-6&&E('V3.roll')===0,'Move view pans when Turn is off');
- E(`DD.turn=true;syncDD();`);const pv=E('rollPiv(VT.design)');drag([pv[0]+60,pv[1]],[pv[0],pv[1]+60]);ok(Math.abs(E('V3.roll')-Math.PI/2)<0.01,'with Turn on, Move view spins and snaps to 90°');
+ E(`$('#ddOpts .dd-ib').click();`);ok(E('DD.turn')&&E(`$('#ddOpts .dd-ib').textContent.trim()`)===''&&E(`!!$('#ddOpts .dd-ib svg')`),'Turn is a rotate-arrow button');const pv=E('rollPiv(VT.design)');drag([pv[0]+60,pv[1]],[pv[0],pv[1]+60]);ok(Math.abs(E('V3.roll')-Math.PI/2)<0.01,'with Turn on, Move view spins and snaps to 90°');
  E(`V3.roll=0;DD.turn=false;setDDTool('point');`);
 });
 test('Redraw follows the drawn line: far from the old contour, ends off it, zoomed in, and a second stroke leaves the first alone',async({E,ok,ev,fitView})=>{
@@ -216,9 +347,9 @@ test('Manual control shows a hand-shaped single swoop and can switch it back',as
 });
 test('Opening another design clears left-over Drag & draw selections',async({E,ok,click,PP,fitView})=>{
  E(`loadLib('Kocho');setMode('dd');`);await sleep(30);fitView();
- E(`setDDTool('measure')`);click(PP(E('[CUR.G.p.baseD/2,0]')));click(PP(E('[CUR.G.p.ringD/2,CUR.G.p.ringPos]')));
+ E(`setDDTool('mark');setTool('measure');`);click(PP(E('[CUR.G.p.baseD/2,0]')));
  E(`setDDTool('point');DD.selH='ring';DD.spot={id:'flare',s:20,sd:1};`);
- E(`loadLib('Aurum')`);ok(E('DD.meas.length')===0&&E('DD.selH')===null&&E('DD.spot')===null,'measurement, selected point and nudge spot are cleared');
+ E(`loadLib('Aurum')`);ok(!E('MK.mA')&&E('DD.selH')===null&&E('DD.spot')===null,'half-made measurement, selected point and nudge spot are cleared');
 });
 
 /* ---------- tama ---------- */
@@ -274,7 +405,7 @@ test('Free tama: moves and turns on its own, presses against the ken, never over
 test('Tool bar order, names, and tama points and push / pull',async({w,E,ok,drag,PP,fitView})=>{
  E(`loadLib('Kocho');setMode('dd');`);await sleep(30);fitView();E('VT.design.auto=false');
  const bar=[...w.document.querySelectorAll('#dd .dd-tools button')].map(b=>b.dataset.d+':'+b.title);
- ok(bar.join('|')==='pan:Move view|free:Move pieces|point:Points|push:Push / pull|draw:Redraw|smooth:Smooth|reset:Restore|hole:Bottom cup hole|measure:Measure','tool bar is '+bar.map(b=>b.split(':')[1]).join(', '));
+ ok(bar.join('|')==='pan:Move view|free:Move pieces|point:Points|push:Push / pull|draw:Redraw|line:Straight line|smooth:Smooth|reset:Restore|hole:Bottom cup hole|mark:Mark-up|sarado:Sarado apart|cmp:Compare','tool bar is '+bar.map(b=>b.split(':')[1]).join(', '));
  ok(E('DD_TOOLS.map(t=>t[0]).join()')===bar.map(b=>b.split(':')[0]).join(),'left-menu list matches the tool bar');
  const z=E('VT.design.z'),H=()=>E(`ddHandles().filter(h=>h.tf).map(h=>({id:h.id,X:h.X,Y:h.Y}))`);
  ok(H().map(h=>h.id).join()==='tD,tCs,tHole,tDepth','the tama has four points');
@@ -365,7 +496,7 @@ test('Drag & draw: the tama outside can be pushed, smoothed, redrawn and restore
  ok(rhoAt(2.4)<R-1.2,'redraw replaces that part of the tama ('+rhoAt(2.4).toFixed(2)+' mm from the centre)');
  ok(rhoAt(2.4)>=E('tamaLo(tamaBase(CUR.G.p),2.4)')-1e-6,'the tama keeps its wall round the hole');
  // measure snaps to the tama outside
- E(`setDDTool('measure');DD.snap=true;`);const sn=E(`(()=>{const s=ddSnap(__tp(1.2,1,mkTama(CUR.G.p,CUR.G).rhoAt(1.2)+0.6),VT.design);return s&&s.kind;})()`);ok(sn==='edge','measure snaps to the tama outside');
+ E(`setDDTool('mark');setTool('measure');DD.snap=true;`);const sn=E(`(()=>{const s=ddSnap(__tp(1.2,1,mkTama(CUR.G.p,CUR.G).rhoAt(1.2)+0.6),VT.design);return s&&s.kind;})()`);ok(sn==='edge','measure snaps to the tama outside');
  // the shaped tama shows in 3D, the spec sheet and the DXF
  ok(E(`(()=>{M3=null;return mesh3().length>0;})()`),'3D view builds the shaped tama');
  const got=E(`(()=>{const o=[],d=download;download=(n,t)=>o.push(t);try{const a=new PdfDrawer(612);specPage1(a,CUR);specPage2(new PdfDrawer(612),CUR);exportDxf();}finally{download=d;}return o;})()`);
