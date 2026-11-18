@@ -44,7 +44,7 @@ button.chip.act{border-color:var(--accent);background:color-mix(in srgb,var(--ac
 .vtools button.act{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .vtools #vtTog{width:38px}.vtools:not(.shut) #vtTog{background:color-mix(in srgb,var(--accent) 14%,var(--panel));border-color:var(--accent);color:var(--accent)}
 .dd{display:none;position:absolute;left:50%;bottom:26px;transform:translateX(-50%);flex-direction:column;gap:6px;align-items:center;width:max-content;max-width:calc(100% - 16px);z-index:3;pointer-events:none}
-body.ddmode .dd{display:flex}body.ddmode #drawbar,body.ddmode #vtools{display:none!important}
+body.ddmode .dd{display:flex}body.ddmode #vtools{display:none!important}
 .dd>*{pointer-events:auto;background:color-mix(in srgb,var(--panel) 94%,transparent);border:1px solid var(--line);border-radius:11px;box-shadow:0 4px 14px rgba(0,0,0,.14)}
 .dd-tools{display:flex;gap:3px;padding:4px}
 .dd-tools button{display:flex;align-items:center;gap:5px;padding:5px 9px;font-size:12px;border-color:transparent;background:transparent}
@@ -63,8 +63,6 @@ details.top[open]>summary{background:var(--accent);color:var(--accent-ink);borde
 details.top[open]>summary::after{transform:translateY(-2px) rotate(45deg)}
 .ddrow{display:flex;flex-direction:column;gap:1px;padding:5px 2px;font-size:12px;border-bottom:1px solid var(--line)}.ddrow span{color:var(--muted);font-size:11.5px}
 .vtools hr{grid-column:1/-1;border:none;border-top:1px solid var(--line);margin:1px 0;width:100%}
-.drawbar{display:flex;gap:8px;align-items:center;padding:6px 10px;background:var(--canvas);border:1px solid var(--line);border-bottom:none;margin:0 10px;flex-wrap:wrap;font-size:12px}
-.drawbar select{max-width:290px}
 .stage{position:relative;flex:1;margin:0 10px 10px;border:1px solid var(--line);background:var(--canvas);min-height:0;overflow:hidden}
 canvas#cv{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 .hud{position:absolute;left:8px;bottom:6px;font-size:11px;color:var(--muted);pointer-events:none}
@@ -194,13 +192,7 @@ body.r-shut .wrap{grid-template-columns:350px 1fr}body.r-shut aside.right{displa
  body.m-split aside.left{display:block;order:1;flex:1 1 50%;border-top:1px solid var(--line)!important}
  body.m-split .stage{min-height:110px;margin-bottom:6px}
  .tabs{padding:6px 8px 0;gap:4px}
- .drawbar{margin:0 8px;gap:6px}
- .drawbar select{max-width:none;flex:1 1 100%;min-width:0;width:100%}
  #dHint{display:none}
- .drawbar>b{cursor:pointer;flex:1 1 100%;display:flex;align-items:center}
- .drawbar>b::after{content:'';margin-left:auto;width:6px;height:6px;border-right:1.6px solid currentColor;border-bottom:1.6px solid currentColor;transform:rotate(-45deg)}
- body.m-draw .drawbar>b::after{transform:translateY(-2px) rotate(45deg)}
- body:not(.m-draw) .drawbar>:not(b){display:none}
  .stage{margin:0 8px 8px;min-height:240px}
  .zoom button{width:34px;height:34px;padding:0}
  #cmpPanel{margin:0 8px 8px}
@@ -250,18 +242,6 @@ body.r-shut .wrap{grid-template-columns:350px 1fr}body.r-shut aside.right{displa
       <div class="spacer"></div>
       <button id="bPage" style="display:none">Page 2 ›</button>
       <button class="chip" id="bRight" aria-pressed="true" title="Show or hide the right-hand panel (balance, iterations, shape checks)"><svg viewBox="0 0 16 16"><path d="M2 3h12v10H2zM10 3v10"/></svg><span>Side panel</span></button>
-    </div>
-    <div class="drawbar" id="drawbar">
-      <b>Draw a contour</b>
-      <select id="dSeg"></select>
-      <button id="dToggle">Draw</button>
-      <label><input type="radio" name="dm" value="exact"> Exact as drawn</label>
-      <label><input type="radio" name="dm" value="smooth" checked> Smoothed</label>
-      <input type="range" id="dStr" min="0.5" max="15" step="0.5" value="3" title="Smoothing amount">
-      <span id="dStrV" class="pnote"></span>
-      <button id="dClear">Use parametric</button>
-      <button id="dDel">Delete drawing</button>
-      <span id="dHint" class="pnote"></span>
     </div>
     <div class="stage" id="stage">
       <canvas id="cv"></canvas>
@@ -734,23 +714,9 @@ const JA={
 "Clear ellipses": "楕円を消す",
 "Page # ›": "#ページ目 ›",
 "‹ Page #": "‹ #ページ目",
-"Draw a contour": "輪郭を描く",
 "Draw": "描く",
-"Drawing: on": "描画：オン",
-"Exact as drawn": "描いたとおり",
-"Smoothed": "なめらかに",
-"Smoothing amount": "なめらかさ",
 "smoothing # mm": "なめらかさ # mm",
-"Use parametric": "パラメトリックを使う",
-"Use hand-drawn": "手描きを使う",
-"Delete drawing": "手描きを削除",
 "Fit": "全体表示",
-"Drag along the orange contour, end to end or just part of it.": "オレンジ色の輪郭に沿ってドラッグしてください。端から端まででも、一部だけでも構いません。",
-"This contour is drawn in the other view.": "この輪郭はもう一方のビューで描きます。",
-"Imported contour in use (exact CAD outline). Drawing over it replaces it.": "インポートした輪郭を使用中（CADの正確な外形）。上から描くと置き換わります。",
-"Hand-drawn contour in use.": "手描きの輪郭を使用中です。",
-"A drawing is saved but the parametric shape is in use.": "手描きは保存されていますが、パラメトリック形状を使用中です。",
-"Draw a longer line along the highlighted contour.": "強調表示された輪郭に沿って、もっと長く線を描いてください。",
 "along sarado # mm · radius # mm": "皿胴方向 # mm · 半径 # mm",
 "height # mm · radius # mm": "高さ # mm · 半径 # mm",
 "Balance": "バランス",
@@ -1046,8 +1012,6 @@ const TRX=[
  [/^(.+?) set to ([-\d.]+): (.+)\.$/,m=>`${q(m[1])}を ${m[2]} にしました：${q(m[3])}。`],
  [/^“(.+)” is locked\. Unlock it to change it\.$/,m=>`「${q(m[1])}」は固定中です。変更するには固定を解除してください。`],
  [/^Can’t change this while “(.+)” is locked\.$/,m=>`「${q(m[1])}」が固定中のため変更できません。`],
- [/^Draw “(.+)” on the canvas: drag along the orange contour\.$/,m=>`キャンバス上で「${q(m[1])}」を描いてください：オレンジ色の輪郭に沿ってドラッグします。`],
- [/^Now draw “(.+)”\.$/,m=>`次は「${q(m[1])}」を描いてください。`],
  [/^Loaded “(.+)” as the current design\.$/,m=>`「${m[1]}」を現在のデザインとして読み込みました。`],
  [/^Saved “(.+)”\. Open Compare to see it against later changes\.$/,m=>`「${q(m[1])}」を保存しました。「比較」を開くと、この後の変更と比べられます。`],
  [/^Added (.+) to the comparison\.$/,m=>`${m[1]}を比較に追加しました。`],
@@ -1699,7 +1663,7 @@ function segToggle(id){
 }
 function setDrawn(id,on){
  const c=S.curves[id];
- if(on){if(c){c.on=true;refresh();commit();}else if(CUR.G.segs[id]&&CUR.G.segs[id].nodraw){toast('To hand-shape this surface, use Push / pull or Redraw in Drag & draw.');}else{S.draw.on=true;pickSeg(id);toast(`Draw “${CUR.G.segs[id].label}” on the canvas: drag along the orange contour.`);}}
+ if(on){if(c){c.on=true;refresh();commit();}else{toast('To hand-shape this surface, use Push / pull or Redraw in Drag & draw.');}}
  else if(c&&c.on!==false){c.on=false;refresh();commit();}
 }
 function buildParams(){
@@ -1810,7 +1774,7 @@ function syncParams(){
 /* ================= canvas views ================= */
 const cv=$('#cv'),ctx=cv.getContext('2d');
 const VT={design:{z:1,ox:0,oy:0,auto:true},sarado:{z:1,ox:0,oy:0,auto:true},compare:{z:1,ox:0,oy:0,auto:true}};
-let CW=0,CH=0,stroke=null,pan=null,CSS={};
+let CW=0,CH=0,pan=null,CSS={};
 const col=n=>CSS[n]||(CSS[n]=getComputedStyle(document.documentElement).getPropertyValue(n).trim());
 function sizeCanvas(c){const r=c.getBoundingClientRect(),d=window.devicePixelRatio||1;if(c.width!==Math.round(r.width*d)||c.height!==Math.round(r.height*d)){c.width=Math.round(r.width*d);c.height=Math.round(r.height*d);}const x=c.getContext('2d');x.setTransform(d,0,0,d,0,0);return[r.width,r.height,x];}
 // assembled view with a tama trick: the tama is held still and the ken + sarado tips about the contact until its centre of gravity is straight above it
@@ -1868,15 +1832,6 @@ function drawEllipses(c,T,v){
    if(sd===1){c.fillStyle=k;c.fillText(`${Math.abs(e.rx-e.ry)<0.01?'R'+f2(e.rx):f2(e.rx)+' × '+f2(e.ry)}`,X+7,Y-5);}}}
  c.restore();
 }
-function drawHighlight(c,T,v){
- if(S.mode==='dd')return;
- const G=CUR.G,seg=G.segs[S.draw.seg];if(!segOK(seg,v))return;
- c.strokeStyle=col('--draw');c.lineWidth=S.draw.on?3:2;c.setLineDash(seg.drawn?[]:[6,4]);
- for(const sd of[1,-1]){pathW(c,T,seg.out.map(q=>fromSeg(G,seg,v,q[0],q[1],sd)));c.stroke();}
- c.setLineDash([]);c.fillStyle=col('--draw');
- for(const sd of[1,-1])for(const q of[seg.out[0],seg.out[seg.out.length-1]]){const w=fromSeg(G,seg,v,q[0],q[1],sd);c.beginPath();c.arc(sx(T,w[0]),sy(T,w[1]),4,0,7);c.fill();}
- if(stroke&&stroke.length>1){c.strokeStyle=col('--ink');c.lineWidth=1.5;pathW(c,T,stroke);c.stroke();}
-}
 function drawDesign(c,T){
  const G=CUR.G,A=CUR.A,p=G.p,sil=silhouette(G);grid(c,T);
  const B=balView();if(B){const X=sx(T,B.x),Y=sy(T,B.y);c.save();c.translate(X,Y);c.rotate(-B.a);c.translate(-X,-Y);}
@@ -1895,7 +1850,7 @@ function drawDesign(c,T){
  c.fillText('BIG',sx(T,G.xE-G.xw-p.bgBandL/2),sy(T,G.yA)+3);c.fillText('SMALL',sx(T,G.xS-G.xw+p.smBandL/2),sy(T,G.yA)+3);c.textAlign='left';
  const P=tamaPose();if(P){drawTama(c,T,p,P,S.show.tama==='free'?'':TRICKS.find(t=>t[0]===S.show.tama)[1],'line');}
  if(S.show.cog&&!B){cogMark(c,sx(T,A.cog.x),sy(T,A.cog.y),7,col('--cog'));label(c,`CoG ${f1(A.cog.y)} mm`,sx(T,A.cog.x)+12,sy(T,A.cog.y)+4,col('--cog'));}
- drawEllipses(c,T,'design');drawHighlight(c,T,'design');
+ drawEllipses(c,T,'design');
  if(B){c.restore();const g=rotW(B,[A.cog.x,A.cog.y]),X=sx(T,B.x);
   const top=B.kenOnTama?g[1]:rotW(B,[poseCached(CUR,S.show.tama).C.x,poseCached(CUR,S.show.tama).C.y])[1];
   c.strokeStyle=col('--cog');c.lineWidth=1;c.setLineDash([4,4]);c.beginPath();c.moveTo(X,sy(T,B.y)+14);c.lineTo(X,sy(T,top)-26);c.stroke();c.setLineDash([]);
@@ -1910,7 +1865,7 @@ function drawSarado(c,T){
  c.setLineDash([4,3]);c.strokeStyle=col('--lock');for(const sd of[1,-1]){pathW(c,T,[[G.xw+sd*G.kR,-p.waistD/2-4],[G.xw+sd*G.kR,p.waistD/2+4]]);c.stroke();}c.setLineDash([]);
  label(c,'ken hole',sx(T,G.xw),sy(T,p.waistD/2+4)-6,col('--lock'),'center');
  label(c,'SMALL CUP',sx(T,G.xS),sy(T,-Math.max(p.smD,p.smBandD)/2)+18,col('--muted'));label(c,'BIG CUP',sx(T,G.xE),sy(T,-Math.max(p.bgD,p.bgBandD)/2)+18,col('--muted'),'right');
- drawEllipses(c,T,'sarado');drawHighlight(c,T,'sarado');
+ drawEllipses(c,T,'sarado');
 }
 const PAL=['#2f6f5e','#c0392b','#2c6fbb','#b7791f','#7d3c98','#0e8f8f','#d35400','#5d6d7e'];
 function entries(){return[{id:'current',name:'Current design',p:S.p,curves:S.curves,cur:true},...S.snaps,...S.cmp];}
@@ -2265,7 +2220,6 @@ function drawMini(id,L){
 }
 
 /* ================= freehand contours ================= */
-const SLIP_NEXT={};
 // opt (drag & draw): the line is kept as drawn. Smoothing (opt.bake, mm) is applied once to the new part only, and the two ends ease into the contour over a short run instead of tilting the whole new part to meet it.
 function applyStroke(seg,pts,opt){
  const span=Math.abs(seg.s1-seg.s0),N=clamp(Math.round(span/0.35),24,260),sum=new Array(N+1).fill(0),cnt=new Array(N+1).fill(0);
@@ -2287,21 +2241,10 @@ function applyStroke(seg,pts,opt){
  return true;
 }
 function syncDraw(){
- if(!CUR.G)return;const G=CUR.G,sel=$('#dSeg'),cur=S.draw.seg;sel.innerHTML='';const groups={};
- for(const id of G.order){const s=G.segs[id];if(s.nodraw)continue;if(!groups[s.grp]){groups[s.grp]=el('optgroup',{label:s.grp});sel.append(groups[s.grp]);}groups[s.grp].append(el('option',{value:id},s.label+(s.drawn?(s.imp?'  (imported)':'  (hand-drawn)'):'')));}
- if(!G.segs[cur]||G.segs[cur].nodraw){S.draw.seg=G.segs.swoopBg?'swoopBg':'smRidge';return syncDraw();}
- sel.value=cur;const seg=G.segs[cur],cvv=S.curves[cur];
- if(cvv){S.draw.smooth=cvv.smooth;S.draw.strength=cvv.strength;}
- document.querySelectorAll('input[name=dm]').forEach(r=>r.checked=(r.value==='smooth')===S.draw.smooth);
- $('#dStr').value=S.draw.strength;$('#dStr').disabled=!S.draw.smooth;$('#dStrV').textContent=S.draw.smooth?`smoothing ${S.draw.strength} mm`:'';
- $('#dToggle').classList.toggle('on',S.draw.on);$('#dToggle').textContent=S.draw.on?'Drawing: on':'Draw';
- $('#dClear').disabled=!cvv;$('#dClear').textContent=seg.drawn?'Use parametric':'Use hand-drawn';$('#dDel').disabled=!cvv;
- const vis=S.view==='design'||S.view==='sarado';$('#drawbar').style.display=vis?'flex':'none';
- $('#dHint').textContent=!vis?'':S.draw.on?(segOK(seg,S.view)?'Drag along the orange contour, end to end or just part of it.':'This contour is drawn in the other view.'):(seg.drawn?(seg.imp?'Imported contour in use (exact CAD outline). Drawing over it replaces it.':'Hand-drawn contour in use.'):cvv?'A drawing is saved but the parametric shape is in use.':'');
- cv.style.cursor=S.draw.on&&segOK(seg,S.view)?'crosshair':(vis||S.view==='compare'?'grab':'default');
- if(S.mode==='dd'&&S.view==='design')cv.style.cursor=DD.tool==='pan'?'grab':'crosshair';
+ if(!CUR.G)return;const G=CUR.G;S.draw.on=false;
+ if(!G.segs[S.draw.seg]||G.segs[S.draw.seg].nodraw)S.draw.seg=G.segs.swoopBg?'swoopBg':'smRidge';
+ cv.style.cursor=S.mode==='dd'&&S.view==='design'?(DD.tool==='pan'?'grab':'crosshair'):(S.view==='design'||S.view==='sarado'||S.view==='compare'?'grab':'default');
 }
-function pickSeg(id){S.draw.seg=id;if(S.ellHide)delete S.ellHide[id];const seg=CUR.G.segs[id];if(!segOK(seg,S.view))setView(seg.view==='sarado'?'sarado':'design');else{syncDraw();render();}}
 
 /* ================= drawing surface for spec sheet (canvas + PDF) ================= */
 class CanvasDrawer{
@@ -2621,12 +2564,6 @@ function wire(){
  $('#tTama').onchange=e=>{const nv=e.target.value;if(nv==='free'&&S.show.tama!=='free'&&S.show.tama!=='none')ddAdoptPose();else VT.design.auto=true;S.show.tama=nv;if(S.mode==='dd'){if(S.show.tama==='free')DD.tool='free';else if(DD.tool==='free')DD.tool='point';syncDD();}tamaChip();render();};tamaChip();
  $('#tEll').onclick=()=>{const on=S.show.ell=!S.show.ell,b=$('#tEll');S.ellHide={};b.classList.toggle('act',on);b.setAttribute('aria-pressed',on);b.querySelector('b').textContent=on?'On':'Off';render();};
  $('#bPage').onclick=()=>{S.page=S.page===1?2:1;$('#bPage').textContent=S.page===1?'Page 2 ›':'‹ Page 1';render();};
- $('#dSeg').onchange=e=>pickSeg(e.target.value);
- $('#dToggle').onclick=()=>{S.draw.on=!S.draw.on;if(S.draw.on)pickSeg(S.draw.seg);syncDraw();render();};
- document.querySelectorAll('input[name=dm]').forEach(r=>r.onchange=()=>{if(!r.checked)return;S.draw.smooth=r.value==='smooth';const c=S.curves[S.draw.seg];if(c)c.smooth=S.draw.smooth;refresh();commit();});
- $('#dStr').oninput=e=>{S.draw.strength=+e.target.value;const c=S.curves[S.draw.seg];if(c)c.strength=S.draw.strength;refresh(true);};$('#dStr').onchange=()=>commit();
- $('#dClear').onclick=()=>setDrawn(S.draw.seg,!CUR.G.segs[S.draw.seg].drawn);
- $('#dDel').onclick=()=>{delete S.curves[S.draw.seg];refresh();commit();};
  $('#bSnap').onclick=()=>{const name=$('#snapName').value.trim()||`Iteration ${S.snaps.length+1}`,e={id:'s'+Date.now(),name,p:JSON.parse(JSON.stringify(S.p)),curves:JSON.parse(JSON.stringify(S.curves))};S.snaps.push(e);S.cmpOn[e.id]=true;$('#snapName').value='';refresh();autosave();toast(`Saved “${name}”. Open Compare to see it against later changes.`);};
  $('#bCmpFile').onclick=()=>readFile($('#fCmp'),(o,fn)=>{if(!o||o.app!=='kendama-shape-designer')throw new Error('not a Terra Shape Explorer project');const src=(o.meta&&o.meta.model)||fn,add=(e,name)=>{const d=cleanDesign(e),x={id:'c'+Date.now()+Math.random().toString(36).slice(2,6),name,src,p:d.p,curves:d.curves};S.cmp.push(x);S.cmpOn[x.id]=true;};add(o,'Current');(o.snaps||[]).forEach(e=>add(e,String(e.name||'Iteration')));setView('compare');refresh();autosave();});
  $('#zFit').onclick=()=>{const T=VT[S.view];if(T){T.auto=true;render();}};
@@ -2636,17 +2573,15 @@ function wire(){
  const world=e=>{const r=cv.getBoundingClientRect(),T=VT[S.view],[ex,ey]=unroll(e.clientX-r.left,e.clientY-r.top,T),w=[(ex-T.ox)/T.z,(T.oy-ey)/T.z],B=balView();return B?rotW(B,w,true):w;};
  const touch=new Map();let pinch=null;const pinchGeo=()=>{const[a,b]=[...touch.values()],r=cv.getBoundingClientRect();return{d:Math.hypot(a.x-b.x,a.y-b.y),mx:(a.x+b.x)/2-r.left,my:(a.y+b.y)/2-r.top};};
  // two fingers on a touch screen: pinch to zoom and drag to pan (a drawing stroke in progress is dropped)
- cv.addEventListener('pointerdown',e=>{if(e.pointerType!=='touch')return;touch.set(e.pointerId,{x:e.clientX,y:e.clientY});if(touch.size===2){stroke=null;pan=null;mkCancel();pinch=pinchGeo();render();}},true);
+ cv.addEventListener('pointerdown',e=>{if(e.pointerType!=='touch')return;touch.set(e.pointerId,{x:e.clientX,y:e.clientY});if(touch.size===2){pan=null;mkCancel();pinch=pinchGeo();render();}},true);
  cv.addEventListener('pointermove',e=>{if(!touch.has(e.pointerId))return;touch.set(e.pointerId,{x:e.clientX,y:e.clientY});if(!pinch||touch.size<2)return;e.stopImmediatePropagation();const T=VT[S.view],g=pinchGeo();if(T&&pinch.d>0){T.auto=false;T.ox+=g.mx-pinch.mx;T.oy+=g.my-pinch.my;zoom(g.d/pinch.d,g.mx,g.my);}pinch=g;},true);
- const tEnd=e=>{touch.delete(e.pointerId);if(touch.size<2&&pinch){pinch=null;stroke=null;pan=null;}};cv.addEventListener('pointerup',tEnd,true);cv.addEventListener('pointercancel',tEnd,true);
- cv.onpointerdown=e=>{const T=VT[S.view];if(!T||pinch)return;cv.setPointerCapture(e.pointerId);if(S.mode==='dd'&&S.view==='design'){if(!ddDown(e,T))pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};else T.auto=false;return;}const seg=CUR.G.segs[S.draw.seg];if(S.draw.on&&segOK(seg,S.view)&&!(S.view==='design'&&V3.on))stroke=[world(e)];else if(S.view==='design'&&mkDown(e,T));else pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};};
+ const tEnd=e=>{touch.delete(e.pointerId);if(touch.size<2&&pinch){pinch=null;pan=null;}};cv.addEventListener('pointerup',tEnd,true);cv.addEventListener('pointercancel',tEnd,true);
+ cv.onpointerdown=e=>{const T=VT[S.view];if(!T||pinch)return;cv.setPointerCapture(e.pointerId);if(S.mode==='dd'&&S.view==='design'){if(!ddDown(e,T))pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};else T.auto=false;return;}if(S.view==='design'&&mkDown(e,T));else pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};};
  cv.onpointermove=e=>{const T=VT[S.view];if(!T){$('#hud').textContent='';return;}const w=world(e);$('#hud').textContent=S.view==='sarado'?`along sarado ${f1(w[0])} mm · radius ${f1(Math.abs(w[1]))} mm`:`height ${f1(w[1])} mm · radius ${f1(Math.abs(w[0]))} mm`;
   if(S.mode==='dd'&&S.view==='design'&&ddMove(e,T))return;
   if(S.view==='design'&&mkMove(e,T))return;
-  if(stroke){stroke.push(w);render();}else if(pan){T.auto=false;T.ox=pan.ox+e.clientX-pan.x;T.oy=pan.oy+e.clientY-pan.y;render();}};
- const up=e=>{if(S.mode==='dd')ddUp(e);mkUp(e);if(stroke){const G=CUR.G,seg=G.segs[S.draw.seg],pts=stroke.map(q=>toSeg(G,seg,S.view,q[0],q[1]));stroke=null;
-   if(applyStroke(seg,pts)){refresh();commit();const nx=SLIP_NEXT[seg.id];if(nx){S.draw.seg=nx;syncDraw();render();toast(`Now draw “${CUR.G.segs[nx].label}”.`);}}
-   else{render();toast('Draw a longer line along the highlighted contour.');}}pan=null;};
+  if(pan){T.auto=false;T.ox=pan.ox+e.clientX-pan.x;T.oy=pan.oy+e.clientY-pan.y;render();}};
+ const up=e=>{if(S.mode==='dd')ddUp(e);mkUp(e);pan=null;};
  cv.onpointerup=up;cv.onpointercancel=up;
  new ResizeObserver(()=>{if(started)render();}).observe($('#stage'));
  window.addEventListener('keydown',e=>{const m=e.metaKey||e.ctrlKey;if(!m)return;if(e.key==='z'||e.key==='Z'){if(/INPUT|TEXTAREA/.test(document.activeElement.tagName)&&document.activeElement.type==='text')return;e.preventDefault();undo(e.shiftKey?1:-1);}else if(e.key==='s'){e.preventDefault();$('#bSave').click();}});
@@ -2663,7 +2598,6 @@ buildParams();wire();setView('design');setMode('dd');showStart(false);
  document.addEventListener('pointerdown',e=>{if(document.body.classList.contains('m-menu')&&!e.target.closest('#hmenu,#bMenu'))setMenu(false);});
  matchMedia('(max-width:760px)').addEventListener('change',()=>setMenu(false));}
 // phones: the contour drawing bar folds away under its title
-document.querySelector('.drawbar>b').onclick=()=>{if(matchMedia('(max-width:760px)').matches){document.body.classList.toggle('m-draw');requestAnimationFrame(render);}};
 // phones get short labels on the top-bar buttons so they fit on one row
 {const mq=matchMedia('(max-width:760px)'),btns=[...document.querySelectorAll('header.top button[data-short]')];btns.forEach(b=>b.dataset.full=b.textContent);
  const sh=()=>btns.forEach(b=>{const t=mq.matches?b.dataset.short:b.dataset.full;if(b.dataset.cur!==t){b.dataset.cur=t;b.textContent=t;}});mq.addEventListener('change',sh);sh();}
