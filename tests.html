@@ -55,7 +55,15 @@ test('App starts in Drag & draw with no errors',async({w,E,ok})=>{
  ok(E('S.mode')==='dd','opens in Drag & draw');
  ok(w.document.querySelector('#lView b').textContent==='Drag & draw','View pill reads Drag & draw');
  ok(w.document.querySelector('#lTama b').textContent==='Free','Tama pill reads Free');
- ok(w.document.querySelector('#topDD').open&&!w.document.querySelector('#topMan').open,'Drag & draw is the open section of the left menu');
+ const D=w.document,secs=[...D.querySelectorAll('#params>details.top')];
+ ok(secs.map(d=>d.id).join()==='topMan,topDD','Manual control is above the tool info');
+ ok(D.querySelector('#topDD>summary').textContent==='Drag & draw tool info','the tool info section is named');
+ ok(secs.every(d=>!d.open),'both sections start folded');
+ ok(D.body.classList.contains('l-shut')&&w.getComputedStyle(D.querySelector('aside.left')).display==='none','the left menu starts folded away');
+ D.querySelector('#bLeft').click();ok(w.getComputedStyle(D.querySelector('aside.left')).display!=='none','the Menu button opens it');
+ D.querySelector('#topMan>summary').click();ok(D.querySelector('#topMan').open&&E('S.mode')==='dd','opening Manual control keeps Drag & draw');
+ D.querySelector('#bLeft').click();ok(D.body.classList.contains('l-shut'),'and closes it again');
+ const views=[...D.querySelectorAll('#tView option')].map(o=>o.value).join();ok(views==='dd,spec,compare','the View menu offers Drag & draw, Spec sheet and Compare ('+views+')');
  ok(!/jarod|porter/i.test(w.document.documentElement.innerHTML),'no Jarod / Porter text');
 });
 
@@ -353,10 +361,9 @@ test('Opening another design clears left-over Drag & draw selections',async({E,o
 });
 
 /* ---------- tama ---------- */
-test('View and tama pills: Markup, Free in Drag & draw, Little bird, no Axe',async({w,E,ok})=>{
+test('View and tama pills: Free in Drag & draw, Little bird, no Axe',async({w,E,ok})=>{
  E(`loadLib('Kocho')`);await sleep(30);
  const views=[...w.document.querySelectorAll('#tView option')].map(o=>o.textContent),opts=()=>[...w.document.querySelectorAll('#tTama option')].map(o=>o.value+':'+o.textContent);
- ok(views.includes('Markup')&&!views.includes('Assembled'),'the view is called Markup');
  ok(opts()[0]==='free:Free'&&E('S.show.tama')==='free','Drag & draw starts with a free tama');
  ok(w.getComputedStyle(w.document.querySelector('#lTama')).display!=='none','tama pill shows in Drag & draw');
  ok(!opts().some(o=>/axe/i.test(o))&&opts().includes('smallbird:Little bird')&&!opts().some(o=>/Small bird/.test(o)),'Axe is gone and Small bird is Little bird');
@@ -604,6 +611,40 @@ test('Photo import: every screen is translated into Japanese',async({w,E,ok})=>{
  ok(most>60,'the importer screens were shown ('+most+' elements on the busiest one)');
  ok(left.length===0,'no English left on the importer screens'+(left.length?': '+left.slice(0,4).join(' | '):''));
  E(`$('#pimp').classList.remove('show');setLang('en');`);await sleep(60);
+});
+
+/* ---------- intro and start screen ---------- */
+test('Intro: library wireframes float behind the name; Begin scatters them and shows the start screen',async({w,E,ok})=>{
+ const D=w.document;ok(!D.querySelector('#intro').classList.contains('show'),'the self-test run skips the intro');
+ E('introOpen()');ok(D.querySelector('#intro').classList.contains('show'),'introOpen shows it');
+ ok(!!D.querySelector('#intro svg.in-logo path'),'the T-leaf logo is shown');
+ ok(/Terra\s+Shape Explorer/.test(D.querySelector('#intro .in-t').textContent),'the name is shown');ok(D.querySelector('#inGo').textContent==='Begin','a Begin button');
+  for(let i=0;i<60&&E('INTRO.objs.length')<E('LIB.length')+5;i++)await new Promise(r=>setTimeout(r,50));
+ ok(E(`INTRO.objs.filter(o=>o.w.kind==='kendama').length`)===E('LIB.length'),'one outline per library shape');
+ ok(E(`INTRO.objs.filter(o=>o.w.kind==='tama').length`)===5,'and five tamas');
+ ok(E('INTRO.objs.every(o=>o.w.polys.length&&o.w.polys.every(l=>l.length>20&&l.every(q=>q.every(isFinite))))'),'every outline is made of finite points');
+ ok(E(`INTRO.objs.every(o=>!('cog' in o.w))`),'no balance marks on the landing page');
+ const before=E('INTRO.objs.map(o=>Math.hypot(o.x-.5,o.y-.5))');
+ E('introBegin()');ok(D.querySelector('#intro').classList.contains('go'),'Begin starts the scatter');
+ E(`for(let i=0;i<10;i++)introDraw($('#inCv'),0.033,performance.now());`);
+ const after=E('INTRO.objs.map(o=>Math.hypot(o.x-.5,o.y-.5))');ok(after.every((d,i)=>d>before[i]),'every wireframe moves away from the middle');
+ await new Promise(r=>setTimeout(r,1500));
+ ok(!D.querySelector('#intro').classList.contains('show')&&!E('INTRO.on'),'the intro is gone afterwards');
+ ok(D.querySelector('#start').classList.contains('show'),'the start screen is showing');
+ E(`setLang('ja');introOpen();`);await sleep(60);ok(D.querySelector('#inGo').textContent==='はじめる','Begin is translated');
+ ok(/Terra/.test(D.querySelector('#intro .in-t').textContent),'the name stays in English');E(`introClose();setLang('en');`);
+});
+test('Start screen: no tagline, Start from random gives a new shape that passes every check',async({w,E,ok})=>{
+ const D=w.document,st=D.querySelector('#start');
+ ok(!/Design a ken/.test(st.textContent),'the tagline is gone');ok(!/from scratch/i.test(st.textContent),'no Start from scratch');
+ const b=st.querySelector('[data-t=random]');ok(!!b&&/Start from random/.test(b.textContent),'Start from random is offered');
+ const seen=new Set();
+ for(let i=0;i<6;i++){E(`showStart(true)`);b.click();await sleep(30);
+  const W=E('CUR.G.W');ok(W.length===0,'shape '+(i+1)+': no shape-check warnings'+(W.length?': '+W[0]:''));
+  ok(E(`started&&!$('#start').classList.contains('show')&&S.meta.model==='NEW SHAPE'`),'shape '+(i+1)+' is open as a new shape');
+  seen.add(E('[S.p.smD,S.p.bgD,S.p.tamaD,S.p.baseD].join()'));}
+ ok(seen.size>=5,'the measures differ each time ('+seen.size+' different of 6)');
+ const many=E(`(()=>{let bad=0;for(let i=0;i<40;i++){const p=randomShape();if(build(p,{}).W.length)bad++;}return bad;})()`);ok(many===0,'40 more random shapes all pass ('+many+' with warnings)');
 });
 
 /* ---------- phone layout ---------- */

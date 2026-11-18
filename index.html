@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Terra Shape Explorer</title>
 <style>
-:root{--bg:#f3f1ec;--panel:#fff;--ink:#1c1c1e;--muted:#6d6d72;--line:#dcd8d0;--accent:#2f6f5e;--accent-ink:#fff;--wood:#ecd9b6;--sarado:#e2c898;--edge:#6e5230;--lock:#c0392b;--cog:#b3261e;--tama:#2c6fbb;--warn-bg:#fff3d6;--warn-ink:#6f4a00;--canvas:#fbfaf7;--grid:#ebe7df;--draw:#d35400;--soft:#f6f4ef}
-@media (prefers-color-scheme:dark){:root{--bg:#17181a;--panel:#212225;--ink:#ececee;--muted:#9a9aa0;--line:#35363a;--accent:#4fa58d;--accent-ink:#0c1512;--wood:#b99b6b;--sarado:#a88a5a;--edge:#ecd9b6;--lock:#ff7b6b;--cog:#ff6b5e;--tama:#6aa8ee;--warn-bg:#3a3018;--warn-ink:#ffd98a;--canvas:#1b1c1f;--grid:#27282c;--draw:#ff9d4d;--soft:#2a2b2f}}
+:root{--bg:#f3f1ec;--panel:#fff;--ink:#1c1c1e;--muted:#6d6d72;--line:#dcd8d0;--accent:#2f6f5e;--accent-ink:#fff;--wood:#ecd9b6;--sarado:#e2c898;--edge:#6e5230;--lock:#c0392b;--cog:#b3261e;--tama:#2c6fbb;--warn-bg:#fff3d6;--warn-ink:#6f4a00;--canvas:#fbfaf7;--grid:#ebe7df;--draw:#d35400;--soft:#f6f4ef;--logo:#1c1c1e}
+@media (prefers-color-scheme:dark){:root{--bg:#17181a;--panel:#212225;--ink:#ececee;--muted:#9a9aa0;--line:#35363a;--accent:#4fa58d;--accent-ink:#0c1512;--wood:#b99b6b;--sarado:#a88a5a;--edge:#ecd9b6;--lock:#ff7b6b;--cog:#ff6b5e;--tama:#6aa8ee;--warn-bg:#3a3018;--warn-ink:#ffd98a;--canvas:#1b1c1f;--grid:#27282c;--draw:#ff9d4d;--soft:#2a2b2f;--logo:#fff}}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 body{background:var(--bg);color:var(--ink);font:13px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;display:flex;flex-direction:column;overflow:hidden}
@@ -145,6 +145,24 @@ h3:first-child{margin-top:0}
 .row input[type=text]{flex:1;min-width:0}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:20;padding:16px}
 .modal.show{display:flex}
+/* intro: floating wireframes of the library shapes, the name and Begin */
+#intro{position:fixed;inset:0;z-index:40;background:var(--bg);display:none;overflow:hidden;transition:opacity .45s ease}
+#intro.show{display:block}#intro.done{opacity:0;pointer-events:none}
+#inCv{position:absolute;inset:0;width:100%;height:100%;display:block}
+.in-c{position:absolute;inset:0;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;padding:16px;text-align:center;pointer-events:none}
+.in-c::before{content:"";position:absolute;left:50%;top:50%;width:min(860px,120vw);height:min(420px,70vh);transform:translate(-50%,-50%);background:radial-gradient(closest-side,var(--bg) 35%,transparent);opacity:.92;z-index:-1}
+.in-logo{height:clamp(64px,10vh,96px);width:auto;margin-bottom:-12px;fill:var(--logo);transition:opacity .45s ease,transform .8s cubic-bezier(.2,.7,.2,1)}#intro.go .in-logo{opacity:0;transform:translateY(-14px) scale(.9)}
+.in-t{margin:0;font:200 clamp(32px,6.4vw,76px)/1.05 "Avenir Next","Helvetica Neue",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;letter-spacing:.035em;color:var(--ink);transition:opacity .5s ease,letter-spacing .9s cubic-bezier(.2,.7,.2,1),filter .6s ease}
+.in-t b{font-weight:600;letter-spacing:.06em}
+.in-rule{width:min(360px,70vw);height:9px;margin-top:-18px;background:linear-gradient(var(--edge),var(--edge)) 0 50%/100% 1px no-repeat,repeating-linear-gradient(90deg,var(--edge) 0 1px,transparent 1px 10%) 0 100%/100% 4px no-repeat;opacity:.35;transition:opacity .4s ease,transform .8s cubic-bezier(.2,.7,.2,1)}
+.in-go{pointer-events:auto;position:relative;background:transparent;border:1px solid color-mix(in srgb,var(--ink) 40%,transparent);border-radius:0;padding:13px 46px 13px 52px;font:500 12px/1 ui-monospace,"SF Mono",Menlo,monospace;letter-spacing:.42em;text-transform:uppercase;color:var(--ink);transition:background .2s,color .2s,border-color .2s,opacity .35s}
+.in-go::before,.in-go::after{content:"";position:absolute;width:9px;height:9px;border:solid var(--accent);pointer-events:none}
+.in-go::before{left:-5px;top:-5px;border-width:1.5px 0 0 1.5px}.in-go::after{right:-5px;bottom:-5px;border-width:0 1.5px 1.5px 0}
+.in-go:hover,.in-go:focus-visible{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);outline:none}
+#intro.go .in-t{opacity:0;letter-spacing:.3em;filter:blur(3px)}#intro.go .in-rule{opacity:0;transform:scaleX(2.2)}#intro.go .in-go{opacity:0}
+@keyframes cardIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+#start.reveal .card{animation:cardIn .55s cubic-bezier(.2,.7,.2,1) both}
+@media (prefers-reduced-motion:reduce){.in-t,.in-rule{transition:opacity .3s}#intro.go .in-t{letter-spacing:.035em;filter:none}#intro.go .in-rule{transform:none}#start.reveal .card{animation-duration:.01s}}
 .card{background:var(--panel);border-radius:12px;padding:22px 24px;width:min(560px,100%);max-height:92vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
 .card h1{margin:0 0 4px;font-size:21px}
 .card p{color:var(--muted);margin:4px 0 14px}
@@ -175,9 +193,12 @@ textarea{width:100%;height:220px;font:11px/1.35 ui-monospace,Menlo,monospace;bac
 #toast.show{opacity:.95}
 @media (max-width:1100px){.wrap{grid-template-columns:300px 1fr}aside.right{grid-column:1/-1;border-left:none;border-top:1px solid var(--line);max-height:34vh}}
 #mnav{display:none}
+#bLeft svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linejoin:round}#bLeft.act{border-color:var(--accent)}#bLeft.act svg{color:var(--accent)}
 #bRight svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linejoin:round}#bRight.act{border-color:var(--accent)}#bRight.act svg{color:var(--accent)}
 body.r-shut .wrap{grid-template-columns:350px 1fr}body.r-shut aside.right{display:none}
 @media (max-width:1100px){body.r-shut .wrap{grid-template-columns:300px 1fr}}
+@media (min-width:761px){body.l-shut .wrap{grid-template-columns:1fr 310px}body.l-shut.r-shut .wrap{grid-template-columns:1fr}body.l-shut aside.left{display:none}}
+@media (min-width:761px) and (max-width:1100px){body.l-shut .wrap{grid-template-columns:1fr}}
 /* phones: one panel at a time (measures, shape view, balance), picked from a bar along the bottom */
 @media (max-width:760px){
  body{height:100dvh}
@@ -218,7 +239,7 @@ body.r-shut .wrap{grid-template-columns:350px 1fr}body.r-shut aside.right{displa
  .card{padding:16px}
  #toast{bottom:70px;left:12px;right:12px;transform:none;max-width:none;text-align:center}
  .dd{bottom:22px}.dd-tools{gap:1px}.dd-tools button{padding:7px 7px}.dd-tools button.act span{display:none}.dd-sel{font-size:16px}.dd-opts{gap:5px 8px;padding:4px 6px}.dd-h{font-size:11px}
- #bRight{display:none}
+ #bRight,#bLeft{display:none}
  #mnav{display:flex;border-top:1px solid var(--line);background:var(--panel);padding:4px 6px calc(4px + env(safe-area-inset-bottom))}
  #mnav button{flex:1 1 0;min-width:0;border:none;background:transparent;color:var(--muted);font-size:12.5px;padding:9px 2px;border-radius:8px}
  #mnav button.act{background:color-mix(in srgb,var(--accent) 14%,var(--panel));color:var(--accent);font-weight:600}
@@ -248,7 +269,8 @@ body.r-shut .wrap{grid-template-columns:350px 1fr}body.r-shut aside.right{displa
   <aside class="left" id="params"></aside>
   <main>
     <div class="tabs">
-      <label class="chip" id="lView"><span>View</span><b></b><select id="tView"><option value="design">Markup</option><option value="dd">Drag &amp; draw</option><option value="sarado">Sarado section</option><option value="spec">Spec sheet</option><option value="compare">Compare</option></select></label>
+      <button class="chip" id="bLeft" aria-pressed="false" title="Show or hide the left-hand menu (manual control and tool info)"><svg viewBox="0 0 16 16"><path d="M2 3h12v10H2zM6 3v10"/></svg><span>Menu</span></button>
+      <label class="chip" id="lView"><span>View</span><b></b><select id="tView"><option value="dd">Drag &amp; draw</option><option value="spec">Spec sheet</option><option value="compare">Compare</option></select></label>
       <label class="chip" id="lTama"><span>Tama</span><b></b><select id="tTama"></select></label>
       <button class="chip" id="tEll" aria-pressed="false"><span>Ellipses</span><b>Off</b></button>
       <div class="spacer"></div>
@@ -298,11 +320,20 @@ body.r-shut .wrap{grid-template-columns:350px 1fr}body.r-shut aside.right{displa
 
 <nav id="mnav"><button data-m="params">Measures</button><button data-m="view">Shape</button><button data-m="split">Split Screen</button><button data-m="bal">Balance</button></nav>
 
+<div id="intro">
+  <canvas id="inCv" aria-hidden="true"></canvas>
+  <div class="in-c">
+    <svg class="in-logo" viewBox="0 0 224.7 480.4" aria-hidden="true"><path fill-rule="evenodd" d="M132.4 0L132.7 1.3L130.3 12.3L129 23.3L128.9 35.3L129.3 44.3L131.1 59.3L133.2 70.3L137.1 86.3L140.1 96.3L150 123.3L162 150.3L171 168.3L181.3 187.3L206.8 231.3L212.8 244.3L217.5 257.3L220.6 268.3L223.7 285.3L224.7 297.3L224.7 306.3L222.8 324.3L220.7 335.3L216.7 349.3L212.8 360.3L207.7 372.3L195.5 397.3L182 423.3L177.1 434.3L173.2 444.3L171.1 451.3L169 462.3L168.7 471.3L169.4 480.4L169.2 479.3L168.4 478.9L162.9 470.3L152.7 458.3L134.4 440.8L94.4 405.6L72.9 385.3L60.3 372.3L52.3 363.3L38.1 345.3L31.1 335.3L23.1 322.3L16.3 309.3L11.2 297.3L7.3 286.3L4.3 275.3L2.2 265.3L0.3 250.3L0 227.3L1.2 214.3L3.2 202.3L7.2 189.3L12.3 177.3L16.3 169.3L31.3 143.3L50.2 114.3L76.3 77.3ZM117.4 164.4L117.9 165.3L118.1 222.3L151.4 222.5L152 223.3L152 242.3L151.4 243.4L118.4 243.4L117.9 244.3L117.9 310.3L118.2 317.3L119.2 322.3L120.1 325.3L123.1 331.3L127.7 336.3L132.4 339.5L138.4 341.7L142.4 342.5L154.4 342.7L154.9 343.3L154.9 364.3L154.4 365L153.4 365.4L145.4 365.9L139.4 365.7L131.4 364.7L126.4 363.7L117.4 360.5L110.4 356.7L106.4 353.6L102.1 349.3L99.1 345.3L94.1 335.3L92.1 328.3L91 321.3L90.7 314.3L90.7 244.3L89.4 243.4L67.4 243.4L66.9 242.3L66.9 223.3L67.4 222.5L90.9 222.3L91.3 221.3L91.3 188.3L91.6 187.3L115.4 165.8Z"/></svg>
+    <h1 class="in-t" translate="no"><b>Terra</b> Shape Explorer</h1>
+    <div class="in-rule" aria-hidden="true"></div>
+    <button id="inGo" class="in-go">Begin</button>
+  </div>
+</div>
+
 <div class="modal" id="start"><div class="card">
-  <h1>Terra Shape Explorer</h1>
-  <p>Design a ken, sarado and tama profile, check its balance, and export spec sheets, DXF and G-code.</p>
+  <h1 style="margin-bottom:14px">Terra Shape Explorer</h1>
   <div class="choices">
-    <button data-t="scratch"><b>Start from scratch</b><small>A plain starter shape with no ring and simple curves.</small></button>
+    <button data-t="random"><b>Start from random</b><small>A new shape with random measures that passes every shape check.</small></button>
     <button id="sOpen"><b>Load a project file…</b><small>Open a saved .kendama.json project.</small></button>
     <button id="sPhoto"><b>Import from a photo…</b><small>Trace a real kendama from a photo taken straight down.</small></button>
   </div>
@@ -730,6 +761,8 @@ const JA={
 "Shape the contours straight on the kendama. Pick a tool from the bar at the bottom of the viewing area; its fine-tuning controls sit just above it.": "組立図の上で輪郭を直接成形します。表示エリア下部のバーからツールを選ぶと、そのすぐ上に微調整用のコントロールが出ます。",
 "Drag & draw": "ドラッグ＆ドロー",
 "Manual control": "手動調整",
+"Drag & draw tool info": "ドラッグ＆ドローの使い方",
+"Show or hide the left-hand menu (manual control and tool info)": "左側のメニュー（手動調整と使い方）を表示・非表示",
 "3D view · drag to turn": "3D表示 · ドラッグで回転",
 "Delete all mark-ups": "書き込みをすべて削除",
 "Delete the selected mark-up": "選択した書き込みを削除",
@@ -805,11 +838,11 @@ const JA={
 "No resting position": "安定する位置がありません",
 "CoG": "重心",
 "CoG # mm": "重心 # mm",
-"Design a ken, sarado and tama profile, check its balance, and export spec sheets, DXF and G-code.": "けん・皿胴・玉の形状を設計し、バランスを確認して、仕様書・DXF・Gコードを書き出します。",
 "Start from the Kocho reference": "Kochoの基準形状から始める",
 "Imported from the Kocho CAD file, ready to adjust.": "KochoのCADファイルからインポート済み。すぐに調整できます。",
-"Start from scratch": "ゼロから始める",
-"A plain starter shape with no ring and simple curves.": "リングがなく曲線もシンプルな、基本の形状。",
+"Start from random": "ランダムで始める",
+"A new shape with random measures that passes every shape check.": "寸法をランダムに決めた新しい形状。形状チェックはすべて通ります。",
+"Begin": "はじめる",
 "Load a project file…": "プロジェクトファイルを読み込む…",
 "Open a saved .kendama.json project.": "保存した .kendama.json プロジェクトを開きます。",
 "Or start from a shape in the library": "または、ライブラリの形状から始める",
@@ -1702,7 +1735,26 @@ function loadLib(name){
  S.meta={brand:S.meta.brand||'TERRA',model:e.name.toUpperCase(),designer:S.meta.designer||'',tolLocked:true,imported:{file:e.file,notes:e.notes}};
  begin();toast(`Imported ${e.name}. Curved contours follow the CAD outline exactly; measures are fitted to it.`);
 }
-function newDesign(t){if(t==='kocho')return loadLib('Kocho');S.p=Object.assign(defaults(),t==='scratch'?STARTER:{});sanitize(S.p);S.curves={};S.locks={};S.snaps=[];S.cmp=[];S.ovl=[];S.cmpOn={current:true};S.meta={brand:S.meta.brand||'TERRA',model:t==='scratch'?'NEW SHAPE':'KOCHO',designer:S.meta.designer||'',tolLocked:true};begin();}
+// Start from random: measures drawn around the starter shape, each cup deep enough to hold the tama; tried again until the shape checks find nothing
+function randomShape(){
+ const r=(a,b)=>a+Math.random()*(b-a),q=(v,st=0.1)=>Math.round(v/st)*st;let p;
+ for(let n=0;n<120;n++){
+  p=Object.assign(defaults(),STARTER);
+  p.tamaD=q(r(58,62),0.01);p.tamaCsD=q(r(20,24.5));p.tamaCsDepth=q(r(8,10.5));
+  p.spikeD=q(r(9.3,10.2),0.05);p.bevelL=q(r(6.5,9.5));p.baseToBevel=q(r(148,158));
+  p.baseD=q(r(36,44));p.baseBandD=q(p.baseD-r(0.3,2.5));p.baseBandL=q(r(7,12));
+  p.swoopD=q(r(20,28));p.swoopPos=q(r(24,36));
+  p.ringW=Math.random()<0.45?q(r(1.5,4)):0;p.ringD=q(r(22,30));p.ringPos=q(r(38,48));
+  for(const k of['ringHandleRx','ringHandleRy','swoopRingRx','swoopRingRy','flareRx','flareRy'])p[k]=q(STARTER[k]*r(0.6,1.6),1);
+  p.sarL=q(r(64,76));p.waistD=q(r(20,26));p.sarTop=q(STARTER.sarTop+r(-4,4));
+  p.smD=q(r(44,48.5));p.smBandD=q(p.smD-r(0.3,2.5));p.smBandL=q(r(8,12));
+  p.bgD=q(r(p.smD+2,p.smD+6));p.bgBandD=q(p.bgD-r(0.3,2.5));p.bgBandL=q(r(8,12));
+  const R=p.tamaD/2,dep=D=>{const a=D/2-p.rim;return q(R-Math.sqrt(R*R-a*a)+r(0.4,2.5));};
+  p.baseDepth=dep(p.baseD);p.smDepth=dep(p.smD);p.bgDepth=dep(p.bgD);
+  sanitize(p);if(!build(p,{}).W.length)break;}
+ return p;
+}
+function newDesign(t){if(t==='kocho')return loadLib('Kocho');S.p=t==='random'?randomShape():Object.assign(defaults(),t==='scratch'?STARTER:{});sanitize(S.p);S.curves={};S.locks={};S.snaps=[];S.cmp=[];S.ovl=[];S.cmpOn={current:true};S.meta={brand:S.meta.brand||'TERRA',model:t==='scratch'||t==='random'?'NEW SHAPE':'KOCHO',designer:S.meta.designer||'',tolLocked:true};begin();}
 function begin(){started=true;S.base=JSON.parse(JSON.stringify(S.baseNext||S.curves||{}));S.baseNext=null;hist=[];hpos=-1;DD.spot=null;DD.selH=null;DD.hover=null;DD.free=null;MK.mA=null;DD.sar={on:false,C:null,a:0};DD.ovSel=null;DD.ovAdd=false;ddCancel();$('#start').classList.remove('show');$('#mBrand').value=S.meta.brand;$('#mModel').value=S.meta.model;$('#mDesigner').value=S.meta.designer;for(const k in VT)VT[k].auto=true;refresh();commit();}
 
 /* ================= parameter panel ================= */
@@ -1718,10 +1770,8 @@ function setDrawn(id,on){
 }
 function buildParams(){
  const root=$('#params');root.innerHTML='';
- const host=el('details',{class:'top',id:'topMan'}),ddp=el('details',{class:'top',id:'topDD'}),sm=el('summary',{},'Manual control'),sd=el('summary',{},'Drag & draw');
- host.open=S.mode!=='dd';ddp.open=S.mode==='dd';host.append(sm);root.append(ddp,host);
- sm.onclick=e=>{e.preventDefault();setMode('manual');};
- sd.onclick=e=>{e.preventDefault();setMode('dd');if(document.body.classList.contains('m-params')&&window.setM)window.setM('view');};
+ const host=el('details',{class:'top',id:'topMan'}),ddp=el('details',{class:'top',id:'topDD'}),sm=el('summary',{},'Manual control'),sd=el('summary',{},'Drag & draw tool info');
+ host.append(sm);root.append(host,ddp); // both start folded; they open and close like any other section and no longer switch the mode
  ddp.append(sd,el('p',{class:'gnote'},'Shape the contours straight on the kendama. Pick a tool from the bar at the bottom of the viewing area; its fine-tuning controls sit just above it.'));
  for(const[,n,t]of DD_TOOLS)ddp.append(el('div',{class:'ddrow'},el('b',{},n),el('span',{},t)));
  ddp.append(el('p',{class:'gnote'},'Undo and Redo in the top bar work on every change made here.'),el('h3',{style:'margin:12px 0 4px'},'Hand-shaped contours'),el('div',{id:'ddList'}));
@@ -2384,7 +2434,7 @@ function ddAdoptPose(){
 function setDDTool(t){if(t==='free'&&S.show.tama!=='free'){ddAdoptPose();S.show.tama='free';tamaMode();}if(t!=='mark'){if(V3.on){V3.on=false;V3.yaw=V3.pitch=0;}MK.cur=null;MK.sel=-1;} /* the 3D turn belongs to mark-up; the shaping tools work on the flat view */
  DD.tool=t;DD.hover=null;DD.focus=null;DD.lA=null;DD.rA=null;DD.ctl=null;DD.rb=null;ddCancel();syncDD();render();}
 function setMode(m,keepView){
- S.mode=m;tamaMode();document.body.classList.toggle('ddmode',m==='dd');const a=$('#topMan'),b=$('#topDD');if(a)a.open=m!=='dd';if(b)b.open=m==='dd';ddCancel();
+ S.mode=m;tamaMode();document.body.classList.toggle('ddmode',m==='dd');ddCancel();
  if(m==='dd'){S.draw.on=false;V3.on=false;V3.yaw=V3.pitch=0;MK.tool='move';if(S.view!=='design')setView('design');syncTools();}
  viewPill();syncDraw();syncDD();render();}
 function render(){
@@ -2719,7 +2769,7 @@ function refresh(light){
 }
 const viewPill=()=>{const d=S.mode==='dd'&&S.view==='design';$('#tView').value=d?'dd':S.view;$('#lView b').textContent=d?'Drag & draw':VIEWS[S.view];};
 const VIEWS={design:'Markup',sarado:'Sarado section',spec:'Spec sheet',compare:'Compare'};
-function setView(v){if(v!=='design'&&S.mode==='dd'){S.mode='manual';tamaMode();document.body.classList.remove('ddmode');$('#topMan').open=true;$('#topDD').open=false;}S.view=v;viewPill();mkCancel();
+function setView(v){if(v!=='design'&&S.mode==='dd'){S.mode='manual';tamaMode();document.body.classList.remove('ddmode');}S.view=v;viewPill();mkCancel();
  $('#lTama').style.display=v==='design'?'flex':'none';$('#tEll').style.display=v==='design'||v==='sarado'?'':'none';$('#vtools').style.display=v==='design'?'':'none';syncTools();$('#bPage').style.display=v==='spec'?'':'none';
  document.querySelector('.zoom').style.display=v==='spec'?'none':'flex';syncDraw();syncCompare();render();}
 function showStart(canCancel){
@@ -2727,12 +2777,71 @@ function showStart(canCancel){
  try{const a=JSON.parse(localStorage.getItem('ksd.autosave')||'null');if(a&&a.app){host.append(el('p',{style:'margin:14px 0 6px'},'Pick up where you left off'));host.append(el('div',{class:'choices'},el('button',{onclick:()=>{try{loadProject(a);}catch(e){toast(e.message);}}},el('b',{},`${a.meta&&a.meta.model||'Untitled'}`),el('small',{},'Last session, saved in this browser '+new Date(a.saved).toLocaleString()))));}}catch(e){}
  $('#start').classList.add('show');
 }
+/* ================= intro ================= */
+// The first screen: wireframes of the library shapes drift behind the name; Begin scatters them and shows the start screen underneath.
+const INTRO={on:false,objs:[],raf:0,go:0,last:0};
+function introWire(e,kind){ // one library shape drawn the way Compare draws it: flat outlines in mm (y up), centred on the middle of the outline
+ const d=libDesign(e),G=build(d.p,d.curves),polys=[],dash=[];
+ if(kind==='tama'){const T=mkTama(G.p,G),C={x:0,y:0},u=[0,1];polys.push(tamaLoop(T,C,u,120));for(const sd of tamaOutline(G.p,C,u,G))dash.push(sd);}
+ else{const sil=silhouette(G);polys.push(sil.ken,sil.sar);}
+ let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(const P of polys)for(const[x,y]of P){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);}
+ const cx=(x0+x1)/2,cy=(y0+y1)/2,sh=P=>P.map(([x,y])=>[x-cx,y-cy]);
+ return{polys:polys.map(sh),dash:dash.map(sh),kind};
+}
+function introOpen(){
+ const box=$('#intro'),cv=$('#inCv');if(!box||INTRO.on)return;INTRO.on=true;INTRO.go=0;INTRO.objs=[];box.classList.remove('done','go');box.classList.add('show');
+ const still=matchMedia('(prefers-reduced-motion: reduce)').matches,R=Math.random;
+ // places spread around the screen, kept clear of the middle where the name sits; every library shape, and a few of their tamas
+ const spots=[[.12,.22],[.86,.2],[.3,.82],[.72,.8],[.05,.62],[.95,.64],[.5,.12],[.5,.9],[.22,.5],[.8,.46],[.36,.2],[.64,.24],[.1,.92],[.9,.9],[.64,.6]].sort(()=>R()-.5);
+ const jobs=LIB.map(e=>[e,'kendama']);[...LIB].sort(()=>R()-.5).slice(0,5).forEach(e=>jobs.push([e,'tama']));
+ let i=0;const add=()=>{if(!INTRO.on||INTRO.go||i>=jobs.length)return;const[e,kind]=jobs[i],sp=spots[i%spots.length];i++;
+  try{const w=introWire(e,kind),z=kind==='tama'?.7+R()*.35:.5+R()*.55;INTRO.objs.push({w,x:sp[0]+(R()-.5)*.08,y:sp[1]+(R()-.5)*.08,vx:(R()-.5)*.012,vy:(R()-.5)*.01,z,rot:(R()-.5)*1.4,vrot:(.03+R()*.07)*(R()<.5?-1:1),a:0,k:PAL[(i+R()*3|0)%PAL.length]});}catch(err){}
+  setTimeout(add,40);};
+ add();
+ const fit=()=>{const k=Math.min(2,devicePixelRatio||1);cv.width=Math.round(innerWidth*k);cv.height=Math.round(innerHeight*k);INTRO.k=k;};fit();INTRO.fit=fit;addEventListener('resize',fit);
+ INTRO.last=performance.now();
+ const frame=now=>{if(!INTRO.on)return;const dt=Math.min(.05,(now-INTRO.last)/1000);INTRO.last=now;introDraw(cv,still?0:dt,now);INTRO.raf=requestAnimationFrame(frame);};
+ INTRO.raf=requestAnimationFrame(frame);
+ const go=$('#inGo');go.onclick=introBegin;try{go.focus({preventScroll:true});}catch(e){}
+}
+function introDraw(cv,dt,now){
+ const c=cv.getContext('2d'),k=INTRO.k,W=cv.width/k,H=cv.height/k,cs=getComputedStyle(document.documentElement),v=n=>cs.getPropertyValue(n).trim();
+ const grid=v('--grid'),mut=v('--muted');
+ c.setTransform(k,0,0,k,0,0);c.clearRect(0,0,W,H);
+ // drawing-sheet grid, 1 cm minor and 5 cm major at the size the shapes are drawn
+ const u=Math.min(W,H)/90;c.lineWidth=1;
+ for(const[st,al]of[[u*2,.45],[u*10,.9]]){c.strokeStyle=grid;c.globalAlpha=al;c.beginPath();for(let x=(W/2)%st;x<W;x+=st){c.moveTo(Math.round(x)+.5,0);c.lineTo(Math.round(x)+.5,H);}for(let y=(H/2)%st;y<H;y+=st){c.moveTo(0,Math.round(y)+.5);c.lineTo(W,Math.round(y)+.5);}c.stroke();}
+ c.globalAlpha=.5;c.strokeStyle=mut;c.lineWidth=1;const m=18,l=14;c.beginPath();for(const[x,y,sx,sy]of[[m,m,1,1],[W-m,m,-1,1],[m,H-m,1,-1],[W-m,H-m,-1,-1]]){c.moveTo(x,y+sy*l);c.lineTo(x,y);c.lineTo(x+sx*l,y);}c.stroke();
+ const S=Math.min(W,H)/240,boost=matchMedia('(prefers-color-scheme: dark)').matches?1.25:1.2;
+ for(const o of INTRO.objs){
+  if(INTRO.go){const dx=o.x-.5,dy=o.y-.5,dl=Math.hypot(dx,dy)||1;o.vx+=dx/dl*dt*2.6;o.vy+=dy/dl*dt*2.6;o.vrot*=1+dt*6;o.z*=1+dt*.9;o.a=Math.max(0,o.a-dt*1.3);}
+  else o.a=Math.min(1,o.a+dt*.8+(dt?0:1));
+  o.x+=o.vx*dt;o.y+=o.vy*dt;o.rot+=o.vrot*dt;
+  if(!INTRO.go){const pad=.25;if(o.x<-pad)o.x=1+pad;if(o.x>1+pad)o.x=-pad;if(o.y<-pad)o.y=1+pad;if(o.y>1+pad)o.y=-pad;}
+  const sc=S*o.z,cx=o.x*W,cy=o.y*H,cr=Math.cos(o.rot),sr=Math.sin(o.rot),P=q=>[cx+(q[0]*cr-q[1]*sr)*sc,cy-(q[0]*sr+q[1]*cr)*sc];
+  const al=Math.min(1,o.a*(.32+.3*(1-(o.z-.5)/.55))*boost);if(al<=.003)continue;
+  const path=(pts,close)=>{c.beginPath();pts.forEach((q,j)=>{const p=P(q);j?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]);});if(close)c.closePath();};
+  c.globalAlpha=al;c.strokeStyle=o.k;c.lineJoin='round';c.lineWidth=1.6;for(const pl of o.w.polys){path(pl,true);c.stroke();}
+  c.lineWidth=1;c.setLineDash([4,3]);for(const pl of o.w.dash){path(pl);c.stroke();}c.setLineDash([]);
+ }
+ c.globalAlpha=1;
+}
+function introBegin(){
+ if(!INTRO.on||INTRO.go)return;const box=$('#intro'),still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+ INTRO.go=performance.now();box.classList.add('go');
+ setTimeout(()=>{box.classList.add('done');const st=$('#start');st.classList.remove('reveal');void st.offsetWidth;st.classList.add('reveal');},still?150:750);
+ setTimeout(introClose,still?600:1250);
+}
+function introClose(){INTRO.on=false;cancelAnimationFrame(INTRO.raf);if(INTRO.fit)removeEventListener('resize',INTRO.fit);INTRO.objs=[];const b=$('#intro');b.classList.remove('show','go','done');}
 function readFile(input,cb){input.onchange=()=>{const f=input.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{cb(JSON.parse(r.result),f.name);}catch(e){toast('Could not open that file: '+e.message);}input.value='';};r.readAsText(f);};input.click();}
 function wire(){
  tamaMode();
  $('#tView').onchange=e=>{const v=e.target.value;if(v==='dd')setMode('dd');else{if(S.mode==='dd')setMode('manual');setView(v);}};
  {const b=$('#bRight'),set=shut=>{document.body.classList.toggle('r-shut',shut);b.classList.toggle('act',!shut);b.setAttribute('aria-pressed',!shut);try{localStorage.setItem('tse.right',shut?'0':'1');}catch(e){}requestAnimationFrame(()=>{if(started){render();syncStats();}});};
   b.onclick=()=>set(!document.body.classList.contains('r-shut'));let sv=null;try{sv=localStorage.getItem('tse.right');}catch(e){}set(sv==='0');}
+ // the left menu starts folded away every time; the Menu chip opens it
+ {const b=$('#bLeft'),set=shut=>{document.body.classList.toggle('l-shut',shut);b.classList.toggle('act',!shut);b.setAttribute('aria-pressed',!shut);requestAnimationFrame(()=>{if(started)render();});};
+  b.onclick=()=>set(!document.body.classList.contains('l-shut'));set(true);}
  document.querySelectorAll('#dd button[data-d]').forEach(b=>b.onclick=()=>b.dataset.d==='sarado'?ddSarToggle():setDDTool(b.dataset.d));
  $('#vtTog').onclick=()=>$('#vtools').classList.toggle('shut');if(matchMedia('(max-width:760px)').matches)$('#vtools').classList.add('shut');
  $('#vtools').querySelectorAll('button[data-t]').forEach(b=>b.onclick=()=>setTool(b.dataset.t));$('#vtools').querySelectorAll('button[data-a]').forEach(b=>b.onclick=()=>mkAct(b.dataset.a));
@@ -2780,7 +2889,7 @@ function wire(){
 function tamaChip(){const t=TRICKS.find(t=>t[0]===S.show.tama);$('#lTama b').textContent=S.show.tama==='free'?'Free':t?t[1]:'Off';}
 // the tama pill: Free (the tama where you last left it, shared by Markup and drag & draw) and the tricks. Markup can also turn it off; in drag & draw the tama is always there.
 function tamaMode(){const dd=S.mode==='dd';if(dd&&S.show.tama==='none')S.show.tama='free';const sel=$('#tTama');sel.innerHTML='';if(!dd)sel.append(el('option',{value:'none'},'Off'));sel.append(el('option',{value:'free'},'Free'));for(const[v,t]of TRICKS.slice(1))sel.append(el('option',{value:v},t));sel.value=S.show.tama;if(DD.tool==='free'&&S.show.tama!=='free')DD.tool='point';tamaChip();}
-buildParams();wire();setView('design');setMode('dd');showStart(false);
+buildParams();wire();setView('design');setMode('dd');showStart(false);if(!/[?&]selftest=/.test(location.search))introOpen();
 // phones: the top bar keeps the name, undo/redo and a menu button; everything else opens from the menu
 {const mb=$('#bMenu'),hm=$('#hmenu'),setMenu=o=>{document.body.classList.toggle('m-menu',o);mb.setAttribute('aria-expanded',o);};
  mb.onclick=e=>{e.stopPropagation();setMenu(!document.body.classList.contains('m-menu'));};
