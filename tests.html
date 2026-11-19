@@ -28,6 +28,7 @@ iframe{position:fixed;left:-3000px;top:0;border:0;visibility:hidden}
 <div id="sum">Running…</div>
 <div id="out"></div>
 <iframe id="app" width="1280" height="820"></iframe>
+<script src="relay/room.js"></script>
 <script>
 'use strict';
 /* Each test gets a fresh copy of the app (w = its window, E = run code inside it) and a check function ok(condition, message). */
@@ -477,7 +478,7 @@ test('View tools: 3D turn, flat turn, mark-ups with undo and delete',async({E,ok
  E(`setTool('spin')`);const pv=E('rollPiv(VT.design)');drag([pv[0]+50,pv[1]],[pv[0]+30,pv[1]+40]);ok(Math.abs(E('V3.roll'))>0.3,'flat turn works');E('render()');
  E(`setTool('front')`);ok(!E('V3.on')&&E('V3.roll')===0,'2D button puts the view back upright');
  E(`mkAct('undo')`);ok(E('MK.items.length')===3,'undo removes the last mark-up');E(`mkAct('redo')`);ok(E('MK.items.length')===4,'redo brings it back');
- E(`MK.sel=0;mkAct('del')`);ok(E('MK.items.length')===3,'delete removes the selected mark-up');E(`mkAct('clear')`);ok(E('MK.items.length')===0,'clear removes them all');
+ E(`MK.sel=0;mkAct('del')`);ok(E('MK.items.length')===3,'delete removes the selected mark-up');E(`mkAct('clear')`);ok(E('MK.items.length')===0,'clear removes all of yours');
 });
 
 /* ---------- language ---------- */
@@ -782,6 +783,163 @@ test('Phone width: the whole tool bar is on screen in every view',async({w,E,ok}
  ok(D.documentElement.scrollWidth<=w.innerWidth+1,'no sideways scroll');
 },{width:375,height:812});
 
+/* ---------- shared sessions (Collaborate) ---------- */
+// A pretend network: each app frame talks to one in-page room (relay/room.js, the same rules the real relay runs). Messages arrive a moment later, in order.
+function fakeNet(room){return()=>{const ws={readyState:0,onopen:null,onmessage:null,onclose:null};let h=null,open=true;
+ const conn={send:s=>queueMicrotask(()=>{if(open&&ws.onmessage)ws.onmessage({data:s});}),close:()=>queueMicrotask(()=>{if(!open)return;open=false;ws.readyState=3;if(h)h.close();if(ws.onclose)ws.onclose();})};
+ ws.send=s=>{if(open)queueMicrotask(()=>h&&h.message(s));};ws.close=()=>conn.close();
+ queueMicrotask(()=>{h=room.open(conn);ws.readyState=1;if(ws.onopen)ws.onopen();});return ws;};}
+const extraFrames=[],extraErr=[];
+function loadExtra(hash){return new Promise((res,rej)=>{const f=document.createElement('iframe');f.width=1280;f.height=820;document.body.append(f);extraFrames.push(f);const t=setTimeout(()=>rej(new Error('second app did not load')),15000);f.onload=()=>{clearTimeout(t);f.contentWindow.addEventListener('error',e=>extraErr.push(e.message));res(f.contentWindow);};f.src='index.html?selftest='+Date.now()+Math.random().toString(36).slice(2,5)+(hash||'');});}
+const settle=async(...ws)=>{for(let i=0;i<3;i++){for(const w of ws)w.eval('colTick()');await sleep(30);}};
+// the owner (already loaded as w) starts a session; the others join by the invite link, typing their names into the join window
+async function team(w,room,who){
+ w.COL_SOCKET=fakeNet(room);w.eval(`COL.id=COL.dev='own${Math.random().toString(36).slice(2,6)}';loadLib('Kocho');colSetName('Ann');colStart();`);await sleep(40);
+ const out=[];for(const[name,role]of who){const k=w.eval(`COL.keys.${role}`),room_=w.eval('COL.room');const x=await loadExtra(`#join=${room_}.${k}`);await sleep(60);
+  x.COL_SOCKET=fakeNet(room);x.eval(`COL.id=COL.dev='${name.toLowerCase()}${Math.random().toString(36).slice(2,6)}'`);x.document.querySelector('#cjName').value=name;x.document.querySelector('#cjGo').click();await sleep(60);out.push(x);}
+ await settle(w,...out);return out;}
+const same=(a,b)=>a.eval('JSON.stringify([S.p,S.curves])')===b.eval('JSON.stringify([S.p,S.curves])');
+
+test('Right panel: Collaborate, Balance check, Iterations and Shape checks fold, and stay as you left them',async({w,E,ok})=>{
+ E(`loadLib('Kocho')`);await sleep(30);const D=w.document,secs=[...D.querySelectorAll('aside.right>details.top')];
+ ok(secs.map(d=>d.id).join()==='rsCol,rsBal,rsIter,rsChk','four sections, Collaborate first');
+ ok(secs.map(d=>d.querySelector('summary').textContent).join('|')==='Collaborate|Balance check|Iterations|Shape checks','section names');
+ ok(!secs[0].open&&secs.slice(1).every(d=>d.open),'Collaborate starts folded, the rest open');
+ secs[1].querySelector('summary').click();await sleep(30);ok(!secs[1].open,'a click folds Balance check');
+ ok(JSON.parse(w.localStorage.getItem('tse.rs')).rsBal===false,'and it is remembered');
+ ok(!!D.querySelector('#rsBal #stats')&&!!D.querySelector('#rsIter #snapList')&&!!D.querySelector('#rsChk #warns'),'each section holds what it did before');
+});
+
+test('Relay rules: keys, roles, removing, handing over',async({ok})=>{
+ const room=new TSERoom({setTimeout:(f)=>setTimeout(f,0)}),got={};
+ const join=(id,o)=>{const box=got[id]=[];const h=room.open({send:s=>box.push(JSON.parse(s)),close:()=>box.push({t:'closed'})});h.message(JSON.stringify(Object.assign({t:'hello',id,dev:'d'+id,name:id},o)));return h;};
+ const a=join('a',{create:true}),K=got.a[0].keys;ok(got.a[0].t==='welcome'&&got.a[0].role==='owner'&&got.a[0].alone,'the first person creates the room and owns it');
+ join('x',{key:'nope'});ok(got.x[0].code==='badkey','a wrong key is turned away');
+ const b=join('b',{key:K.edit}),c=join('c',{key:K.view});ok(got.b[0].role==='edit'&&got.c[0].role==='view','the edit and watch keys give those roles');
+ ok(got.a.some(m=>m.t==='need'&&m.id==='b'),'the owner is asked to send the design to someone new');
+ const n=got.a.length;c.message(JSON.stringify({t:'op',n:1,ch:[['p.x',1]]}));ok(got.a.length===n,'a watcher’s changes go nowhere');
+ b.message(JSON.stringify({t:'op',n:1,ch:[['p.x',1]]}));ok(got.a.some(m=>m.t==='op'&&m.from==='b')&&got.b.some(m=>m.t==='op'),'an editor’s change reaches everyone, the sender too');
+ b.message(JSON.stringify({t:'kick',id:'c'}));ok(!got.c.some(m=>m.t==='kicked'),'only the owner can remove people');
+ a.message(JSON.stringify({t:'kick',id:'c'}));ok(got.c.some(m=>m.t==='kicked'),'the owner removes a watcher');
+ join('c',{key:K.view});ok(got.c.some(m=>m.code==='banned'),'and they cannot come back with the same link');
+ a.message(JSON.stringify({t:'xfer',id:'b'}));const kb=got.b.find(m=>m.t==='keys');ok(kb&&kb.keys.owner!==K.owner,'handing over gives the new owner a fresh owner key');
+ ok(room.roster().map(r=>r.role).join()==='edit,owner','and swaps the roles');
+});
+
+test('Collaborate: an editor joins, changes go both ways, and each undo only steps back through your own changes',async({w,E,ok})=>{
+ const room=new TSERoom({}),[b]=await team(w,room,[['Bob','edit']]);const B=c=>b.eval(c);
+ ok(E('COL.role')==='owner'&&B('COL.role')==='edit','Ann owns the session, Bob can edit');
+ ok(B('started')&&!b.document.querySelector('#colJoin').classList.contains('show'),'Bob is in, the join window has closed');
+ ok(same(w,b),'Bob has the same design as Ann');
+ ok(E('COL.roster.map(r=>r.name).join()')==='Ann,Bob','both are listed');
+ const list=w.document.querySelector('#colBody').innerText;ok(/Ann[\s\S]*Owner[\s\S]*Bob[\s\S]*Can edit/.test(list),'the Collaborate section lists them with their roles');
+ ok(w.document.querySelector('#rsCol').open,'the Collaborate section opened when the session started');
+ const b0=E('S.p.baseD'),s0=E('S.p.spikeD');
+ B(`setParam('baseD',${b0+1});commit();`);await settle(b,w);ok(Math.abs(E('S.p.baseD')-(b0+1))<1e-9,'Bob’s change reaches Ann');
+ E(`setParam('spikeD',${s0+0.5});commit();`);await settle(w,b);ok(Math.abs(B('S.p.spikeD')-(s0+0.5))<1e-9,'Ann’s change reaches Bob');
+ E('undo(-1)');await settle(w,b);
+ ok(Math.abs(E('S.p.spikeD')-s0)<1e-9&&Math.abs(E('S.p.baseD')-(b0+1))<1e-9,'Ann’s undo takes back her change and keeps Bob’s');
+ ok(Math.abs(B('S.p.spikeD')-s0)<1e-9,'Bob sees the undo');
+ B('undo(-1)');await settle(b,w);ok(Math.abs(E('S.p.baseD')-b0)<1e-9&&Math.abs(E('S.p.spikeD')-s0)<1e-9,'Bob’s undo takes back his change only');
+ ok(same(w,b),'they still match');
+ B(`$('#bSnap').click()`);await settle(b,w);ok(E('S.snaps.length')===1,'a saved iteration is shared');
+ E(`S.meta.model='SHARED';autosave();`);await settle(w,b);ok(B('S.meta.model')==='SHARED'&&b.document.querySelector('#mModel').value==='SHARED','the shape name is shared');
+});
+
+test('Collaborate: a drag shows live on the other screen, and the piece you are dragging is not changed under you',async({w,E,ok})=>{
+ const room=new TSERoom({}),[b]=await team(w,room,[['Bob','edit']]);const B=c=>b.eval(c),hb=helpers(b);
+ B(`setMode('dd');setDDTool('push');VT.design.auto=true;syncDD();render();`);await sleep(30);
+ const p=hb.PP(B(`(()=>{const sg=CUR.G.segs.flare,s=(sg.s0+sg.s1)/2;return[ddRadAt(sg,s),s];})()`));
+ hb.ev('pointerdown',p[0],p[1]);for(let i=1;i<=4;i++)hb.ev('pointermove',p[0]+i*3,p[1]);await settle(b,w);
+ ok(B('COL.down&&!!S.curves.flare'),'Bob is still holding the drag');
+ ok(E('!!S.curves.flare')&&E('JSON.stringify(S.curves.flare)')===B('JSON.stringify(S.curves.flare)'),'Ann sees the contour move before Bob lets go');
+ const mine=B('JSON.stringify(S.curves.flare)');
+ E(`S.curves.flare.d=S.curves.flare.d.map(x=>x*0.5);refresh();commit();`);await settle(w,b);
+ ok(B('JSON.stringify(S.curves.flare)')===mine,'a change to the contour Bob is dragging waits');
+ hb.ev('pointermove',p[0]+15,p[1]);hb.ev('pointerup',p[0]+15,p[1]);await settle(b,w);await settle(b,w);
+ ok(same(w,b),'when Bob lets go both screens end up with the same design');
+ ok(B('hist.length')>1&&E('hist.every(h=>JSON.stringify(JSON.parse(h).curves.flare)===JSON.stringify(S.curves.flare))'),'Bob’s finished drag is in every step of Ann’s undo history');
+});
+
+test('Collaborate: mark-up is shared, with a toolbox to show or hide each person’s, only when it is needed',async({w,E,ok})=>{
+ const room=new TSERoom({}),[b]=await team(w,room,[['Bob','edit']]);const B=c=>b.eval(c),box=x=>x.document.querySelector('#mkBox');
+ E(`setMode('dd');setView('design');setMode('dd');`);B(`setMode('dd');`);
+ ok(box(w).style.display==='none'&&box(b).style.display==='none','no toolbox with no mark-up');
+ E(`mkSnap();MK.items.push({type:'line',closed:false,pts:[[0,20,0],[30,60,0]]});syncTools();render();`);await settle(w,b);
+ ok(B('MK.items.length')===1&&B('MK.items[0].bn')==='Ann','Ann’s mark-up reaches Bob, with her name on it');
+ ok(box(w).style.display==='none','Ann’s own mark-up alone needs no toolbox');
+ ok(box(b).style.display!=='none'&&/Ann/.test(box(b).innerText)&&/All/.test(box(b).innerText),'Bob gets the toolbox, with Ann and All');
+ B(`mkSnap();MK.items.push({type:'circle',closed:true,pts:[[10,100,0],[20,100,0],[10,110,0]]});syncTools();render();`);await settle(b,w);
+ ok(E('MK.items.length')===2&&box(w).style.display!=='none'&&/You[\s\S]*Bob/.test(box(w).innerText),'now Ann has the toolbox too: You and Bob');
+ const bobBtn=[...box(w).querySelectorAll('.mk-who')].find(x=>/Bob/.test(x.textContent));bobBtn.click();await sleep(20);
+ ok(E('MK.items.filter(mkVis).length')===1&&E('MK.items.find(mkVis).by')===E('COL.id'),'hiding Bob leaves only Ann’s mark-up on her screen');
+ ok(B('MK.items.filter(mkVis).length')===2,'hiding is only on Ann’s screen');
+ box(w).querySelector('.mk-all').click();await sleep(20);ok(E('MK.items.filter(mkVis).length')===0,'All hides every mark-up');
+ ok([...box(w).querySelectorAll('.mk-who')].every(x=>x.disabled),'the per-person switches rest while All is off');
+ box(w).querySelector('.mk-all').click();[...box(w).querySelectorAll('.mk-who')].find(x=>/Bob/.test(x.textContent)).click();await sleep(20);
+ ok(E('MK.items.filter(mkVis).length')===2,'and both come back');
+ E(`mkAct('undo')`);await settle(w,b);ok(E('MK.items.length')===1&&B('MK.items.length')===1&&B('MK.items[0].by')===B('COL.id'),'Ann’s mark-up undo takes back her line and keeps Bob’s circle');
+ E(`mkAct('redo');syncTools();`);await settle(w,b);ok(B('MK.items.length')===2,'redo puts Ann’s line back');
+ E(`COL.mkHide.add(MK.items.find(m=>m.by!==COL.id).by);mkAct('clear');`);await settle(w,b);
+ ok(E('MK.items.length')===1&&B('MK.items.length')===1&&E('MK.items[0].by')!==E('COL.id'),'Delete all removes only Ann’s own mark-up, even with Bob’s hidden; Bob’s stays for both');
+ ok(E(`$('#vtools [data-a=clear]').disabled`),'with none of her own left, Delete all rests');
+});
+
+test('Collaborate: a watcher sees the design but has no tools, saving or exports',async({w,E,ok})=>{
+ const room=new TSERoom({}),[c]=await team(w,room,[['Cy','view']]);const C=x=>c.eval(x),D=c.document,shown=s=>{const e=D.querySelector(s);return!!e&&c.getComputedStyle(e).display!=='none'&&e.getClientRects().length>0;};
+ ok(C('COL.role')==='view'&&D.body.classList.contains('col-view'),'Cy is watching');
+ ok(same(w,c),'Cy has the design');
+ ok(!shown('#dd')&&!shown('#bUndo')&&!shown('#bRedo')&&!shown('#bLeft')&&!shown('aside.left'),'no tools, no undo, no measures menu');
+ D.querySelector('#bMenu').click();await sleep(20);ok(['#bSave','#bPdf','#bDxf','#bGcode','#bNew'].every(s=>!shown(s)),'the menu has no save, export or open');D.body.dispatchEvent(new c.PointerEvent('pointerdown',{bubbles:true}));
+ ok(!shown('#rsIter .row')&&shown('#rsBal'),'no saving iterations; the balance check is there');
+ const b0=E('S.p.baseD');E(`setParam('baseD',${b0+1});commit();`);await settle(w,c);ok(Math.abs(C('S.p.baseD')-(b0+1))<1e-9,'Cy sees Ann’s changes');
+ C(`setParam('baseD',${b0+5});commit();`);await settle(c,w);ok(Math.abs(E('S.p.baseD')-(b0+1))<1e-9,'a change on Cy’s screen never reaches Ann');
+ const hc=helpers(c);C(`setMode('dd');DD.tool='push';VT.design.auto=true;render();`);const n=C('hist.length'),f0=C('JSON.stringify(S.curves)');
+ const p=hc.PP(C(`(()=>{const sg=CUR.G.segs.flare,s=(sg.s0+sg.s1)/2;return[ddRadAt(sg,s),s];})()`));hc.drag(p,[p[0]+20,p[1]]);ok(C('hist.length')===n&&C('JSON.stringify(S.curves)')===f0,'dragging on the shape only moves the view');
+ C(`window.__w=0;{const o=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k==='ksd.autosave')window.__w++;return o.call(this,k,v);};}autosave();`);await sleep(500);ok(C('window.__w')===0,'a watcher’s screen never writes over their own saved work');
+});
+
+test('Collaborate: the owner removes people, hands over or ends the session; editors can save a copy first',async({w,E,ok})=>{
+ const room=new TSERoom({}),[b,c]=await team(w,room,[['Bob','edit'],['Cy','view']]);const B=x=>b.eval(x),C=x=>c.eval(x);
+ const kick=w.document.querySelectorAll('#colBody .col-kick');ok(kick.length===2,'the owner can remove each of the others');
+ ok(!b.document.querySelector('#colBody .col-kick'),'an editor cannot remove anyone');
+ [...w.document.querySelectorAll('#colBody li')].find(li=>/Cy/.test(li.textContent)).querySelector('.col-kick').click();await settle(w,b,c);
+ ok(!C('COL.on')&&c.document.querySelector('#colDlg').classList.contains('show')&&/removed you/.test(c.document.querySelector('#colDlg p').textContent),'Cy is told they were removed');
+ ok(c.document.querySelector('#start').classList.contains('show'),'and the shared design is gone from their screen');
+ ok(E('COL.roster.length')===2,'Cy is off the list');
+ // Ann leaves: the window offers to end it or hand it to Bob
+ E('colLeave()');const dl=w.document.querySelector('#colDlg');ok(dl.classList.contains('show')&&/Bob/.test(dl.querySelector('#cdBody').textContent),'leaving offers to hand over to Bob');
+ ok([...dl.querySelectorAll('#cdAct button')].map(x=>x.textContent).join()==='Cancel,End for everyone','or to end it for everyone');
+ [...dl.querySelectorAll('#cdBody button')].find(x=>/Bob/.test(x.textContent)).click();await settle(w,b);
+ ok(!E('COL.on')&&E('started'),'Ann has left and keeps her design');
+ ok(B('COL.role')==='owner'&&!!B('COL.keys')&&!!b.document.querySelector('#colInvE'),'Bob is the owner now, with the invite links');
+ // a new editor joins Bob, then Bob ends it: the editor may save a copy first
+ const k=B('COL.keys.edit'),d=await loadExtra(`#join=${B('COL.room')}.${k}`);await sleep(60);d.COL_SOCKET=fakeNet(room);d.eval(`COL.id=COL.dev='dee${Math.random().toString(36).slice(2,6)}'`);d.document.querySelector('#cjName').value='Dee';d.document.querySelector('#cjGo').click();await settle(b,d);
+ ok(d.eval('COL.role')==='edit'&&same(b,d),'Dee joins Bob’s session');
+ B('colLeave()');[...b.document.querySelectorAll('#cdAct button')].find(x=>x.textContent==='End for everyone').click();await settle(b,d);
+ const dd=d.document.querySelector('#colDlg');ok(!d.eval('COL.on')&&dd.classList.contains('show')&&/ended/.test(dd.querySelector('h1').textContent),'Dee is told the session ended');
+ ok([...dd.querySelectorAll('#cdAct button')].map(x=>x.textContent).join()==='Close without saving,Save a copy','and can save a copy first');
+ ok(d.eval('started')&&!d.document.querySelector('#start').classList.contains('show'),'the design stays until Dee chooses');
+ [...dd.querySelectorAll('#cdAct button')].find(x=>x.textContent==='Close without saving').click();await sleep(20);ok(d.document.querySelector('#start').classList.contains('show'),'then it closes to the start screen');
+});
+
+test('Collaborate: an owner who drops out is replaced by an editor after a while',async({w,E,ok})=>{
+ const room=new TSERoom({setTimeout:f=>queueMicrotask(f)}),[b]=await team(w,room,[['Bob','edit']]);
+ E('COL.bye=true;colDrop();');await sleep(60);await settle(b);
+ ok(b.eval('COL.role')==='owner'&&!!b.eval('COL.keys'),'Bob takes over');
+});
+
+test('Collaborate: Japanese for the shared session panel, dialogs and mark-up box',async({w,E,ok})=>{
+ const room=new TSERoom({}),[b]=await team(w,room,[['Bob','edit']]);
+ b.eval(`MK.items.push({type:'line',closed:false,pts:[[0,20,0],[30,60,0]]});syncTools();`);await settle(b,w);
+ E(`setLang('ja');tr.miss&&tr.miss.clear&&tr.miss.clear();setMode('dd');syncCol();syncMkBox();colLeave();`);await sleep(100);
+ E(`colHideDlg();colDialog('Leave the shared session','Save a copy of the design before you leave?',null,[['Cancel',null],['Leave',null],['Save a copy and leave',null,'pri']]);`);await sleep(60);
+ const miss=E(`[...(tr.miss||[])]`).filter(t=>/[A-Za-z]{3}/.test(t)&&!/^(Ann|Bob|TERRA|KOCHO|Kocho|Terra Shape Explorer|EN)$/.test(t.trim()));
+ ok(miss.length===0,'untranslated: '+miss.slice(0,6).join(' | '));
+ ok(w.document.querySelector('#rsCol>summary').textContent==='共同作業','the section name is in Japanese');
+ E(`setLang('en')`);
+});
+
 /* ---------- phone layout ---------- */
 test('Phone width: one-row header, four tabs, no sideways scrolling',async({w,E,ok})=>{
  E(`loadLib('Kocho');`);await sleep(60);
@@ -806,11 +964,13 @@ async function runAll(){
   const row=document.createElement('div');row.className='t';row.innerHTML='<span class="s">…</span><b></b>';row.querySelector('b').textContent=T.name;out.append(row);
   const fails=[];let checks=0;const errs=[];const s0=performance.now();
   try{
-   try{localStorage.removeItem('ksd.autosave');localStorage.setItem('tse.lang','en');localStorage.setItem('tse.right','1');}catch(e){}
+   try{localStorage.removeItem('ksd.autosave');localStorage.removeItem('tse.rs');localStorage.removeItem('tse.colName');localStorage.setItem('tse.lang','en');localStorage.setItem('tse.right','1');sessionStorage.removeItem('tse.colSess');sessionStorage.removeItem('tse.colId');}catch(e){}
    const w=await loadApp(T.opt.width,T.opt.height);w.addEventListener('error',e=>errs.push(e.message));await sleep(60);
    const ok=(c,m)=>{checks++;if(!c)fails.push(m);};
    await T.fn(Object.assign({w,ok},helpers(w)));await sleep(20);
   }catch(e){fails.push('threw: '+(e&&e.message||e));}
+  for(const f of extraFrames.splice(0))f.remove();
+  for(const e of extraErr.splice(0))fails.push('error in a second app: '+e);
   for(const e of errs)fails.push('error in the app: '+e);
   const good=!fails.length;good?pass++:fail++;row.className='t '+(good?'ok':'bad');row.querySelector('.s').textContent=good?'pass':'FAIL';
   const sm=document.createElement('small');sm.textContent=`  ${checks} checks, ${Math.round(performance.now()-s0)} ms`;row.append(sm);

@@ -261,6 +261,38 @@ body.r-shut .wrap{grid-template-columns:350px 1fr}body.r-shut aside.right{displa
  #mnav button{flex:1 1 0;min-width:0;border:none;background:transparent;color:var(--muted);font-size:12.5px;padding:9px 2px;border-radius:8px}
  #mnav button.act{background:color-mix(in srgb,var(--accent) 14%,var(--panel));color:var(--accent);font-weight:600}
 }
+
+/* Collaborate */
+aside.right>details.top:last-child{margin-bottom:0}
+label.col-name{display:flex;flex-direction:column;align-items:stretch;gap:3px;font-size:11.5px;color:var(--muted);margin:0 0 8px}label.col-name input[type=text]{width:100%;font-size:13px}
+#colBody .gnote{margin:0 0 8px}
+.col-me{margin:2px 0 8px;font-size:12.5px}.col-me span{color:var(--muted)}
+.col-h{margin:10px 0 4px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.col-inv{display:flex;margin:0 0 5px}.col-inv button{flex:1}
+.col-list{list-style:none;margin:0 0 8px;padding:0}
+.col-list li{display:flex;align-items:center;gap:7px;padding:5px 2px;border-bottom:1px solid var(--line);font-size:12.5px;min-width:0}
+.col-list li b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.col-you{color:var(--muted)}.col-role{margin-left:auto;color:var(--muted);font-size:11.5px;white-space:nowrap}
+.col-dot{flex:none;width:9px;height:9px;border-radius:50%;display:inline-block}
+.col-kick{flex:none;padding:1px 7px;font-size:11px;line-height:16px;color:var(--muted)}.col-kick:hover{color:var(--lock);border-color:var(--lock)}
+.col-warn{margin:0 0 8px;padding:6px 8px;border-radius:6px;background:var(--warn-bg);color:var(--warn-ink);font-size:12px}
+.col-hand p{margin:10px 0 6px}.col-hand button{margin:0 6px 6px 0}
+.col-link{width:100%;font-size:12px}
+.mkbox{position:absolute;right:8px;top:44px;z-index:2;display:flex;flex-direction:column;gap:3px;padding:6px;min-width:120px;max-width:190px;background:color-mix(in srgb,var(--panel) 92%,transparent);border:1px solid var(--line);border-radius:9px;font-size:12px}
+.mk-h{display:flex;align-items:center;gap:6px;padding:0 2px 3px;border-bottom:1px solid var(--line);margin-bottom:2px}.mk-h>span{font-weight:700;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-right:auto}
+.mkbox button{display:flex;align-items:center;gap:6px;padding:3px 6px;font-size:12px;border-color:transparent;background:transparent;text-align:left;min-width:0}
+.mkbox button:hover:not(:disabled){border-color:var(--line)}.mkbox button>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.mkbox button:disabled{opacity:.45;cursor:default}
+.mkbox .mk-all{padding:2px 6px;border-color:var(--line)}
+.mk-eye{flex:none;width:14px;height:9px;border:1.5px solid var(--muted);border-radius:50%/60%;position:relative;opacity:.6}
+.mk-eye::after{content:'';position:absolute;left:50%;top:50%;width:13px;height:1.5px;background:var(--muted);transform:translate(-50%,-50%) rotate(-30deg)}
+.mk-eye.on{border-color:var(--accent);opacity:1}.mk-eye.on::after{width:4px;height:4px;border-radius:50%;background:var(--accent);transform:translate(-50%,-50%)}
+/* watching only: no tools, no saving or exports */
+body.col-view #dd,body.col-view #cmpCtl,body.col-view #lCmpAdd,body.col-view #bLeft,body.col-view #bUndo,body.col-view #bRedo,body.col-view #hmenu>button,body.col-view #hmenu>label,
+body.col-view #rsIter .row,body.col-view #snapList button,body.col-view #mnav [data-m=params],body.col-view #mnav [data-m=split],
+body.col-view .vtools [data-t=line],body.col-view .vtools [data-t=plane],body.col-view .vtools [data-t=circle],body.col-view .vtools [data-t=measure],body.col-view .vtools [data-t=pen],body.col-view .vtools [data-a],body.col-view .vtools hr{display:none!important}
+@media (min-width:761px){body.col-view .wrap{grid-template-columns:1fr 310px}body.col-view.r-shut .wrap{grid-template-columns:1fr}body.col-view aside.left{display:none}}
+@media (min-width:761px) and (max-width:1100px){body.col-view .wrap{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -293,7 +325,7 @@ body.r-shut .wrap{grid-template-columns:350px 1fr}body.r-shut aside.right{displa
       <button class="chip" id="tEll" aria-pressed="false"><span>Ellipses</span><b>Off</b></button>
       <div class="spacer"></div>
       <button id="bPage" style="display:none">Page 2 ›</button>
-      <button class="chip" id="bRight" aria-pressed="true" title="Show or hide the right-hand panel (balance, iterations, shape checks)"><svg viewBox="0 0 16 16"><path d="M2 3h12v10H2zM10 3v10"/></svg><span>Side panel</span></button>
+      <button class="chip" id="bRight" aria-pressed="true" title="Show or hide the right-hand panel (collaborate, balance, iterations, shape checks)"><svg viewBox="0 0 16 16"><path d="M2 3h12v10H2zM10 3v10"/></svg><span>Side panel</span></button>
     </div>
     <div class="stage" id="stage">
       <canvas id="cv"></canvas>
@@ -313,31 +345,39 @@ body.r-shut .wrap{grid-template-columns:350px 1fr}body.r-shut aside.right{displa
           <button data-a="undo" title="Undo the last mark-up change"><svg viewBox="0 0 16 16"><path d="M6 3L3 6l3 3M3 6h6a4 4 0 0 1 0 8H7"/></svg></button>
           <button data-a="redo" title="Redo the mark-up change"><svg viewBox="0 0 16 16"><path d="M10 3l3 3-3 3M13 6H7a4 4 0 0 0 0 8h2"/></svg></button>
           <button data-a="del" title="Delete the selected mark-up"><svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
-          <button data-a="clear" title="Delete all mark-ups"><svg viewBox="0 0 16 16"><path d="M3 5h10M6.5 5V3h3v2M4.5 5l.6 8h5.8l.6-8"/></svg></button>
+          <button data-a="clear" title="Delete all your mark-ups (other people’s stay)"><svg viewBox="0 0 16 16"><path d="M3 5h10M6.5 5V3h3v2M4.5 5l.6 8h5.8l.6-8"/></svg></button>
         </div>
       </div>
-      <div class="dd" id="dd"><div class="dd-opts" id="ddOpts"></div><div class="dd-tools"><span class="dd-grip" role="button" title="Drag to move this panel. Double-click to put it back." aria-label="Move panel"><i></i></span><span class="dd-fold" role="button" tabindex="0" title="Hide the tools" aria-expanded="true"><svg viewBox="0 0 16 16"><path d="M4 6l4 4 4-4"/></svg></span><button data-d="pan" title="Move view"><svg viewBox="0 0 16 16"><path d="M1.5 8s2.4-4.6 6.5-4.6S14.5 8 14.5 8s-2.4 4.6-6.5 4.6S1.5 8 1.5 8zM8 5.9a2.1 2.1 0 1 0 0 4.2a2.1 2.1 0 1 0 0-4.2"/></svg><span>Move view</span></button><button data-d="free" title="Move pieces"><svg viewBox="0 0 16 16"><path d="M8 2v12M2 8h12M6 4l2-2 2 2M6 12l2 2 2-2M4 6L2 8l2 2M12 6l2 2-2 2"/></svg><span>Move pieces</span></button><button data-d="point" title="Points"><svg viewBox="0 0 16 16"><path d="M8 5.5a2.5 2.5 0 1 0 0 5a2.5 2.5 0 1 0 0-5M8 1v2.5M8 12.5V15M1 8h2.5M12.5 8H15"/></svg><span>Points</span></button><button data-d="push" title="Push / pull"><svg viewBox="0 0 16 16"><path d="M3 14c3-2 4-6 4-12M9 8h5M12 6l2 2-2 2"/></svg><span>Push / pull</span></button><button data-d="draw" title="Redraw"><svg viewBox="0 0 16 16"><path d="M3 13l1-3.2 7-7 2.2 2.2-7 7z M9.8 4l2.2 2.2"/></svg><span>Redraw</span></button><button data-d="line" title="Straight line"><svg viewBox="0 0 16 16"><path d="M3.5 12.5L12.5 3.5M1.6 14a1.6 1.6 0 1 0 3.2 0a1.6 1.6 0 1 0-3.2 0M11.2 2a1.6 1.6 0 1 0 3.2 0a1.6 1.6 0 1 0-3.2 0"/></svg><span>Straight line</span></button><button data-d="smooth" title="Smooth"><svg viewBox="0 0 16 16"><path d="M1.5 8c2-5 4.5-5 6.5 0s4.5 5 6.5 0"/></svg><span>Smooth</span></button><button data-d="reset" title="Restore"><svg viewBox="0 0 16 16"><path d="M6.3 13.5L2.6 9.8a1 1 0 0 1 0-1.4l5.5-5.5a1 1 0 0 1 1.4 0l3.9 3.9a1 1 0 0 1 0 1.4l-5.3 5.3zM5.4 5.6l5 5M6.3 13.5h7.2"/></svg><span>Restore</span></button><button data-d="hole" title="Bottom cup hole"><svg viewBox="0 0 16 16"><path d="M3.6 2.5L2.2 13.5h11.6L12.4 2.5M4.3 13.5c1.4-1 2.3-2 2.3-3.6V6.4a1.4 1.4 0 0 1 2.8 0v3.5c0 1.6.9 2.6 2.3 3.6"/></svg><span>Bottom cup hole</span></button><button data-d="mark" title="Mark-up"><svg viewBox="0 0 16 16"><path d="M3 2.5h10v11H3zM5.5 6h5M5.5 8.5h5M5.5 11h3"/></svg><span>Mark-up</span></button><button data-d="sarado" title="Sarado apart"><svg viewBox="0 0 16 16"><path d="M1.5 4v8M5.5 4v8M1.5 8h4M10.5 4v8M14.5 4v8M10.5 8h4M7 8h2"/></svg><span>Sarado apart</span></button><button data-d="cmp" title="Compare"><svg viewBox="0 0 16 16"><path d="M2.5 2.5h6.5v8H2.5zM7 5.5h6.5v8H7z"/></svg><span>Compare</span></button></div></div>
+      <div class="dd" id="dd"><div class="dd-opts" id="ddOpts"></div><div class="dd-tools"><span class="dd-grip" role="button" title="Drag to move this panel. Double-click to put it back." aria-label="Move panel"><i></i></span><span class="dd-fold" role="button" tabindex="0" title="Hide the tools" aria-expanded="true"><svg viewBox="0 0 16 16"><path d="M4 6l4 4 4-4"/></svg></span><button data-d="pan" title="Move view"><svg viewBox="0 0 16 16"><path d="M1.5 8s2.4-4.6 6.5-4.6S14.5 8 14.5 8s-2.4 4.6-6.5 4.6S1.5 8 1.5 8zM8 5.9a2.1 2.1 0 1 0 0 4.2a2.1 2.1 0 1 0 0-4.2"/></svg><span>Move view</span></button><button data-d="free" title="Move pieces"><svg viewBox="0 0 16 16"><path d="M8 2v12M2 8h12M6 4l2-2 2 2M6 12l2 2 2-2M4 6L2 8l2 2M12 6l2 2-2 2"/></svg><span>Move pieces</span></button><button data-d="point" title="Points"><svg viewBox="0 0 16 16"><path d="M8 5.5a2.5 2.5 0 1 0 0 5a2.5 2.5 0 1 0 0-5M8 1v2.5M8 12.5V15M1 8h2.5M12.5 8H15"/></svg><span>Points</span></button><button data-d="push" title="Push / pull"><svg viewBox="0 0 16 16"><path d="M3 14c3-2 4-6 4-12M9 8h5M12 6l2 2-2 2"/></svg><span>Push / pull</span></button><button data-d="draw" title="Redraw"><svg viewBox="0 0 16 16"><path d="M3 13l1-3.2 7-7 2.2 2.2-7 7z M9.8 4l2.2 2.2"/></svg><span>Redraw</span></button><button data-d="line" title="Straight line"><svg viewBox="0 0 16 16"><path d="M3.5 12.5L12.5 3.5M1.6 14a1.6 1.6 0 1 0 3.2 0a1.6 1.6 0 1 0-3.2 0M11.2 2a1.6 1.6 0 1 0 3.2 0a1.6 1.6 0 1 0-3.2 0"/></svg><span>Straight line</span></button><button data-d="smooth" title="Smooth"><svg viewBox="0 0 16 16"><path d="M1.5 8c2-5 4.5-5 6.5 0s4.5 5 6.5 0"/></svg><span>Smooth</span></button><button data-d="reset" title="Restore"><svg viewBox="0 0 16 16"><path d="M6.3 13.5L2.6 9.8a1 1 0 0 1 0-1.4l5.5-5.5a1 1 0 0 1 1.4 0l3.9 3.9a1 1 0 0 1 0 1.4l-5.3 5.3zM5.4 5.6l5 5M6.3 13.5h7.2"/></svg><span>Restore</span></button><button data-d="hole" title="Bottom cup hole"><svg viewBox="0 0 16 16"><path d="M3.6 2.5L2.2 13.5h11.6L12.4 2.5M4.3 13.5c1.4-1 2.3-2 2.3-3.6V6.4a1.4 1.4 0 0 1 2.8 0v3.5c0 1.6.9 2.6 2.3 3.6"/></svg><span>Bottom cup hole</span></button><button data-d="mark" title="Mark-up"><svg viewBox="0 0 16 16"><path d="M3 2.5h10v11H3zM5.5 6h5M5.5 8.5h5M5.5 11h3"/></svg><span>Mark-up</span></button><button data-d="sarado" title="Sarado apart"><svg viewBox="0 0 16 16"><path d="M1.5 3.5C4.6 3.5 5.6 6.3 8 6.3S11.6 4.3 14.5 4.3v7.4C11.6 11.7 10.4 9.7 8 9.7S4.6 12.5 1.5 12.5z"/></svg><span>Sarado apart</span></button><button data-d="cmp" title="Compare"><svg viewBox="0 0 16 16"><path d="M2.5 2.5h6.5v8H2.5zM7 5.5h6.5v8H7z"/></svg><span>Compare</span></button></div></div>
       <div class="dd cmpctl" id="cmpCtl" style="display:none"><div class="dd-bar"><span class="dd-grip" role="button" title="Drag to move this panel. Double-click to put it back." aria-label="Move panel"><i></i></span><span class="dd-fold" role="button" tabindex="0" title="Hide the tools" aria-expanded="true"><svg viewBox="0 0 16 16"><path d="M4 6l4 4 4-4"/></svg></span><div class="dd-opts" id="cmpOpts"></div></div></div>
+      <div class="mkbox" id="mkBox" style="display:none"></div>
       <div class="zoom"><button id="zIn">+</button><button id="zOut">−</button><button id="zFit">Fit</button></div>
       <div class="hud" id="hud"></div>
     </div>
     <div id="cmpPanel"></div>
   </main>
   <aside class="right">
-    <h3>Balance</h3>
+    <details class="top" id="rsCol"><summary>Collaborate</summary>
+    <label class="col-name">Your name <input type="text" id="colName" maxlength="40" placeholder="Shown to the others"></label>
+    <div id="colBody"></div>
+    </details>
+    <details class="top" id="rsBal" open><summary>Balance check</summary>
     <div class="row"><label><input type="checkbox" id="tCog" checked> Show centre of gravity</label></div>
     <div class="kv" id="stats"></div>
     <div class="mini"><div><canvas id="lnBig"></canvas>Big cup lunar</div><div><canvas id="lnSmall"></canvas>Small cup lunar</div></div>
-    <h3>Iterations</h3>
+    </details>
+    <details class="top" id="rsIter" open><summary>Iterations</summary>
     <div class="row"><input type="text" id="snapName" placeholder="Iteration name"><button id="bSnap">Save iteration</button></div>
     <div id="snapList"></div>
     <div class="row"><button id="bCmpFile">Add designs from a project file…</button></div>
-    <h3>Shape checks</h3>
+    </details>
+    <details class="top" id="rsChk" open><summary>Shape checks</summary>
     <div id="warns"></div>
+    </details>
   </aside>
 </div>
 
-<nav id="mnav"><button data-m="params">Measures</button><button data-m="view">Shape</button><button data-m="split">Split Screen</button><button data-m="bal">Balance</button></nav>
+<nav id="mnav"><button data-m="params">Fine Tune</button><button data-m="view">Design</button><button data-m="split">Split Screen</button><button data-m="bal">Side Bar</button></nav>
 
 <div id="intro">
   <canvas id="inCv" aria-hidden="true"></canvas>
@@ -390,6 +430,23 @@ body.r-shut .wrap{grid-template-columns:350px 1fr}body.r-shut aside.right{displa
   <div class="pied-st"><canvas id="pedCv"></canvas></div>
   <p class="gnote" id="pedHint"></p>
   <div class="row pied-act" id="pedAct"></div>
+</div></div>
+<div class="modal" id="colJoin"><div class="card" style="width:min(420px,100%)">
+  <h1>Join a shared session</h1>
+  <p>You have been invited to work on a design with others. Your name is shown to everyone in the session.</p>
+  <label class="col-name">Your name <input type="text" id="cjName" maxlength="40"></label>
+  <div class="row" style="justify-content:flex-end;margin-top:12px"><button id="cjCancel">Not now</button><button id="cjGo" class="pri">Join</button></div>
+</div></div>
+<div class="modal" id="colWait"><div class="card" style="width:min(380px,100%)">
+  <h1>Joining…</h1>
+  <p>Getting the shared design.</p>
+  <div class="row" style="justify-content:flex-end;margin-top:12px"><button id="cwCancel">Cancel</button></div>
+</div></div>
+<div class="modal" id="colDlg"><div class="card" style="width:min(460px,100%)">
+  <h1></h1>
+  <p></p>
+  <div id="cdBody"></div>
+  <div class="row" id="cdAct" style="justify-content:flex-end;margin-top:12px;flex-wrap:wrap"></div>
 </div></div>
 <input type="file" id="fPhoto" accept="image/*" hidden>
 <input type="file" id="fOpen" accept=".json,application/json" hidden>
@@ -791,6 +848,7 @@ const JA={
 "Show or hide the left-hand menu (manual control and tool info)": "左側のメニュー（手動調整と使い方）を表示・非表示",
 "3D view · drag to turn": "3D表示 · ドラッグで回転",
 "Delete all mark-ups": "書き込みをすべて削除",
+"Delete all your mark-ups (other people’s stay)": "自分の書き込みをすべて削除（ほかの人の書き込みは残ります）",
 "Delete the selected mark-up": "選択した書き込みを削除",
 "Redo the mark-up change": "書き込みの変更をやり直す",
 "Undo the last mark-up change": "書き込みの変更を元に戻す",
@@ -804,6 +862,8 @@ const JA={
 "Move: drag to pan, click a mark-up to select it": "移動：ドラッグで画面を動かし、クリックで書き込みを選択します",
 "View tools: turn the shape in 3D and sketch over it": "表示ツール：形状を3Dで回したり、上にスケッチしたりできます",
 "Split Screen": "分割表示",
+"Fine Tune": "微調整",
+"Side Bar": "サイドバー",
 "View": "表示",
 "Small cup lunar": "小皿ルナ",
 "Big cup lunar": "大皿ルナ",
@@ -1137,7 +1197,81 @@ const JA={
 "Drawn from a PDF spec sheet: outlines taken from its vector lines at the stated # mm overall length; they match the sheet's dimensions to within # mm.": "PDFの仕様書から作図：図面の線データを、記載の全長 # mm に合わせて読み取りました。図面の寸法との差は # mm 以内です。",
 "Sarado string holes run #° up from horizontal into the bore, front and back; the app shows them as straight holes.": "皿胴の糸穴は表と裏から、水平より # ° 上向きに穴の中へ通っています。アプリではまっすぐな穴として表示します。",
 "Jon Rogers/Jon-Rogers-Shape.pdf (drawn to Jon-Rogers-Shape-MM.dxf)": "Jon Rogers/Jon-Rogers-Shape.pdf（Jon-Rogers-Shape-MM.dxf に作図）",
-"Two holes sit on the ken axis inside the sarado waist: the upper one is taken as the sarado string hole and the lower one as the ken string hole. Check these.": "皿胴くびれの内側で、けんの軸上に穴が2つあります。上を皿胴の糸穴、下をけんの糸穴としました。確認してください。"
+"Two holes sit on the ken axis inside the sarado waist: the upper one is taken as the sarado string hole and the lower one as the ken string hole. Check these.": "皿胴くびれの内側で、けんの軸上に穴が2つあります。上を皿胴の糸穴、下をけんの糸穴としました。確認してください。",
+"Collaborate": "共同作業",
+"Your name": "あなたの名前",
+"Shown to the others": "ほかの参加者に表示されます",
+"Balance check": "バランスチェック",
+"Show or hide the right-hand panel (collaborate, balance, iterations, shape checks)": "右側のパネル（共同作業・バランス・イテレーション・形状チェック）の表示を切り替えます",
+"Join a shared session": "共有セッションに参加",
+"You have been invited to work on a design with others. Your name is shown to everyone in the session.": "ほかの人とデザインを一緒に編集するよう招待されています。あなたの名前はセッションの全員に表示されます。",
+"Not now": "今はしない",
+"Join": "参加する",
+"Joining…": "参加しています…",
+"Getting the shared design.": "共有デザインを読み込んでいます。",
+"Shared sessions aren’t set up here yet.": "ここではまだ共有セッションを使えません。",
+"Shared session started. Copy an invite link to bring others in.": "共有セッションを始めました。招待リンクをコピーしてほかの人を招きましょう。",
+"You are now the owner of this shared session.": "あなたがこの共有セッションのオーナーになりました。",
+"Could not open the shared design": "共有デザインを開けませんでした",
+"The shared session has a new owner.": "共有セッションのオーナーが変わりました。",
+"Type your name first.": "先に名前を入力してください。",
+"Shared session ended.": "共有セッションを終了しました。",
+"You left the shared session and handed it over.": "セッションを引き継いで、共有セッションから抜けました。",
+"Invite link copied. Send it to the people you want to bring in.": "招待リンクをコピーしました。招きたい人に送ってください。",
+"Couldn’t reach the shared session server.": "共有セッションのサーバーにつながりませんでした。",
+"This shared session has ended.": "この共有セッションは終了しています。",
+"This invite link no longer works.": "この招待リンクはもう使えません。",
+"You were removed from this shared session.": "この共有セッションから外されました。",
+"No one is in this shared session right now. Try the link again when the owner is back.": "この共有セッションには今だれもいません。オーナーが戻ってから、もう一度リンクを開いてください。",
+"Couldn’t start a shared session. Try again.": "共有セッションを始められませんでした。もう一度お試しください。",
+"Couldn’t join the shared session.": "共有セッションに参加できませんでした。",
+"Shared session": "共有セッション",
+"Shared session closed": "共有セッションが閉じられました",
+"Removed from the session": "セッションから外されました",
+"The owner removed you from the shared session.": "オーナーがあなたを共有セッションから外しました。",
+"The shared session has ended": "共有セッションが終了しました",
+"The owner ended the shared session. Save a copy of the design before it closes?": "オーナーが共有セッションを終了しました。閉じる前にデザインのコピーを保存しますか？",
+"Close without saving": "保存せずに閉じる",
+"Save a copy": "コピーを保存",
+"The owner ended the shared session.": "オーナーが共有セッションを終了しました。",
+"Or hand it over to someone who can edit, and leave:": "または、編集できる人にセッションを引き継いで抜ける：",
+"Only people who can edit can take the session over; everyone else here is watching.": "セッションを引き継げるのは編集できる人だけです。ほかの参加者は見ているだけです。",
+"Leave the shared session": "共有セッションから抜ける",
+"Others are still in this session. End it for everyone (they can save a copy first), or hand it over.": "このセッションにはまだほかの人がいます。全員のセッションを終了する（各自コピーを保存できます）か、引き継いでください。",
+"End for everyone": "全員のセッションを終了",
+"Save a copy of the design before you leave?": "抜ける前にデザインのコピーを保存しますか？",
+"Leave": "抜ける",
+"Save a copy and leave": "コピーを保存して抜ける",
+"Stop watching this design?": "このデザインを見るのをやめますか？",
+"Shared sessions aren’t set up on this site yet.": "このサイトではまだ共有セッションを使えません。",
+"Work on this design with others in real time. You stay the owner; people join with a link.": "このデザインをほかの人とリアルタイムで一緒に編集します。あなたがオーナーで、ほかの人はリンクから参加します。",
+"Start a shared session": "共有セッションを始める",
+"Connecting…": "接続しています…",
+"Connection lost. Reconnecting…": "接続が切れました。再接続しています…",
+"You:": "あなた：",
+"Owner": "オーナー",
+"Can edit": "編集できる",
+"Watching": "見るだけ",
+"Invite": "招待",
+"Copy link to edit": "編集用リンクをコピー",
+"People who open this link can change the design, like you.": "このリンクを開いた人は、あなたと同じようにデザインを変更できます。",
+"Copy link to watch": "閲覧用リンクをコピー",
+"People who open this link can only watch: no tools, no saving or exports.": "このリンクを開いた人は見ることだけができます。ツール・保存・書き出しは使えません。",
+"In this session": "このセッションの参加者",
+"(you)": "（あなた）",
+"Remove from the session": "セッションから外す",
+"The owner is away. If they don’t come back within a minute, the longest-standing editor takes over.": "オーナーが席を外しています。1分以内に戻らない場合は、いちばん長く参加している編集者が引き継ぎます。",
+"Leave or end the session…": "セッションを抜ける / 終了する…",
+"Leave the session": "セッションから抜ける",
+"Invite link": "招待リンク",
+"Copy this link and send it to the people you want to bring in.": "このリンクをコピーして、招きたい人に送ってください。",
+"Done": "完了",
+"Hide all mark-up": "すべてのマークアップを隠す",
+"Show all mark-up": "すべてのマークアップを表示",
+"All": "すべて",
+"Hide this mark-up": "このマークアップを隠す",
+"Show this mark-up": "このマークアップを表示",
+"You": "あなた"
 };
 const MON={JAN:1,FEB:2,MAR:3,APR:4,MAY:5,JUN:6,JUL:7,AUG:8,SEP:9,OCT:10,NOV:11,DEC:12};
 const jDate=d=>{const m=d.match(/^([A-Z]{3}) (\d+), (\d{4})$/);return m?`${m[3]}年${MON[m[1]]}月${m[2]}日`:d;};
@@ -1716,10 +1850,10 @@ const S={meta:{brand:'TERRA',model:'KOCHO',designer:'',tolLocked:true},p:default
 let CUR={G:null,A:null},hist=[],hpos=-1,started=false;
 const snapState=()=>JSON.stringify({p:S.p,curves:S.curves});
 function commit(){const s=snapState();if(hist[hpos]===s)return;hist=hist.slice(0,hpos+1);hist.push(s);if(hist.length>150)hist.shift();hpos=hist.length-1;autosave();updUndo();}
-function undo(d){const n=hpos+d;if(n<0||n>=hist.length)return;hpos=n;const s=JSON.parse(hist[n]);S.p=s.p;S.curves=s.curves;refresh();autosave();}
+function undo(d){if(!colEdit())return;const n=hpos+d;if(n<0||n>=hist.length)return;hpos=n;const s=JSON.parse(hist[n]);S.p=s.p;S.curves=s.curves;refresh();autosave();}
 function updUndo(){$('#bUndo').disabled=hpos<=0;$('#bRedo').disabled=hpos>=hist.length-1;}
 const projectData=()=>({app:'kendama-shape-designer',version:2,saved:new Date().toISOString(),meta:S.meta,p:S.p,curves:S.curves,locks:S.locks,snaps:S.snaps,cmp:S.cmp,ovl:S.ovl,cmpv:S.cmpv,base:S.base});
-function autosave(){clearTimeout(autosave.t);autosave.t=setTimeout(()=>{try{localStorage.setItem('ksd.autosave',JSON.stringify(projectData()));}catch(e){}},400);}
+function autosave(){colSoon();if(COL.on&&COL.role!=='owner')return;clearTimeout(autosave.t);autosave.t=setTimeout(()=>{try{localStorage.setItem('ksd.autosave',JSON.stringify(projectData()));}catch(e){}},400);}
 function cleanCurves(c){const o={},ren={neckRing:'swoopRing'};if(c&&typeof c==='object')for(const k0 in c){const k=ren[k0]||k0,v=c[k0];if(['waistSm','waistBg','handle','edgeSm','edgeBg'].includes(k0))continue;if((k0==='smCup'||k0==='bgCup')&&v&&v.imp)continue;if(k0==='baseHole'){if(v&&Array.isArray(v.pts)&&v.pts.length>2&&v.pts.every(q=>Array.isArray(q)&&isFinite(q[0])&&isFinite(q[1])))o.baseHole={pts:v.pts.map(q=>[+q[0],+q[1]]),on:v.on!==false};continue;}if(v&&Array.isArray(v.d)&&v.d.length>3&&v.d.every(x=>typeof x==='number'&&isFinite(x)))o[k]={d:v.d,smooth:!!v.smooth,strength:+v.strength||3,bin:+v.bin||0.35,on:v.on!==false};if(v.imp)o[k].imp=true;}return o;}
 function cleanDesign(o){
  const src=Object.assign({},o&&o.p||{});
@@ -2107,14 +2241,14 @@ function mkShape(t,a,b){ // view-plane outline for a drag from a to b
  const R=Math.hypot(b[0]-a[0],b[1]-a[1]),o=[];for(let i=0;i<64;i++){const g=i/64*2*Math.PI;o.push([a[0]+R*Math.cos(g),a[1]+R*Math.sin(g)]);}return o;}
 function drawMarks(c,T){
  const draw=(pp,m,sel)=>{if(pp.length<2)return;c.beginPath();pp.forEach((q,i)=>i?c.lineTo(sx(T,q[0]),sy(T,q[1])):c.moveTo(sx(T,q[0]),sy(T,q[1])));
-  if(m.closed){c.closePath();c.fillStyle=MK_COL;c.globalAlpha=m.type==='plane'?0.16:0.07;c.fill();c.globalAlpha=1;}
-  c.strokeStyle=MK_COL;c.lineWidth=sel?3.5:2;c.lineJoin=c.lineCap='round';c.stroke();
-  if(sel){c.fillStyle=MK_COL;for(const q of(m.type==='pen'||m.type==='circle'?[pp[0]]:pp)){c.beginPath();c.arc(sx(T,q[0]),sy(T,q[1]),4.5,0,7);c.fill();}}};
+  const mc=m.by?colColor(m.by):MK_COL;if(m.closed){c.closePath();c.fillStyle=mc;c.globalAlpha=m.type==='plane'?0.16:0.07;c.fill();c.globalAlpha=1;}
+  c.strokeStyle=mc;c.lineWidth=sel?3.5:2;c.lineJoin=c.lineCap='round';c.stroke();
+  if(sel){c.fillStyle=mc;for(const q of(m.type==='pen'||m.type==='circle'?[pp[0]]:pp)){c.beginPath();c.arc(sx(T,q[0]),sy(T,q[1]),4.5,0,7);c.fill();}}};
  const mlen=m=>{const a=m.pts[0],b=m.pts[1];return Math.hypot(b[0]-a[0],b[1]-a[1],(b[2]||0)-(a[2]||0));};
  const meas=(pp,d,sel)=>{const[A,B]=pp.map(q=>[sx(T,q[0]),sy(T,q[1])]),L=Math.hypot(B[0]-A[0],B[1]-A[1])||1,nx=-(B[1]-A[1])/L*5,ny=(B[0]-A[0])/L*5;c.strokeStyle=c.fillStyle=MEAS_COL;c.lineWidth=sel?3:1.6;c.lineCap='round';
   c.beginPath();c.moveTo(A[0],A[1]);c.lineTo(B[0],B[1]);for(const P of[A,B]){c.moveTo(P[0]-nx,P[1]-ny);c.lineTo(P[0]+nx,P[1]+ny);}c.stroke();
   if(sel)for(const P of[A,B]){c.beginPath();c.arc(P[0],P[1],4.5,0,7);c.fill();}if(d!=null)label(c,`${f2(d)} mm`,(A[0]+B[0])/2+8,(A[1]+B[1])/2-6,MEAS_COL);};
- c.save();MK.items.forEach((m,i)=>m.type==='meas'?meas(mkPts(m),mlen(m),i===MK.sel):draw(mkPts(m),m,i===MK.sel));
+ c.save();MK.items.forEach((m,i)=>!mkVis(m)?0:m.type==='meas'?meas(mkPts(m),mlen(m),i===MK.sel):draw(mkPts(m),m,i===MK.sel));
  if(MK.mA&&MK.tool==='measure'){const A=[sx(T,MK.mA[0]),sy(T,MK.mA[1])];c.fillStyle=MEAS_COL;c.beginPath();c.arc(A[0],A[1],4.5,0,7);c.fill();
   const cu=S.mode==='dd'&&DD.cursor&&!MK.cur?mkPick(DD.cursor,T):null;if(cu){c.strokeStyle=MEAS_COL;c.setLineDash([5,4]);c.lineWidth=1.6;c.beginPath();c.moveTo(A[0],A[1]);c.lineTo(sx(T,cu[0]),sy(T,cu[1]));c.stroke();c.setLineDash([]);label(c,`${f2(Math.hypot(cu[0]-MK.mA[0],cu[1]-MK.mA[1]))} mm`,sx(T,cu[0])+12,sy(T,cu[1])-8,MEAS_COL);}}
  const u=MK.cur;if(u&&u.type==='meas'){meas([u.a,u.b],Math.hypot(u.b[0]-u.a[0],u.b[1]-u.a[1]),false);}else if(u){const pp=u.type==='pen'?u.path:mkShape(u.type,u.a,u.b);draw(pp,{type:u.type,closed:u.type==='plane'||u.type==='circle'},false);
@@ -2126,7 +2260,7 @@ function mkAct(a){
  if(a==='undo'&&MK.undo.length){MK.redo.push(JSON.stringify(MK.items));MK.items=JSON.parse(MK.undo.pop());MK.sel=-1;}
  else if(a==='redo'&&MK.redo.length){MK.undo.push(JSON.stringify(MK.items));MK.items=JSON.parse(MK.redo.pop());MK.sel=-1;}
  else if(a==='del'&&MK.sel>=0){mkSnap();MK.items.splice(MK.sel,1);MK.sel=-1;}
- else if(a==='clear'&&MK.items.length){mkSnap();MK.items=[];MK.sel=-1;}
+ else if(a==='clear'&&MK.items.some(mkMine)){mkSnap();MK.items=MK.items.filter(m=>!mkMine(m));MK.sel=-1;}
  syncTools();render();}
 function setTool(t){
  if(t==='front'){V3.on=false;V3.yaw=V3.pitch=V3.roll=0;if(MK.tool==='rot'||MK.tool==='spin')MK.tool='move';}
@@ -2134,10 +2268,10 @@ function setTool(t){
  MK.mA=null;
  syncTools();syncDraw();render();}
 function syncTools(){const h=$('#vtools');if(!h)return;h.querySelectorAll('button[data-t]').forEach(b=>b.classList.toggle('act',b.dataset.t===MK.tool));
- const dis={undo:!MK.undo.length,redo:!MK.redo.length,del:MK.sel<0,clear:!MK.items.length};h.querySelectorAll('button[data-a]').forEach(b=>b.disabled=!!dis[b.dataset.a]);
+ const dis={undo:!MK.undo.length,redo:!MK.redo.length,del:MK.sel<0,clear:!MK.items.some(mkMine)};h.querySelectorAll('button[data-a]').forEach(b=>b.disabled=!!dis[b.dataset.a]);
  const f=h.querySelector('button[data-t=front]');if(f)f.disabled=!V3.on&&!V3.roll;
  cv.style.cursor=S.view!=='design'?'':MK.tool==='rot'||MK.tool==='spin'?'grab':MK.tool==='move'?'':'crosshair';
- if(S.mode==='dd'&&DD.tool==='mark')syncDD();}
+ if(S.mode==='dd'&&DD.tool==='mark')syncDD();syncMkBox();}
 const evW=(e,T)=>{const r=cv.getBoundingClientRect(),[x,y]=unroll(e.clientX-r.left,e.clientY-r.top,T);return[(x-T.ox)/T.z,(T.oy-y)/T.z];};
 const mkPick=(w,T)=>{if(S.mode!=='dd'||V3.on||!DD.snap)return w;const sn=ddSnap(w,T,10);return sn?sn.pt:w;}; // measure ends snap to points and edges
 function mkDown(e,T){
@@ -2160,7 +2294,7 @@ function mkUp(e){
  if(u){const pp=u.type==='pen'?u.path:mkShape(u.type,u.a,u.b),size=Math.hypot(u.b[0]-u.a[0],u.b[1]-u.a[1])*T.z;
   if((u.type==='pen'?pp.length>2:size>4)){const r=rot3(),pv=piv3();mkSnap();MK.items.push({type:u.type,closed:u.type==='plane'||u.type==='circle',pts:pp.map(q=>unproj3(q[0],q[1],r,pv).map(x=>Math.round(x*100)/100))});}
   syncTools();render();return;}
- if(MK.tool==='move'&&still&&e){const w=evW(e,T);let best=-1,bd=9/T.z;MK.items.forEach((m,i)=>{const pp=mkPts(m),n=pp.length;for(let j=0;j<(m.closed?n:n-1);j++){const a=pp[j],b=pp[(j+1)%n],vx=b[0]-a[0],vy=b[1]-a[1],L=vx*vx+vy*vy||1,t=clamp(((w[0]-a[0])*vx+(w[1]-a[1])*vy)/L,0,1),dd=Math.hypot(w[0]-a[0]-t*vx,w[1]-a[1]-t*vy);if(dd<=bd){bd=dd;best=i;}}});
+ if(MK.tool==='move'&&still&&e){const w=evW(e,T);let best=-1,bd=9/T.z;MK.items.forEach((m,i)=>{if(!mkVis(m))return;const pp=mkPts(m),n=pp.length;for(let j=0;j<(m.closed?n:n-1);j++){const a=pp[j],b=pp[(j+1)%n],vx=b[0]-a[0],vy=b[1]-a[1],L=vx*vx+vy*vy||1,t=clamp(((w[0]-a[0])*vx+(w[1]-a[1])*vy)/L,0,1),dd=Math.hypot(w[0]-a[0]-t*vx,w[1]-a[1]-t*vy);if(dd<=bd){bd=dd;best=i;}}});
   if(best!==MK.sel){MK.sel=best;syncTools();render();}}}
 function mkCancel(){ddCancel();MK.spin=null;MK.cur=null;MK.orb=null;MK.down=null;}
 /* ================= drag & draw: shape the contours straight on the assembled view ================= */
@@ -2922,7 +3056,7 @@ function wire(){
  document.querySelectorAll('#dd button[data-d]').forEach(b=>b.onclick=()=>b.dataset.d==='sarado'?ddSarToggle():setDDTool(b.dataset.d));
  $('#vtTog').onclick=()=>$('#vtools').classList.toggle('shut');if(matchMedia('(max-width:760px)').matches)$('#vtools').classList.add('shut');
  $('#vtools').querySelectorAll('button[data-t]').forEach(b=>b.onclick=()=>setTool(b.dataset.t));$('#vtools').querySelectorAll('button[data-a]').forEach(b=>b.onclick=()=>mkAct(b.dataset.a));
- window.addEventListener('keydown',e=>{if((e.key==='Delete'||e.key==='Backspace')&&MK.sel>=0&&S.view==='design'&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();mkAct('del');}});
+ window.addEventListener('keydown',e=>{if((e.key==='Delete'||e.key==='Backspace')&&MK.sel>=0&&colEdit()&&S.view==='design'&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();mkAct('del');}});
  document.querySelectorAll('#start [data-t]').forEach(b=>b.onclick=()=>newDesign(b.dataset.t));
  for(const e of LIB)$('#sLib').append(el('button',{title:e.file,onclick:()=>loadLib(e.name)},e.name));
  $('#sOpen').onclick=()=>readFile($('#fOpen'),o=>loadProject(o));$('#sPhoto').onclick=()=>piOpen();
@@ -2952,7 +3086,7 @@ function wire(){
  cv.addEventListener('pointerdown',e=>{if(e.pointerType!=='touch')return;touch.set(e.pointerId,{x:e.clientX,y:e.clientY});if(touch.size===2){pan=null;mkCancel();pinch=pinchGeo();render();}},true);
  cv.addEventListener('pointermove',e=>{if(!touch.has(e.pointerId))return;touch.set(e.pointerId,{x:e.clientX,y:e.clientY});if(!pinch||touch.size<2)return;e.stopImmediatePropagation();const T=VT[S.view],g=pinchGeo();if(T&&pinch.d>0){T.auto=false;T.ox+=g.mx-pinch.mx;T.oy+=g.my-pinch.my;zoom(g.d/pinch.d,g.mx,g.my);}pinch=g;},true);
  const tEnd=e=>{touch.delete(e.pointerId);if(touch.size<2&&pinch){pinch=null;pan=null;}};cv.addEventListener('pointerup',tEnd,true);cv.addEventListener('pointercancel',tEnd,true);
- cv.onpointerdown=e=>{const T=VT[S.view];if(!T||pinch)return;cv.setPointerCapture(e.pointerId);if(S.mode==='dd'&&S.view==='design'){if(DD.tool==='mark'){if(!mkDown(e,T))pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};return;}if(!ddDown(e,T))pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};else T.auto=false;return;}if(S.view==='compare'){const o=ovHit(world(e));if(o){CV.ovSel=o.id;CV.ovDrag={id:o.id,W:world(e)};T.auto=false;syncCmpView();render();return;}}if(S.view==='design'&&mkDown(e,T));else pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};};
+ cv.onpointerdown=e=>{const T=VT[S.view];if(!T||pinch)return;cv.setPointerCapture(e.pointerId);if(colViewOnly()){if(S.view==='design'&&MK.tool!=='move'&&mkDown(e,T))return;pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};return;}if(S.mode==='dd'&&S.view==='design'){if(DD.tool==='mark'){if(!mkDown(e,T))pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};return;}if(!ddDown(e,T))pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};else T.auto=false;return;}if(S.view==='compare'){const o=ovHit(world(e));if(o){CV.ovSel=o.id;CV.ovDrag={id:o.id,W:world(e)};T.auto=false;syncCmpView();render();return;}}if(S.view==='design'&&mkDown(e,T));else pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};};
  cv.onpointermove=e=>{const T=VT[S.view];if(!T){$('#hud').textContent='';return;}const w=world(e);$('#hud').textContent=S.view==='sarado'?`along sarado ${f1(w[0])} mm · radius ${f1(Math.abs(w[1]))} mm`:`height ${f1(w[1])} mm · radius ${f1(Math.abs(w[0]))} mm`;
   if(S.mode==='dd'&&S.view==='design'&&ddMove(e,T))return;
   if(S.view==='compare'&&CV.ovDrag){const o=S.cmpv.find(q=>q.id===CV.ovDrag.id);if(o){o.x+=w[0]-CV.ovDrag.W[0];o.y+=w[1]-CV.ovDrag.W[1];CV.ovDrag.W=w;render();}return;}
@@ -2961,13 +3095,250 @@ function wire(){
  const up=e=>{if(S.view==='compare'&&CV.ovDrag){CV.ovDrag=null;autosave();}if(S.mode==='dd')ddUp(e);mkUp(e);pan=null;};
  cv.onpointerup=up;cv.onpointercancel=up;
  new ResizeObserver(()=>{if(started)render();}).observe($('#stage'));
- window.addEventListener('keydown',e=>{const m=e.metaKey||e.ctrlKey;if(!m)return;if(e.key==='z'||e.key==='Z'){if(/INPUT|TEXTAREA/.test(document.activeElement.tagName)&&document.activeElement.type==='text')return;e.preventDefault();undo(e.shiftKey?1:-1);}else if(e.key==='s'){e.preventDefault();$('#bSave').click();}});
+ window.addEventListener('keydown',e=>{const m=e.metaKey||e.ctrlKey;if(!m)return;if(e.key==='z'||e.key==='Z'){if(/INPUT|TEXTAREA/.test(document.activeElement.tagName)&&document.activeElement.type==='text')return;e.preventDefault();undo(e.shiftKey?1:-1);}else if(e.key==='s'){e.preventDefault();if(colEdit())$('#bSave').click();}});
  if(window.matchMedia)window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(started){render();syncStats();}});
 }
 function tamaChip(){const t=TRICKS.find(t=>t[0]===S.show.tama);$('#lTama b').textContent=S.show.tama==='free'?'Free':t?t[1]:'Off';}
 // the tama pill: Free (the tama where you last left it, shared by Markup and drag & draw) and the tricks. Markup can also turn it off; in drag & draw the tama is always there.
 function tamaMode(){const dd=S.mode==='dd';if(dd&&S.show.tama==='none')S.show.tama='free';const sel=$('#tTama');sel.innerHTML='';if(!dd)sel.append(el('option',{value:'none'},'Off'));sel.append(el('option',{value:'free'},'Free'));for(const[v,t]of TRICKS.slice(1))sel.append(el('option',{value:v},t));sel.value=S.show.tama;if(DD.tool==='free'&&S.show.tama!=='free')DD.tool='point';tamaChip();}
-buildParams();wire();setView('design');setMode('dd');showStart(false);if(!/[?&]selftest=/.test(location.search))introOpen();
+/* ================= shared sessions (Collaborate) =================
+   Several people work on one design at once, through a small relay server (relay/ in the repo). The relay only knows who is in the room and what each may do.
+   The design is sent as small changes: every piece (each measure, each hand-shaped contour, each iteration, compare shape and mark-up) is one key, and the last change to a key wins.
+   Each person's undo only steps back through their own changes: a change from someone else is written into every step of the local undo history. */
+const COL_RELAY_URL=''; // the deployed relay, e.g. 'wss://terra-shape-relay.<account>.workers.dev'. Empty: shared sessions are off on the public site.
+const COL_LISTS=['snaps','cmp','ovl','cmpv','mk'],COL_TICK=80,COL_PART=200000;
+const COL={on:false,ws:null,phase:'off',room:null,key:null,role:null,owner:null,roster:[],keys:null,last:new Map(),pend:new Map(),n:0,live:new Set(),down:false,
+ waiting:false,buf:[],parts:new Map(),timer:0,retry:0,bye:false,mkHide:new Set(),mkAll:true,mkCol:new Map(),wasOwner:false};
+{const ss=(k,f)=>{try{let v=sessionStorage.getItem(k);if(!v){v=f();sessionStorage.setItem(k,v);}return v;}catch(e){return f();}},ls=(k,f)=>{try{let v=localStorage.getItem(k);if(!v){v=f();localStorage.setItem(k,v);}return v;}catch(e){return f();}};
+ const rid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36);COL.id=ss('tse.colId',rid);COL.dev=ls('tse.colDev',rid);}
+// your display name: remembered in this browser for next time, but each tab keeps its own while it is open
+{let n='';try{n=localStorage.getItem('tse.colName')||'';}catch(e){}COL.name=n.trim().slice(0,40);}
+const colName=()=>COL.name;
+function colSetName(n){n=String(n||'').trim().slice(0,40);COL.name=n;try{localStorage.setItem('tse.colName',n);}catch(e){}for(const i of document.querySelectorAll('#colName,#cjName'))if(i.value!==n&&document.activeElement!==i)i.value=n;if(COL.on&&n)colSend({t:'name',name:n});}
+const colViewOnly=()=>COL.on&&COL.role==='view';
+const colEdit=()=>!COL.on||COL.role==='owner'||COL.role==='edit';
+function colRelay(){const h=location.hostname;if(/^(localhost|127\.0\.0\.1|\[::1\])$/.test(h)){const q=new URLSearchParams(location.search).get('relay');return q||`ws://${h==='[::1]'?'127.0.0.1':h}:8787`;}return COL_RELAY_URL;}
+const colAvail=()=>!!(window.COL_SOCKET||colRelay());
+const colLink=k=>{const q=new URLSearchParams(location.search);q.delete('selftest');const s=q.toString();return location.origin+location.pathname+(s?'?'+s:'')+'#join='+COL.room+'.'+k;};
+const colWho=id=>{const m=COL.roster.find(r=>r.id===id);return m?m.name:null;};
+
+// ---- the design as keys ----
+const colList=L=>L==='mk'?MK.items:S[L];
+function colFlat(){
+ const F=new Map(),J=JSON.stringify,put=(k,v)=>{if(v!==undefined)F.set(k,J(v));};
+ for(const k in S.meta)put('meta.'+k,S.meta[k]);
+ for(const k in S.p)put('p.'+k,S.p[k]);
+ for(const k in S.curves)put('c.'+k,S.curves[k]);
+ for(const k in S.locks)if(S.locks[k])put('lk.'+k,true);
+ put('base',S.base||null);
+ for(const L of COL_LISTS){const a=colList(L)||[];
+  if(L==='mk')for(const m of a)if(!m.id){m.id='m'+COL.id.slice(0,6)+Math.random().toString(36).slice(2,8);m.by=COL.id;m.bn=colName();} // a new mark-up of mine
+  put(L+'#',a.map(e=>e.id));for(const e of a)put(L+'.'+e.id,e);}
+ return F;}
+// what changed here since the last look goes out; while a pointer is down the changes are marked live, and on release they are sent once more as final
+function colTick(){
+ if(!COL.on||COL.waiting||!started||!COL.ws||COL.phase!=='in')return;
+ const F=colFlat(),L=COL.last;
+ if(!colEdit()){COL.last=F;return;}
+ const ch=[];for(const[k,v]of F)if(L.get(k)!==v)ch.push([k,v]);for(const k of L.keys())if(!F.has(k))ch.push([k,null]);
+ const live=COL.down;
+ if(!live&&COL.live.size){const got=new Set(ch.map(c=>c[0]));for(const k of COL.live)if(!got.has(k))ch.push([k,F.has(k)?F.get(k):null]);COL.live.clear();}
+ if(!ch.length)return;
+ const n=++COL.n;for(const[k,v]of ch){if(v==null)L.delete(k);else L.set(k,v);COL.pend.set(k,n);if(live)COL.live.add(k);}
+ colSend('{"t":"op","n":'+n+(live?',"live":1':'')+',"ch":['+ch.map(([k,v])=>'['+JSON.stringify(k)+','+(v==null?'null':v)+']').join(',')+']}');
+}
+const colSoon=()=>{if(COL.on&&!colSoon.t)colSoon.t=setTimeout(()=>{colSoon.t=0;colTick();},0);};
+function colApply(o){
+ if(!Array.isArray(o.ch))return;const mine=o.from===COL.id,ch=[];
+ for(const c of o.ch){if(!Array.isArray(c))continue;const k=String(c[0]);
+  if(mine){if(COL.pend.get(k)===o.n)COL.pend.delete(k);continue;}
+  if(COL.pend.has(k))continue;               // a change of mine to this key is on its way, and comes after this one
+  if(COL.down&&COL.live.has(k))continue;     // the piece I am dragging right now: mine wins when I let go
+  ch.push([k,c[1]]);}
+ if(ch.length)colPut(ch,!o.live);}
+function colPut(ch,final){
+ const L=COL.last,hs=[],ms=[],selId=MK.items[MK.sel]&&MK.items[MK.sel].id;let des=false,lists=false,mk=false,meta=false;
+ const cp=v=>v==null?v:JSON.parse(JSON.stringify(v));
+ for(const[k,v]of ch){
+  if(v==null&&k!=='base')L.delete(k);else L.set(k,JSON.stringify(v));
+  const i=k.indexOf('.'),hd=i<0?k:k.slice(0,i),sub=i<0?'':k.slice(i+1);
+  if(k==='base'){S.base=v||{};}
+  else if(hd==='meta'){if(v==null)delete S.meta[sub];else S.meta[sub]=v;meta=true;}
+  else if(hd==='p'||hd==='c'){const o=hd==='p'?S.p:S.curves;if(v==null)delete o[sub];else o[sub]=cp(v);des=true;if(final)hs.push([hd,sub,v]);}
+  else if(hd==='lk'){if(v)S.locks[sub]=true;else delete S.locks[sub];des=true;}
+  else if(k.endsWith('#')&&COL_LISTS.includes(k.slice(0,-1))){const a=colList(k.slice(0,-1));if(Array.isArray(v)){const pos=new Map(v.map((id,j)=>[id,j]));a.sort((x,y)=>(pos.get(x.id)??1e9)-(pos.get(y.id)??1e9));}if(k==='mk#')mk=true;else lists=true;}
+  else if(COL_LISTS.includes(hd)){const a=colList(hd),j=a.findIndex(e=>e.id===sub);
+   if(v==null){if(j>=0)a.splice(j,1);}else if(j>=0)a[j]=cp(v);else{a.push(cp(v));if(hd==='snaps'||hd==='cmp')S.cmpOn[sub]=true;}
+   if(hd==='mk'){mk=true;ms.push([sub,v]);}else lists=true;}
+ }
+ // someone else's change is the same in every step of my undo history, so undo only steps back through mine
+ if(hs.length){hist=hist.map(h=>{const s=JSON.parse(h);for(const[hd,sub,v]of hs){const o=hd==='p'?s.p:s.curves;if(v==null)delete o[sub];else o[sub]=cp(v);}return JSON.stringify(s);});if(hpos>=0)hist[hpos]=snapState();}
+ if(ms.length){const rb=t=>{const a=JSON.parse(t);for(const[id,v]of ms){const j=a.findIndex(e=>e.id===id);if(v==null){if(j>=0)a.splice(j,1);}else if(j>=0)a[j]=cp(v);else a.push(cp(v));}return JSON.stringify(a);};MK.undo=MK.undo.map(rb);MK.redo=MK.redo.map(rb);}
+ if(mk){MK.sel=selId?MK.items.findIndex(m=>m.id===selId):-1;}
+ if(meta){for(const[id,k]of[['#mBrand','brand'],['#mModel','model'],['#mDesigner','designer']]){const e=$(id);if(e&&document.activeElement!==e)e.value=S.meta[k]||'';}}
+ if(des||lists)refresh(!lists&&!final);
+ if(lists&&S.view==='compare')syncCmpView();
+ if(mk){syncTools();if(!des&&!lists)render();}else if(meta&&S.view==='spec')render();
+ syncMkBox();autosave();
+}
+
+// ---- talking to the relay ----
+function colSend(o){
+ const ws=COL.ws;if(!ws||ws.readyState!==1)return;const s=typeof o==='string'?o:JSON.stringify(o);
+ if(s.length<=COL_PART){ws.send(s);return;}
+ const kind=s.startsWith('{"t":"state"')?'state':'op',k=Math.random().toString(36).slice(2,10),n=Math.ceil(s.length/COL_PART),to=kind==='state'?JSON.parse(s).to:undefined; // a long message goes in pieces
+ for(let i=0;i<n;i++)ws.send(JSON.stringify({t:'chunk',kind,to,k,i,n,s:s.slice(i*COL_PART,(i+1)*COL_PART)}));}
+function colConnect(room,key,create){
+ const url=colRelay();if(!colAvail()){toast('Shared sessions aren’t set up here yet.');return;}
+ colDrop();COL.room=room;COL.key=key;COL.create=!!create;COL.phase='connecting';COL.bye=false;
+ let ws;try{ws=window.COL_SOCKET?window.COL_SOCKET(url+'/room/'+room):new WebSocket(url+'/room/'+room);}catch(e){colFail('net');return;}
+ COL.ws=ws;
+ ws.onopen=()=>{if(COL.ws!==ws)return;ws.send(JSON.stringify({t:'hello',id:COL.id,dev:COL.dev,name:colName()||'Guest',key,create:!!create}));};
+ ws.onmessage=e=>{if(COL.ws===ws)colRecv(e.data);};
+ ws.onclose=()=>{if(COL.ws!==ws)return;COL.ws=null;colLost();};
+ syncCol();}
+function colDrop(){const ws=COL.ws;COL.ws=null;if(ws){ws.onclose=ws.onmessage=ws.onopen=null;try{ws.close();}catch(e){}}clearTimeout(COL.again);}
+function colLost(){
+ if(COL.bye)return;
+ if(COL.on){COL.phase='retry';syncCol();const wait=Math.min(10000,1000*Math.pow(2,COL.retry++));clearTimeout(COL.again);COL.again=setTimeout(()=>{if(COL.on&&!COL.ws)colConnect(COL.room,COL.key,false);},wait);return;}
+ colFail('net');}
+function colFail(code){
+ const msg={net:'Couldn’t reach the shared session server.',gone:'This shared session has ended.',badkey:'This invite link no longer works.',banned:'You were removed from this shared session.',empty:'No one is in this shared session right now. Try the link again when the owner is back.',exists:'Couldn’t start a shared session. Try again.',bad:'Couldn’t join the shared session.'}[code]||'Couldn’t join the shared session.';
+ const was=COL.on,joining=COL.waiting||!started;colReset();
+ if(was&&COL.role!=='owner'&&code!=='net'){colClearDesign();}
+ colDialog(code==='net'?'Shared session':'Shared session closed',msg,null,[['OK',()=>{if(joining&&!started)showStart(false);}]]);}
+function colRecv(text){
+ let o;try{o=JSON.parse(text);}catch(e){return;}if(!o||typeof o!=='object')return;
+ if(o.t==='chunk'){const id=o.from+':'+o.k;let P=COL.parts.get(id);if(!P){P={n:o.n,got:0,s:[]};COL.parts.set(id,P);}if(P.s[o.i]==null){P.s[o.i]=o.s;P.got++;}
+  if(P.got<P.n)return;COL.parts.delete(id);try{o=Object.assign(JSON.parse(P.s.join('')),{from:o.from});}catch(e){return;}}
+ switch(o.t){
+  case'error':colFail(o.code);break;
+  case'welcome':{const first=!COL.on;COL.on=true;COL.phase='in';COL.retry=0;COL.role=o.role;COL.owner=o.owner;COL.roster=o.roster||[];if(o.keys){COL.keys=o.keys;COL.key=o.keys.owner;}
+   COL.wasOwner=o.role==='owner';colSave();COL.pend.clear();COL.live.clear();COL.parts.clear();
+   if(o.alone){if(!started){let a=null;try{a=JSON.parse(localStorage.getItem('ksd.autosave')||'null');}catch(e){}if(a&&a.app)try{loadProject(a);}catch(e){}if(!started)newDesign('kocho');}COL.waiting=false;COL.last=colFlat();colHide('#colWait');}
+   else{COL.waiting=true;COL.buf=[];colShow('#colWait');}
+   clearInterval(COL.timer);COL.timer=setInterval(colTick,COL_TICK);colRoleUI();
+   if(first){const d=$('#rsCol');if(d&&!d.open){d.open=true;rsSave();}if(o.role==='owner'&&COL.create)toast('Shared session started. Copy an invite link to bring others in.');}
+   syncCol();syncMkBox();break;}
+  case'roster':{const was=COL.role;COL.roster=o.roster||[];COL.owner=o.owner;const me=COL.roster.find(r=>r.id===COL.id);if(me)COL.role=me.role;
+   if(was!==COL.role){colRoleUI();if(COL.role==='owner'){COL.wasOwner=true;toast('You are now the owner of this shared session.');}colSave();}syncCol();syncMkBox();if(started)render();break;}
+  case'need':colTick();colSend({t:'state',to:o.id,data:{project:projectData(),mk:MK.items}});break;
+  case'state':if(COL.waiting&&o.data&&o.data.project){try{colLoad(o.data);}catch(e){toast('Could not open the shared design: '+e.message);}}break;
+  case'op':if(COL.waiting)COL.buf.push(o);else colApply(o);break;
+  case'keys':COL.keys=o.keys;COL.key=o.keys.owner;colSave();syncCol();break;
+  case'owner':if(o.id!==COL.id)toast('The shared session has a new owner.');break;
+  case'kicked':colEnd('kicked');break;
+  case'ended':colEnd('ended');break;
+ }}
+// someone who just joined gets the whole design, then the changes that came in while it was on its way
+function colLoad(d){
+ const keepMk=d.mk;loadProject(d.project);MK.items=Array.isArray(keepMk)?keepMk:[];MK.undo=[];MK.redo=[];MK.sel=-1;
+ COL.waiting=false;COL.last=colFlat();const b=COL.buf;COL.buf=[];for(const o of b)colApply(o);
+ colHide('#colWait');colHide('#start');syncTools();syncMkBox();render();}
+function colSave(){try{sessionStorage.setItem('tse.colSess',JSON.stringify({room:COL.room,key:COL.key}));}catch(e){}}
+function colReset(){
+ COL.bye=true;colDrop();clearInterval(COL.timer);COL.on=false;COL.phase='off';COL.waiting=false;COL.buf=[];COL.roster=[];COL.owner=null;COL.keys=null;COL.pend.clear();COL.live.clear();COL.parts.clear();
+ try{sessionStorage.removeItem('tse.colSess');}catch(e){}colHide('#colWait');colRoleUI();syncCol();syncMkBox();if(started)render();}
+// for someone who joined: when the session is over, the shared design goes and the start screen comes back (their own work from before is still under "Pick up where you left off")
+function colClearDesign(){MK.items=[];MK.undo=[];MK.redo=[];MK.sel=-1;COL.mkHide.clear();COL.mkAll=true;syncTools();syncMkBox();showStart(false);}
+function colEnd(why){
+ const role=COL.role;colReset();
+ if(role!=='edit'||why==='kicked')colClearDesign(); // watchers and anyone removed lose the shared design straight away; editors may save a copy first
+ if(why==='kicked'){colDialog('Removed from the session','The owner removed you from the shared session.',null,[['OK',null,'pri']]);return;}
+ if(role==='edit')colDialog('The shared session has ended','The owner ended the shared session. Save a copy of the design before it closes?',null,[['Close without saving',colClearDesign],['Save a copy',()=>{$('#bSave').click();colClearDesign();},'pri']]);
+ else colDialog('The shared session has ended','The owner ended the shared session.',null,[['OK',null,'pri']]);}
+function colStart(){
+ if(!colName()){toast('Type your name first.');const i=$('#colName');if(i)i.focus();return;}
+ if(!started)return;const room=Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>'abcdefghijkmnpqrstuvwxyz23456789'[b%32]).join('');colConnect(room,'',true);}
+function colLeave(){
+ if(!COL.on)return;
+ const others=COL.roster.filter(r=>r.id!==COL.id);
+ if(COL.role==='owner'){
+  if(!others.length){colSend({t:'end'});colReset();toast('Shared session ended.');return;}
+  const eds=others.filter(r=>r.role==='edit'),box=el('div',{class:'col-hand'});
+  if(eds.length){box.append(el('p',{},'Or hand it over to someone who can edit, and leave:'));for(const r of eds)box.append(el('button',{onclick:()=>{colHideDlg();colSend({t:'xfer',id:r.id});colSend({t:'leave'});colReset();toast('You left the shared session and handed it over.');}},el('b',{translate:'no'},r.name)));}
+  else box.append(el('p',{class:'gnote'},'Only people who can edit can take the session over; everyone else here is watching.'));
+  colDialog('Leave the shared session','Others are still in this session. End it for everyone (they can save a copy first), or hand it over.',box,[['Cancel',null],['End for everyone',()=>{colSend({t:'end'});colReset();toast('Shared session ended.');},'pri']]);return;}
+ const go=save=>{if(save)$('#bSave').click();colSend({t:'leave'});colReset();colClearDesign();};
+ if(COL.role==='edit')colDialog('Leave the shared session','Save a copy of the design before you leave?',null,[['Cancel',null],['Leave',()=>go(false)],['Save a copy and leave',()=>go(true),'pri']]);
+ else colDialog('Leave the shared session','Stop watching this design?',null,[['Cancel',null],['Leave',()=>go(false),'pri']]);}
+function colKick(id){if(COL.role==='owner'&&id!==COL.id)colSend({t:'kick',id});}
+// a link opened with #join=room.key, or a page reloaded during a session
+function colBoot(){
+ const m=location.hash.match(/^#join=([A-Za-z0-9]{8,40})\.([A-Za-z0-9]{8,40})$/);
+ if(m){try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}COL.invite={room:m[1],key:m[2]};const i=$('#cjName');i.value=colName();colShow('#colJoin');setTimeout(()=>{try{i.focus();}catch(e){}},50);return true;}
+ let s=null;try{s=JSON.parse(sessionStorage.getItem('tse.colSess')||'null');}catch(e){}
+ if(s&&s.room&&s.key&&colAvail()){colConnect(s.room,s.key,false);return true;}
+ return false;}
+function colJoinGo(){const n=$('#cjName').value.trim();if(!n){toast('Type your name first.');$('#cjName').focus();return;}colSetName(n);colHide('#colJoin');const v=COL.invite;COL.invite=null;if(v)colConnect(v.room,v.key,false);}
+const colShow=s=>{const e=$(s);if(e)e.classList.add('show');},colHide=s=>{const e=$(s);if(e)e.classList.remove('show');};
+const colHideDlg=()=>colHide('#colDlg');
+function colDialog(title,text,extra,buttons){
+ const d=$('#colDlg');d.querySelector('h1').textContent=title;d.querySelector('p').textContent=text;const x=$('#cdBody');x.innerHTML='';if(extra)x.append(extra);
+ const a=$('#cdAct');a.innerHTML='';for(const[label,fn,cls]of buttons)a.append(el('button',{class:cls||'',onclick:()=>{colHideDlg();if(fn)fn();}},label));
+ d.classList.add('show');}
+
+// ---- what each person may do ----
+function colRoleUI(){
+ const b=document.body,v=colViewOnly();b.classList.toggle('col-on',COL.on);b.classList.toggle('col-view',v);
+ if(v){mkCancel();if(S.mode==='dd'&&DD.tool!=='pan')DD.tool='pan';if(MK.tool!=='move'&&MK.tool!=='rot'&&MK.tool!=='spin')MK.tool='move';document.body.classList.remove('m-menu');}
+ if(started){if(S.mode==='dd')syncDD();syncTools();}}
+const ROLE_TXT={owner:'Owner',edit:'Can edit',view:'Watching'};
+function syncCol(){
+ const host=$('#colBody');if(!host)return;host.innerHTML='';
+ if(!COL.on&&COL.phase!=='connecting'){
+  if(!colAvail()){host.append(el('p',{class:'gnote'},'Shared sessions aren’t set up on this site yet.'));return;}
+  host.append(el('p',{class:'gnote'},'Work on this design with others in real time. You stay the owner; people join with a link.'));
+  host.append(el('div',{class:'row'},el('button',{class:'pri',id:'colGo',onclick:colStart},'Start a shared session')));return;}
+ if(COL.phase==='connecting'&&!COL.on){host.append(el('p',{class:'gnote'},'Connecting…'));return;}
+ if(COL.phase==='retry')host.append(el('p',{class:'col-warn'},'Connection lost. Reconnecting…'));
+ const me=COL.roster.find(r=>r.id===COL.id);
+ host.append(el('p',{class:'col-me'},el('span',{},'You: '),el('b',{},ROLE_TXT[COL.role]||'')));
+ if(COL.role==='owner'&&COL.keys){
+  const inv=(label,tip,k,id)=>el('div',{class:'col-inv'},el('button',{id,title:tip,onclick:()=>colCopy(colLink(k))},label));
+  host.append(el('p',{class:'col-h'},'Invite'),inv('Copy link to edit','People who open this link can change the design, like you.',COL.keys.edit,'colInvE'),inv('Copy link to watch','People who open this link can only watch: no tools, no saving or exports.',COL.keys.view,'colInvV'));}
+ host.append(el('p',{class:'col-h'},'In this session'));
+ const ul=el('ul',{class:'col-list'});
+ for(const r of COL.roster){const li=el('li',{},el('i',{class:'col-dot',style:'background:'+colColor(r.id)}),el('b',{translate:'no'},r.name),r.id===COL.id?el('span',{class:'col-you'},'(you)'):'',el('span',{class:'col-role'},ROLE_TXT[r.role]||''));
+  if(COL.role==='owner'&&r.id!==COL.id)li.append(el('button',{class:'col-kick',title:'Remove from the session',onclick:()=>colKick(r.id)},'✕'));ul.append(li);}
+ host.append(ul);
+ if(!COL.owner)host.append(el('p',{class:'col-warn'},'The owner is away. If they don’t come back within a minute, the longest-standing editor takes over.'));
+ host.append(el('div',{class:'row'},el('button',{id:'colLeave',onclick:colLeave},COL.role==='owner'?'Leave or end the session…':'Leave the session')));
+ void me;}
+async function colCopy(s){let ok=false;try{await navigator.clipboard.writeText(s);ok=true;}catch(e){}
+ if(ok)toast('Invite link copied. Send it to the people you want to bring in.');else colDialog('Invite link','Copy this link and send it to the people you want to bring in.',el('input',{type:'text',value:s,readonly:'',class:'col-link',onfocus:e=>e.target.select()}),[['Done',null,'pri']]);}
+
+// ---- mark-up from each person ----
+const COL_PAL=['#7b4fd6','#d9822b','#2a9d8f','#c0392b','#5b8c2a','#3d6fd1'];
+function colColor(id){if(!id||id===COL.id)return MK_COL;let c=COL.mkCol.get(id);if(!c){c=COL_PAL[COL.mkCol.size%COL_PAL.length];COL.mkCol.set(id,c);}return c;}
+const mkBy=m=>m.by||COL.id;
+const mkVis=m=>COL.mkAll&&!COL.mkHide.has(mkBy(m));
+const mkMine=m=>mkBy(m)===COL.id;
+// the toolbox only shows when there is mark-up from someone other than you
+function syncMkBox(){
+ const b=$('#mkBox');if(!b)return;const who=[];for(const m of MK.items){const id=mkBy(m);if(!who.includes(id))who.push(id);}
+ const show=S.view==='design'&&who.some(id=>id!==COL.id);b.style.display=show?'':'none';if(!show)return;
+ who.sort((a,c)=>(a===COL.id?-1:c===COL.id?1:0));
+ const eye=on=>el('i',{class:'mk-eye'+(on?' on':'')});
+ b.innerHTML='';b.append(el('div',{class:'mk-h'},el('span',{},'Mark-up'),el('button',{class:'mk-all'+(COL.mkAll?' act':''),title:COL.mkAll?'Hide all mark-up':'Show all mark-up',onclick:()=>{COL.mkAll=!COL.mkAll;MK.sel=-1;syncTools();render();}},eye(COL.mkAll),el('span',{},'All'))));
+ for(const id of who){const on=!COL.mkHide.has(id),it=MK.items.find(m=>mkBy(m)===id),nm=id===COL.id?null:(colWho(id)||it&&it.bn||'Guest');
+  const bt=el('button',{class:'mk-who'+(on?' act':''),title:on?'Hide this mark-up':'Show this mark-up',onclick:()=>{if(on)COL.mkHide.add(id);else COL.mkHide.delete(id);MK.sel=-1;syncTools();render();}},
+   eye(on&&COL.mkAll),el('i',{class:'col-dot',style:'background:'+colColor(id)}),nm==null?el('span',{},'You'):el('span',{translate:'no'},nm));bt.disabled=!COL.mkAll;b.append(bt);}}
+addEventListener('pointerdown',()=>{COL.down=true;},true);
+{const up=()=>{if(!COL.down)return;COL.down=false;setTimeout(colTick,0);};addEventListener('pointerup',up,true);addEventListener('pointercancel',up,true);addEventListener('blur',up);}
+addEventListener('beforeunload',e=>{if(COL.on&&COL.role==='owner'&&COL.roster.some(r=>r.id!==COL.id)){e.preventDefault();e.returnValue='';}});
+
+// the right-hand panel's sections fold; which are open is remembered in this browser (Collaborate starts folded)
+const rsSave=()=>{const o={};document.querySelectorAll('aside.right>details.top').forEach(d=>o[d.id]=d.open);try{localStorage.setItem('tse.rs',JSON.stringify(o));}catch(e){}};
+function colWire(){
+ let o=null;try{o=JSON.parse(localStorage.getItem('tse.rs')||'null');}catch(e){}
+ document.querySelectorAll('aside.right>details.top').forEach(d=>{if(o&&d.id in o)d.open=!!o[d.id];d.addEventListener('toggle',rsSave);});
+ const n=$('#colName');n.value=colName();n.onchange=()=>colSetName(n.value);n.onkeydown=e=>{if(e.key==='Enter')n.blur();};
+ $('#cjGo').onclick=colJoinGo;$('#cjName').onkeydown=e=>{if(e.key==='Enter')colJoinGo();};
+ $('#cjCancel').onclick=()=>{COL.invite=null;colHide('#colJoin');};
+ $('#cwCancel').onclick=()=>{colSend({t:'leave'});colReset();colClearDesign();};
+ syncCol();}
+buildParams();wire();setView('design');setMode('dd');showStart(false);colWire();if(!colBoot()&&!/[?&]selftest=/.test(location.search))introOpen();
 // the floating panels (Drag & draw's tools and the Compare view's shapes) can be dragged by their grip anywhere inside the shape view; a double-click puts one back
 {const place=(p,x,y)=>{const st=$('#stage'),w=p.offsetWidth,h=p.offsetHeight;x=clamp(x,0,Math.max(0,st.clientWidth-w));y=clamp(y,0,Math.max(0,st.clientHeight-h));p.classList.add('moved');p.style.left=x+'px';p.style.top=y+'px';p._at=[x,y];};
  for(const p of[$('#dd'),$('#cmpCtl')]){const g=p.querySelector('.dd-grip'),fb=p.querySelector('.dd-fold');let d=null;
