@@ -17,12 +17,24 @@ button.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--a
 button.on{background:var(--draw);color:#fff;border-color:var(--draw)}
 button:disabled{opacity:.4;cursor:default}
 input[type=text],input[type=number],select{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:4px 6px}
-header.top{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
-.brand{font-weight:700;font-size:15px;margin-right:6px}
+/* top bar: the name, undo / redo and a menu button; the language, names and exports open from the menu (the same on phones and desktops) */
+header.top{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:nowrap;position:relative}
+.brand{font-weight:700;font-size:15px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#bUndo,#bRedo{flex:none}
+#bMenu{display:flex;align-items:center;justify-content:center;width:38px;height:32px;padding:0;flex:none}
+#bMenu i{display:block;width:16px;height:2px;background:currentColor;border-radius:1px;box-shadow:0 5px 0 currentColor,0 -5px 0 currentColor}
+body.m-menu #bMenu{background:color-mix(in srgb,var(--accent) 14%,var(--panel));border-color:var(--accent);color:var(--accent)}
+#hmenu{display:none}
+body.m-menu #hmenu{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:absolute;top:100%;right:12px;width:340px;margin-top:4px;padding:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.28);z-index:25;max-height:calc(100dvh - 70px);overflow:auto}
+#hmenu .spacer{display:none}
+#hmenu .lang{grid-column:1/-1;justify-self:start;margin:0}
+#hmenu label{grid-column:1/-1;flex-direction:column;align-items:stretch;gap:2px;font-size:11px}
+#hmenu input[type=text]{width:100%!important}
+#hmenu>button{padding:8px;font-size:13px}
+#hmenu #bPdf{grid-column:1/-1}
 .top label{color:var(--muted);font-size:11px;display:flex;align-items:center;gap:4px}
 .top input[type=text]{width:120px}
 .spacer{flex:1}
-#hmenu{display:contents}#bUndo,#bRedo{order:1}#bPdf,#bDxf,#bGcode{order:2}#bMenu{display:none}
 .wrap{flex:1;display:grid;grid-template-columns:350px 1fr 310px;min-height:0}
 aside{background:var(--panel);overflow-y:auto;padding:10px 12px}
 aside.left{border-right:1px solid var(--line)}
@@ -46,7 +58,14 @@ button.chip.act{border-color:var(--accent);background:color-mix(in srgb,var(--ac
 .dd{display:none;position:absolute;left:50%;bottom:26px;transform:translateX(-50%);flex-direction:column;gap:6px;align-items:center;width:max-content;max-width:calc(100% - 16px);z-index:3;pointer-events:none}
 body.ddmode .dd{display:flex}body.ddmode #vtools{display:none!important}
 .dd>*{pointer-events:auto;background:color-mix(in srgb,var(--panel) 94%,transparent);border:1px solid var(--line);border-radius:11px;box-shadow:0 4px 14px rgba(0,0,0,.14)}
-.dd-tools{display:flex;gap:3px;padding:4px}
+.dd-grip{flex:none;align-self:stretch;width:13px;margin-right:3px;border-right:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:grab;touch-action:none;user-select:none}.dd-grip:active{cursor:grabbing}
+.dd-grip i{display:block;width:5px;height:14px;background:radial-gradient(circle,var(--muted) 1px,transparent 1.4px) 0 0/5px 4.7px}.dd-grip:hover i{background-image:radial-gradient(circle,var(--ink) 1px,transparent 1.4px)}
+.dd-fold{flex:none;align-self:center;width:24px;height:24px;margin-right:3px;display:flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;color:var(--muted)}.dd-fold:hover{color:var(--ink);background:var(--soft)}
+.dd-fold svg{transition:transform .15s}.dd.shut .dd-fold svg{transform:rotate(-90deg)}
+.dd.shut>.dd-opts,.dd.shut .dd-tools>button,.dd.shut .dd-bar>.dd-opts{display:none!important}.dd.shut .dd-fold{margin-right:0}
+.dd-bar{display:flex;align-items:stretch;padding-left:4px}.dd-bar>.dd-opts{flex:1;min-width:0}
+.dd.moved{transform:none;bottom:auto}
+.dd-tools{display:flex;flex-wrap:wrap;justify-content:center;gap:3px;padding:4px;max-width:100%}
 .dd-tools button{display:flex;align-items:center;gap:5px;padding:5px 9px;font-size:12px;border-color:transparent;background:transparent}
 .dd-tools button span{display:none}.dd-tools button.act span{display:inline}.dd-sel{font-size:12px;padding:3px 6px;max-width:170px}
 .dd-tools button.act{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
@@ -163,6 +182,13 @@ h3:first-child{margin-top:0}
 @keyframes cardIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
 #start.reveal .card{animation:cardIn .55s cubic-bezier(.2,.7,.2,1) both}
 @media (prefers-reduced-motion:reduce){.in-t,.in-rule{transition:opacity .3s}#intro.go .in-t{letter-spacing:.035em;filter:none}#intro.go .in-rule{transform:none}#start.reveal .card{animation-duration:.01s}}
+.modal#pied{z-index:30}
+.card.pied-card{width:min(1100px,100%);max-height:none;height:min(92dvh,920px);display:flex;flex-direction:column;gap:8px;overflow:hidden}.pied-card h1{margin:0}
+.pied-bar{display:flex;flex-wrap:wrap;gap:4px;align-items:center}.pied-bar button{display:inline-flex;align-items:center;gap:5px}.pied-bar button.act{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.pied-bar svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}.pied-bar .dd-sep{margin:0 4px}
+.pied-st{flex:1;min-height:180px;position:relative;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#111}
+#pedCv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+#pedHint{margin:0;min-height:2.6em}.pied-act{justify-content:flex-end;flex-wrap:wrap;gap:6px}
 .card{background:var(--panel);border-radius:12px;padding:22px 24px;width:min(560px,100%);max-height:92vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
 .card h1{margin:0 0 4px;font-size:21px}
 .card p{color:var(--muted);margin:4px 0 14px}
@@ -175,7 +201,7 @@ h3:first-child{margin-top:0}
 .pisteps{display:flex;gap:6px;margin:8px 0 12px;flex-wrap:wrap}.pisteps span{padding:3px 11px;border-radius:99px;border:1px solid var(--line);color:var(--muted);font-size:12px}
 .pisteps span.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}.pisteps span.done{color:var(--ink)}
 #piCv{display:block;max-width:100%;margin:8px auto;border-radius:8px;background:var(--canvas)}
-.pitips{padding-left:20px;margin:0;flex:1}.pitips li{margin:6px 0}.piinfo{display:flex;gap:18px;align-items:flex-start}.piinfo figure{margin:0;width:150px;flex:none;text-align:center}.piinfo figcaption{font-size:11px;color:var(--muted);margin-top:4px}#piEx{border-radius:8px}
+.pitips{padding-left:20px;margin:0;flex:1}.pitips li{margin:6px 0}.piinfo{display:flex;gap:18px;align-items:flex-start}.piinfo figure{margin:0;width:150px;flex:none;text-align:center}.piinfo figcaption{font-size:11px;color:var(--muted);margin-bottom:4px}#piEx{border-radius:8px}
 @media(max-width:600px){.piinfo{flex-direction:column;align-items:center}}
 .pitab{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0}.pitab th,.pitab td{padding:4px 6px;border-bottom:1px solid var(--line);text-align:left}.pitab th{color:var(--muted);font-weight:500}
 .pitab td,.pitab th{white-space:normal;overflow-wrap:anywhere}.pitab td.num{font-variant-numeric:tabular-nums;white-space:nowrap}.pitab input{width:78px}
@@ -202,20 +228,11 @@ body.r-shut .wrap{grid-template-columns:350px 1fr}body.r-shut aside.right{displa
 /* phones: one panel at a time (measures, shape view, balance), picked from a bar along the bottom */
 @media (max-width:760px){
  body{height:100dvh}
- header.top{gap:6px;padding:6px 10px;flex-wrap:nowrap;position:relative}
- header.top .brand{font-size:14px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0}
+ header.top{gap:6px;padding:6px 10px}
+ header.top .brand{font-size:14px}
  #bUndo,#bRedo{font-size:16px;padding:0;width:38px;height:32px;flex:none}
- #bMenu{display:flex;align-items:center;justify-content:center;order:3;width:38px;height:32px;padding:0;flex:none}
- #bMenu i{display:block;width:16px;height:2px;background:currentColor;border-radius:1px;box-shadow:0 5px 0 currentColor,0 -5px 0 currentColor}
- body.m-menu #bMenu{background:color-mix(in srgb,var(--accent) 14%,var(--panel));border-color:var(--accent);color:var(--accent)}
- #hmenu{display:none}
- body.m-menu #hmenu{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:absolute;top:100%;left:8px;right:8px;margin-top:4px;padding:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.28);z-index:25;max-height:calc(100dvh - 70px);overflow:auto}
- #hmenu .spacer{display:none}
- #hmenu .lang{grid-column:1/-1;justify-self:start;margin:0}
- #hmenu label{grid-column:1/-1;flex-direction:column;align-items:stretch;gap:2px;font-size:11px}
- #hmenu input[type=text]{width:100%!important}
+ body.m-menu #hmenu{left:8px;right:8px;width:auto}
  #hmenu>button{padding:9px 8px;font-size:13.5px}
- #hmenu #bPdf{grid-column:1/-1}
  .tabs{padding-bottom:6px}.chip{padding:4px 9px;gap:4px}.tabs .chip{max-width:46%}
  .wrap{display:flex;flex-direction:column;min-height:0}
  .wrap>aside,.wrap>main{flex:1;min-height:0;display:none;border:none!important;max-height:none!important}
@@ -271,6 +288,7 @@ body.r-shut .wrap{grid-template-columns:350px 1fr}body.r-shut aside.right{displa
     <div class="tabs">
       <button class="chip" id="bLeft" aria-pressed="false" title="Show or hide the left-hand menu (manual control and tool info)"><svg viewBox="0 0 16 16"><path d="M2 3h12v10H2zM6 3v10"/></svg><span>Menu</span></button>
       <label class="chip" id="lView"><span>View</span><b></b><select id="tView"><option value="dd">Drag &amp; draw</option><option value="spec">Spec sheet</option><option value="compare">Compare</option></select></label>
+      <label class="chip" id="lCmpAdd" style="display:none" title="Add a shape to compare with this design"><span>Add shape</span><b>+</b><select id="tCmpAdd"></select></label>
       <label class="chip" id="lTama"><span>Tama</span><b></b><select id="tTama"></select></label>
       <button class="chip" id="tEll" aria-pressed="false"><span>Ellipses</span><b>Off</b></button>
       <div class="spacer"></div>
@@ -298,7 +316,8 @@ body.r-shut .wrap{grid-template-columns:350px 1fr}body.r-shut aside.right{displa
           <button data-a="clear" title="Delete all mark-ups"><svg viewBox="0 0 16 16"><path d="M3 5h10M6.5 5V3h3v2M4.5 5l.6 8h5.8l.6-8"/></svg></button>
         </div>
       </div>
-      <div class="dd" id="dd"><div class="dd-opts" id="ddOpts"></div><div class="dd-tools"><button data-d="pan" title="Move view"><svg viewBox="0 0 16 16"><path d="M1.5 8s2.4-4.6 6.5-4.6S14.5 8 14.5 8s-2.4 4.6-6.5 4.6S1.5 8 1.5 8zM8 5.9a2.1 2.1 0 1 0 0 4.2a2.1 2.1 0 1 0 0-4.2"/></svg><span>Move view</span></button><button data-d="free" title="Move pieces"><svg viewBox="0 0 16 16"><path d="M8 2v12M2 8h12M6 4l2-2 2 2M6 12l2 2 2-2M4 6L2 8l2 2M12 6l2 2-2 2"/></svg><span>Move pieces</span></button><button data-d="point" title="Points"><svg viewBox="0 0 16 16"><path d="M8 5.5a2.5 2.5 0 1 0 0 5a2.5 2.5 0 1 0 0-5M8 1v2.5M8 12.5V15M1 8h2.5M12.5 8H15"/></svg><span>Points</span></button><button data-d="push" title="Push / pull"><svg viewBox="0 0 16 16"><path d="M3 14c3-2 4-6 4-12M9 8h5M12 6l2 2-2 2"/></svg><span>Push / pull</span></button><button data-d="draw" title="Redraw"><svg viewBox="0 0 16 16"><path d="M3 13l1-3.2 7-7 2.2 2.2-7 7z M9.8 4l2.2 2.2"/></svg><span>Redraw</span></button><button data-d="line" title="Straight line"><svg viewBox="0 0 16 16"><path d="M3.5 12.5L12.5 3.5M1.6 14a1.6 1.6 0 1 0 3.2 0a1.6 1.6 0 1 0-3.2 0M11.2 2a1.6 1.6 0 1 0 3.2 0a1.6 1.6 0 1 0-3.2 0"/></svg><span>Straight line</span></button><button data-d="smooth" title="Smooth"><svg viewBox="0 0 16 16"><path d="M1.5 8c2-5 4.5-5 6.5 0s4.5 5 6.5 0"/></svg><span>Smooth</span></button><button data-d="reset" title="Restore"><svg viewBox="0 0 16 16"><path d="M6.3 13.5L2.6 9.8a1 1 0 0 1 0-1.4l5.5-5.5a1 1 0 0 1 1.4 0l3.9 3.9a1 1 0 0 1 0 1.4l-5.3 5.3zM5.4 5.6l5 5M6.3 13.5h7.2"/></svg><span>Restore</span></button><button data-d="hole" title="Bottom cup hole"><svg viewBox="0 0 16 16"><path d="M3.6 2.5L2.2 13.5h11.6L12.4 2.5M4.3 13.5c1.4-1 2.3-2 2.3-3.6V6.4a1.4 1.4 0 0 1 2.8 0v3.5c0 1.6.9 2.6 2.3 3.6"/></svg><span>Bottom cup hole</span></button><button data-d="mark" title="Mark-up"><svg viewBox="0 0 16 16"><path d="M3 2.5h10v11H3zM5.5 6h5M5.5 8.5h5M5.5 11h3"/></svg><span>Mark-up</span></button><button data-d="sarado" title="Sarado apart"><svg viewBox="0 0 16 16"><path d="M1.5 4v8M5.5 4v8M1.5 8h4M10.5 4v8M14.5 4v8M10.5 8h4M7 8h2"/></svg><span>Sarado apart</span></button><button data-d="cmp" title="Compare"><svg viewBox="0 0 16 16"><path d="M2.5 2.5h6.5v8H2.5zM7 5.5h6.5v8H7z"/></svg><span>Compare</span></button></div></div>
+      <div class="dd" id="dd"><div class="dd-opts" id="ddOpts"></div><div class="dd-tools"><span class="dd-grip" role="button" title="Drag to move this panel. Double-click to put it back." aria-label="Move panel"><i></i></span><span class="dd-fold" role="button" tabindex="0" title="Hide the tools" aria-expanded="true"><svg viewBox="0 0 16 16"><path d="M4 6l4 4 4-4"/></svg></span><button data-d="pan" title="Move view"><svg viewBox="0 0 16 16"><path d="M1.5 8s2.4-4.6 6.5-4.6S14.5 8 14.5 8s-2.4 4.6-6.5 4.6S1.5 8 1.5 8zM8 5.9a2.1 2.1 0 1 0 0 4.2a2.1 2.1 0 1 0 0-4.2"/></svg><span>Move view</span></button><button data-d="free" title="Move pieces"><svg viewBox="0 0 16 16"><path d="M8 2v12M2 8h12M6 4l2-2 2 2M6 12l2 2 2-2M4 6L2 8l2 2M12 6l2 2-2 2"/></svg><span>Move pieces</span></button><button data-d="point" title="Points"><svg viewBox="0 0 16 16"><path d="M8 5.5a2.5 2.5 0 1 0 0 5a2.5 2.5 0 1 0 0-5M8 1v2.5M8 12.5V15M1 8h2.5M12.5 8H15"/></svg><span>Points</span></button><button data-d="push" title="Push / pull"><svg viewBox="0 0 16 16"><path d="M3 14c3-2 4-6 4-12M9 8h5M12 6l2 2-2 2"/></svg><span>Push / pull</span></button><button data-d="draw" title="Redraw"><svg viewBox="0 0 16 16"><path d="M3 13l1-3.2 7-7 2.2 2.2-7 7z M9.8 4l2.2 2.2"/></svg><span>Redraw</span></button><button data-d="line" title="Straight line"><svg viewBox="0 0 16 16"><path d="M3.5 12.5L12.5 3.5M1.6 14a1.6 1.6 0 1 0 3.2 0a1.6 1.6 0 1 0-3.2 0M11.2 2a1.6 1.6 0 1 0 3.2 0a1.6 1.6 0 1 0-3.2 0"/></svg><span>Straight line</span></button><button data-d="smooth" title="Smooth"><svg viewBox="0 0 16 16"><path d="M1.5 8c2-5 4.5-5 6.5 0s4.5 5 6.5 0"/></svg><span>Smooth</span></button><button data-d="reset" title="Restore"><svg viewBox="0 0 16 16"><path d="M6.3 13.5L2.6 9.8a1 1 0 0 1 0-1.4l5.5-5.5a1 1 0 0 1 1.4 0l3.9 3.9a1 1 0 0 1 0 1.4l-5.3 5.3zM5.4 5.6l5 5M6.3 13.5h7.2"/></svg><span>Restore</span></button><button data-d="hole" title="Bottom cup hole"><svg viewBox="0 0 16 16"><path d="M3.6 2.5L2.2 13.5h11.6L12.4 2.5M4.3 13.5c1.4-1 2.3-2 2.3-3.6V6.4a1.4 1.4 0 0 1 2.8 0v3.5c0 1.6.9 2.6 2.3 3.6"/></svg><span>Bottom cup hole</span></button><button data-d="mark" title="Mark-up"><svg viewBox="0 0 16 16"><path d="M3 2.5h10v11H3zM5.5 6h5M5.5 8.5h5M5.5 11h3"/></svg><span>Mark-up</span></button><button data-d="sarado" title="Sarado apart"><svg viewBox="0 0 16 16"><path d="M1.5 4v8M5.5 4v8M1.5 8h4M10.5 4v8M14.5 4v8M10.5 8h4M7 8h2"/></svg><span>Sarado apart</span></button><button data-d="cmp" title="Compare"><svg viewBox="0 0 16 16"><path d="M2.5 2.5h6.5v8H2.5zM7 5.5h6.5v8H7z"/></svg><span>Compare</span></button></div></div>
+      <div class="dd cmpctl" id="cmpCtl" style="display:none"><div class="dd-bar"><span class="dd-grip" role="button" title="Drag to move this panel. Double-click to put it back." aria-label="Move panel"><i></i></span><span class="dd-fold" role="button" tabindex="0" title="Hide the tools" aria-expanded="true"><svg viewBox="0 0 16 16"><path d="M4 6l4 4 4-4"/></svg></span><div class="dd-opts" id="cmpOpts"></div></div></div>
       <div class="zoom"><button id="zIn">+</button><button id="zOut">−</button><button id="zFit">Fit</button></div>
       <div class="hud" id="hud"></div>
     </div>
@@ -333,7 +352,7 @@ body.r-shut .wrap{grid-template-columns:350px 1fr}body.r-shut aside.right{displa
 <div class="modal" id="start"><div class="card">
   <h1 style="margin-bottom:14px">Terra Shape Explorer</h1>
   <div class="choices">
-    <button data-t="random"><b>Start from random</b><small>A new shape with random measures that passes every shape check.</small></button>
+    <button data-t="random"><b>Randomize</b></button>
     <button id="sOpen"><b>Load a project file…</b><small>Open a saved .kendama.json project.</small></button>
     <button id="sPhoto"><b>Import from a photo…</b><small>Trace a real kendama from a photo taken straight down.</small></button>
   </div>
@@ -364,6 +383,13 @@ body.r-shut .wrap{grid-template-columns:350px 1fr}body.r-shut aside.right{displa
   <div class="pisteps" id="piSteps"></div>
   <div id="piBody"></div>
   <div class="row" id="piAct" style="justify-content:flex-end;margin-top:12px"></div>
+</div></div>
+<div class="modal" id="pied"><div class="card pied-card">
+  <h1>Adjust the outline</h1>
+  <div class="pied-bar" id="pedBar"></div>
+  <div class="pied-st"><canvas id="pedCv"></canvas></div>
+  <p class="gnote" id="pedHint"></p>
+  <div class="row pied-act" id="pedAct"></div>
 </div></div>
 <input type="file" id="fPhoto" accept="image/*" hidden>
 <input type="file" id="fOpen" accept=".json,application/json" hidden>
@@ -813,7 +839,7 @@ const JA={
 "Compare with a library shape…": "ライブラリの形状と比較…",
 "Shape checks": "形状チェック",
 "No problems found. The profile is continuous and all walls are thick enough.": "問題は見つかりませんでした。輪郭は連続しており、全ての壁に十分な厚みがあります。",
-"Save an iteration, change the shape, then open Compare to see the balance side by side.": "イテレーションを保存し、形状を変更してから「比較」を開くと、バランスを並べて確認できます。",
+"Save an iteration, change the shape, then add it in Compare to see the balance side by side.": "イテレーションを保存し、形状を変更してから「比較」で追加すると、バランスを並べて確認できます。",
 "Ken mass": "けんの質量",
 "Sarado mass": "皿胴の質量",
 "Ken + sarado": "けん＋皿胴",
@@ -840,7 +866,7 @@ const JA={
 "CoG # mm": "重心 # mm",
 "Start from the Kocho reference": "Kochoの基準形状から始める",
 "Imported from the Kocho CAD file, ready to adjust.": "KochoのCADファイルからインポート済み。すぐに調整できます。",
-"Start from random": "ランダムで始める",
+"Randomize": "ランダム",
 "A new shape with random measures that passes every shape check.": "寸法をランダムに決めた新しい形状。形状チェックはすべて通ります。",
 "Begin": "はじめる",
 "Load a project file…": "プロジェクトファイルを読み込む…",
@@ -895,14 +921,35 @@ const JA={
 "Photo": "写真",
 "Scale": "縮尺",
 "Check": "確認",
-"A kendama is turned on a lathe, so a straight side-on photo shows its exact profile. A good photo makes a good shape:": "けん玉は旋盤で削られているので、真横からの写真にはその形がそのまま写ります。良い写真から良い形が取り込めます。",
+"Example photo": "写真の例",
+"Adjust outline…": "輪郭を調整…",
+"Outline adjusted by hand. Flip ken or Swap cups reads the photo again and drops these changes.": "輪郭は手で調整済みです。「けんを反転」や「皿を入れ替え」を押すと写真を読み直し、この調整は消えます。",
+"Adjust the outline": "輪郭の調整",
+"Erase a line": "線を消す",
+"Zoom out": "縮小",
+"Zoom in": "拡大",
+"Fit the photo in the window": "写真をウィンドウに合わせる",
+"Clear lines": "線をすべて消す",
+"Back to the outline found": "検出した輪郭に戻す",
+"Use as a guide": "目安として使う",
+"Use exactly": "そのまま使う",
+"Look for the edge of the wood close to your lines": "描いた線の近くで木の縁を探す",
+"Put your lines into the outline as drawn": "描いた線をそのまま輪郭にする",
+"OK, use this outline": "OK、この輪郭を使う",
+"Use or clear your lines first": "先に線を使うか消してください",
+"Use this outline and go on": "この輪郭で次へ進む",
+"Use exactly puts your lines into the outline as drawn. Use as a guide looks for the edge of the wood close to your lines.": "「そのまま使う」は描いた線をそのまま輪郭にします。「目安として使う」は線の近くで木の縁を探します。",
+"Draw over the photo where the outline should be: along an edge, or across the base or the end of a cup. A line on one side of the ken or sarado is used for both sides.": "輪郭があるべき所を写真の上になぞってください。縁に沿って、または底や皿の端を横切るように描きます。けんや皿胴の片側に描いた線は両側に使われます。",
+"The edge of the wood was found all along your lines. Check the new outline; draw more to change it again, or press OK.": "描いた線の全体で木の縁が見つかりました。新しい輪郭を確認し、さらに直すなら描き足すか、OKを押してください。",
+"Share of your lines where the edge of the wood was found:": "木の縁が見つかった線の割合：",
+"Where it was not found close enough, the outline was left as it was: draw closer to the edge, or use exactly to put a line in as drawn. Check the new outline; draw more to change it again, or press OK.": "近くで縁が見つからなかった所は、輪郭をそのままにしました。縁の近くに描き直すか、「そのまま使う」で線どおりに入れてください。新しい輪郭を確認し、さらに直すなら描き足すか、OKを押してください。",
+"Your lines are now part of the outline. Draw more to change it again, or press OK.": "描いた線が輪郭になりました。さらに直すなら描き足すか、OKを押してください。",
 "Take the tama and string off, so only the ken and sarado are in the photo.": "玉と糸を外し、けんと皿胴だけが写るようにします。",
 "Lay the kendama on a plain sheet of white paper, with the cups pointing left and right. For light-coloured wood, use a dark sheet instead.": "無地の白い紙の上に、皿が左右を向くようにけん玉を置きます。明るい色の木なら、暗い色の紙を使います。",
 "Light it evenly, for example daylight from a window. Avoid sharp shadows next to the wood.": "窓からの自然光などで、むらなく照らします。木のすぐ横にくっきりした影ができないようにします。",
 "Shoot straight down from about 1 m away with 2× or 3× zoom, so the kendama fills most of the frame. Keep the phone level; the camera grid or level helps.": "約1 m離れた真上から、2倍か3倍のズームで撮り、けん玉が画面の大部分を占めるようにします。スマホは水平に保ちます（カメラのグリッドや水平器が役立ちます）。",
 "Leave a clear gap between the kendama and every edge of the photo.": "けん玉と写真の四辺との間に、しっかり余白を残します。",
 "Have calipers or a ruler ready. You will type in one or more measurements to set the scale, then check the result against the real kendama.": "ノギスか定規を用意します。縮尺を決めるために1つ以上の寸法を入力し、仕上がりを実物と照らし合わせます。",
-"A good photo: plain background, kendama square to the camera, a gap all round.": "良い写真の例：無地の背景、カメラに正対したけん玉、周りに余白。",
 "Why from further away: close up, the ends of the kendama look smaller than the middle. From a distance with zoom, the outline stays true.": "離れて撮る理由：近くからだと、けん玉の端が中央より小さく写ります。離れてズームすると、輪郭が正しく写ります。",
 "Choose or take a photo": "写真を選ぶ / 撮る",
 "The outline found in the photo is drawn on top. Check that it follows the edge of the wood all the way round, and that the base and the two cups are labelled correctly.": "写真から見つけた輪郭を重ねて表示しています。木の縁に沿って一周していること、そして台座と2つの皿の表示が正しいことを確認してください。",
@@ -1005,6 +1052,19 @@ const JA={
 "Lunar lander, small cup": "ルナ（小皿）",
 "CoG above tama (big / small)": "玉の上の重心（大皿 / 小皿）",
 "Current design": "現在のデザイン",
+"Ken": "けん",
+"Drag to move this panel. Double-click to put it back.": "ドラッグでこのパネルを移動。ダブルクリックで元の位置に戻ります。",
+"Move panel": "パネルを移動",
+"Hide the tools": "ツールを隠す",
+"Show the tools": "ツールを表示",
+"g": "g",
+"Lunar angle": "ルナの角度",
+"Add shape": "形状を追加",
+"Add a shape…": "形状を追加…",
+"Add a shape to compare with this design": "このデザインと比較する形状を追加",
+"Lunar angle: the spike's angle above (+) or below (−) horizontal in the big-cup lunar lander.": "ルナの角度：大皿のルナで、けん先が水平より上（＋）または下（−）を向く角度。",
+"Use Add shape to compare this design with a library shape, an iteration or a design from a project file.": "「形状を追加」で、ライブラリの形状、イテレーション、プロジェクトファイルのデザインと比較できます。",
+"Pick a shape to show, hide, turn or remove it. Drag a shape to move it.": "形状を選ぶと、表示 / 非表示、回転、削除ができます。ドラッグで移動できます。",
 "Current": "現在",
 "Positive angles mean the spike points above horizontal in the lunar lander balance.": "正の角度は、ルナのつり合いでけん先が水平より上を向くことを示します。",
 "Warning: Shallow cup, tama may not sit correctly": "警告：皿が浅いため、玉が正しく乗らない可能性があります",
@@ -1089,7 +1149,7 @@ const TRX=[
  [/^“(.+)” is locked\. Unlock it to change it\.$/,m=>`「${q(m[1])}」は固定中です。変更するには固定を解除してください。`],
  [/^Can’t change this while “(.+)” is locked\.$/,m=>`「${q(m[1])}」が固定中のため変更できません。`],
  [/^Loaded “(.+)” as the current design\.$/,m=>`「${m[1]}」を現在のデザインとして読み込みました。`],
- [/^Saved “(.+)”\. Open Compare to see it against later changes\.$/,m=>`「${q(m[1])}」を保存しました。「比較」を開くと、この後の変更と比べられます。`],
+ [/^Saved “(.+)”\. Add it in Compare to see it against later changes\.$/,m=>`「${q(m[1])}」を保存しました。「比較」で追加すると、この後の変更と比べられます。`],
  [/^Added (.+) to the comparison\.$/,m=>`${m[1]}を比較に追加しました。`],
  [/^Added (.+) to compare\.$/,m=>`${m[1]}を比較に追加しました。`],
  [/^Imported (.+)\. Curved contours follow the CAD outline exactly; measures are fitted to it\.$/,m=>`${m[1]}をインポートしました。曲線の輪郭はCADの外形に正確に沿い、寸法はそれに合わせてあります。`],
@@ -1652,13 +1712,13 @@ function analyze(G){
 const elevTxt=L=>L?`${f1(Math.abs(L.elev))}° ${L.elev>=0?'above':'below'} horiz.`:'n/a';
 
 /* ================= state ================= */
-const S={meta:{brand:'TERRA',model:'KOCHO',designer:'',tolLocked:true},p:defaults(),curves:{},locks:{},snaps:[],cmp:[],ovl:[],cmpOn:{current:true},view:'design',show:{cog:true,tama:'none',ell:false},draw:{on:false,seg:'swoopBg',smooth:true,strength:3},page:1,mode:'manual'};
+const S={meta:{brand:'TERRA',model:'KOCHO',designer:'',tolLocked:true},p:defaults(),curves:{},locks:{},snaps:[],cmp:[],ovl:[],cmpv:[],cmpOn:{current:true},view:'design',show:{cog:true,tama:'none',ell:false},draw:{on:false,seg:'swoopBg',smooth:true,strength:3},page:1,mode:'manual'};
 let CUR={G:null,A:null},hist=[],hpos=-1,started=false;
 const snapState=()=>JSON.stringify({p:S.p,curves:S.curves});
 function commit(){const s=snapState();if(hist[hpos]===s)return;hist=hist.slice(0,hpos+1);hist.push(s);if(hist.length>150)hist.shift();hpos=hist.length-1;autosave();updUndo();}
 function undo(d){const n=hpos+d;if(n<0||n>=hist.length)return;hpos=n;const s=JSON.parse(hist[n]);S.p=s.p;S.curves=s.curves;refresh();autosave();}
 function updUndo(){$('#bUndo').disabled=hpos<=0;$('#bRedo').disabled=hpos>=hist.length-1;}
-const projectData=()=>({app:'kendama-shape-designer',version:2,saved:new Date().toISOString(),meta:S.meta,p:S.p,curves:S.curves,locks:S.locks,snaps:S.snaps,cmp:S.cmp,ovl:S.ovl,base:S.base});
+const projectData=()=>({app:'kendama-shape-designer',version:2,saved:new Date().toISOString(),meta:S.meta,p:S.p,curves:S.curves,locks:S.locks,snaps:S.snaps,cmp:S.cmp,ovl:S.ovl,cmpv:S.cmpv,base:S.base});
 function autosave(){clearTimeout(autosave.t);autosave.t=setTimeout(()=>{try{localStorage.setItem('ksd.autosave',JSON.stringify(projectData()));}catch(e){}},400);}
 function cleanCurves(c){const o={},ren={neckRing:'swoopRing'};if(c&&typeof c==='object')for(const k0 in c){const k=ren[k0]||k0,v=c[k0];if(['waistSm','waistBg','handle','edgeSm','edgeBg'].includes(k0))continue;if((k0==='smCup'||k0==='bgCup')&&v&&v.imp)continue;if(k0==='baseHole'){if(v&&Array.isArray(v.pts)&&v.pts.length>2&&v.pts.every(q=>Array.isArray(q)&&isFinite(q[0])&&isFinite(q[1])))o.baseHole={pts:v.pts.map(q=>[+q[0],+q[1]]),on:v.on!==false};continue;}if(v&&Array.isArray(v.d)&&v.d.length>3&&v.d.every(x=>typeof x==='number'&&isFinite(x)))o[k]={d:v.d,smooth:!!v.smooth,strength:+v.strength||3,bin:+v.bin||0.35,on:v.on!==false};if(v.imp)o[k].imp=true;}return o;}
 function cleanDesign(o){
@@ -1676,7 +1736,7 @@ function loadProject(o){
  const d=cleanDesign(o);S.p=d.p;S.curves=d.curves;S.meta=Object.assign({brand:'',model:'',designer:'',tolLocked:true},o.meta||{});
  const list=a=>(Array.isArray(a)?a:[]).map((e,i)=>Object.assign(cleanDesign(e),{id:e.id||('e'+Date.now()+i),name:String(e.name||'Iteration '+(i+1)),src:e.src||''}));
  S.locks={};if(o.locks&&typeof o.locks==='object')for(const k in o.locks)if(o.locks[k]&&PD[k])S.locks[k]=true;
- S.baseNext=o.base&&typeof o.base==='object'?cleanCurves(o.base):null;S.snaps=list(o.snaps);S.cmp=list(o.cmp);S.ovl=(Array.isArray(o.ovl)?o.ovl:[]).map((e,i)=>Object.assign(cleanDesign(e),{id:e.id||('o'+Date.now()+i),name:String(e.name||'Shape '+(i+1)),src:e.src||'',on:e.on!==false,x:+e.x||0,y:+e.y||0,a:+e.a||0}));S.cmpOn={current:true};S.snaps.forEach(e=>S.cmpOn[e.id]=true);
+ S.baseNext=o.base&&typeof o.base==='object'?cleanCurves(o.base):null;S.snaps=list(o.snaps);S.cmp=list(o.cmp);const ovls=a=>(Array.isArray(a)?a:[]).map((e,i)=>Object.assign(cleanDesign(e),{id:e.id||('o'+Date.now()+i),name:String(e.name||'Shape '+(i+1)),src:e.src||'',on:e.on!==false,x:+e.x||0,y:+e.y||0,a:+e.a||0}));S.ovl=ovls(o.ovl);S.cmpv=ovls(o.cmpv);S.cmpOn={current:true};S.snaps.forEach(e=>S.cmpOn[e.id]=true);
  begin();
 }
 // turn a library entry into a design: fitted measures, best-fit radii for the curved segments, and exact imported contours wherever the parametric curve is more than 0.02 mm off
@@ -1731,7 +1791,7 @@ function libDesign(e){
 }
 function loadLib(name){
  const e=LIB.find(q=>q.name===name);if(!e)return;const d=libDesign(e);
- S.p=d.p;S.curves=d.curves;S.locks={};S.snaps=[];S.cmp=[];S.ovl=[];S.cmpOn={current:true};
+ S.p=d.p;S.curves=d.curves;S.locks={};S.snaps=[];S.cmp=[];S.ovl=[];S.cmpv=[];S.cmpOn={current:true};
  S.meta={brand:S.meta.brand||'TERRA',model:e.name.toUpperCase(),designer:S.meta.designer||'',tolLocked:true,imported:{file:e.file,notes:e.notes}};
  begin();toast(`Imported ${e.name}. Curved contours follow the CAD outline exactly; measures are fitted to it.`);
 }
@@ -1754,8 +1814,8 @@ function randomShape(){
   sanitize(p);if(!build(p,{}).W.length)break;}
  return p;
 }
-function newDesign(t){if(t==='kocho')return loadLib('Kocho');S.p=t==='random'?randomShape():Object.assign(defaults(),t==='scratch'?STARTER:{});sanitize(S.p);S.curves={};S.locks={};S.snaps=[];S.cmp=[];S.ovl=[];S.cmpOn={current:true};S.meta={brand:S.meta.brand||'TERRA',model:t==='scratch'||t==='random'?'NEW SHAPE':'KOCHO',designer:S.meta.designer||'',tolLocked:true};begin();}
-function begin(){started=true;S.base=JSON.parse(JSON.stringify(S.baseNext||S.curves||{}));S.baseNext=null;hist=[];hpos=-1;DD.spot=null;DD.selH=null;DD.hover=null;DD.free=null;MK.mA=null;DD.sar={on:false,C:null,a:0};DD.ovSel=null;DD.ovAdd=false;ddCancel();$('#start').classList.remove('show');$('#mBrand').value=S.meta.brand;$('#mModel').value=S.meta.model;$('#mDesigner').value=S.meta.designer;for(const k in VT)VT[k].auto=true;refresh();commit();}
+function newDesign(t){if(t==='kocho')return loadLib('Kocho');S.p=t==='random'?randomShape():Object.assign(defaults(),t==='scratch'?STARTER:{});sanitize(S.p);S.curves={};S.locks={};S.snaps=[];S.cmp=[];S.ovl=[];S.cmpv=[];S.cmpOn={current:true};S.meta={brand:S.meta.brand||'TERRA',model:t==='scratch'||t==='random'?'NEW SHAPE':'KOCHO',designer:S.meta.designer||'',tolLocked:true};begin();}
+function begin(){started=true;S.base=JSON.parse(JSON.stringify(S.baseNext||S.curves||{}));S.baseNext=null;hist=[];hpos=-1;DD.spot=null;DD.selH=null;DD.hover=null;DD.free=null;MK.mA=null;DD.sar={on:false,C:null,a:0};DD.ovSel=null;DD.ovAdd=false;CV.ovSel=null;CV.ovDrag=null;ddCancel();$('#start').classList.remove('show');$('#mBrand').value=S.meta.brand;$('#mModel').value=S.meta.model;$('#mDesigner').value=S.meta.designer;for(const k in VT)VT[k].auto=true;refresh();commit();}
 
 /* ================= parameter panel ================= */
 const rows={},contourRows={};let lockNote=null,holeRow=null;
@@ -1986,8 +2046,9 @@ const PAL=['#2f6f5e','#c0392b','#2c6fbb','#b7791f','#7d3c98','#0e8f8f','#d35400'
 function entries(){return[{id:'current',name:'Current design',p:S.p,curves:S.curves,cur:true},...S.snaps,...S.cmp];}
 function entryResult(e){if(e.cur)return CUR;const key=JSON.stringify([e.p,e.curves]);if(!e._r||e._k!==key){const G=build(e.p,e.curves);Object.defineProperty(e,'_r',{value:{G,A:analyze(G)},writable:true,enumerable:false,configurable:true});Object.defineProperty(e,'_k',{value:key,writable:true,enumerable:false,configurable:true});}return e._r;}
 function drawCompare(c,T){
- grid(c,T);const es=entries();c.lineJoin='round';
- es.forEach((e,i)=>{if(!S.cmpOn[e.id])return;const{G,A}=entryResult(e),sil=silhouette(G),k=PAL[i%PAL.length];c.strokeStyle=k;c.lineWidth=e.cur?2.2:1.5;pathW(c,T,sil.ken,true);c.stroke();pathW(c,T,sil.sar,true);c.stroke();cogMark(c,sx(T,A.cog.x),sy(T,A.cog.y),6,k);});
+ grid(c,T);c.lineJoin='round';
+ if(S.cmpOn.current!==false){const{G,A}=CUR,sil=silhouette(G),k=PAL[0];c.strokeStyle=k;c.lineWidth=2.2;pathW(c,T,sil.ken,true);c.stroke();pathW(c,T,sil.sar,true);c.stroke();if(S.show.cog)cogMark(c,sx(T,A.cog.x),sy(T,A.cog.y),6,k);}
+ drawOverlays(c,T);
 }
 /* ================= assembled view: 3D turn-around and mark-ups ================= */
 // the 3D view is a viewing aid: the ken, sarado and tama are spun from their profiles and drawn back to front
@@ -2328,17 +2389,41 @@ function ddUp(e){
  if(DD.tool==='line'&&DD.lA&&DD.lA.fresh){const A=DD.lA;A.fresh=false;if(!still&&e){const h=ddHit(ddEv(e,T),T,18);if(h&&h.id===A.id){DD.lA=null;if(!ddLine(h.id,A.s,ddEndS(CUR.G.segs[h.id],h.s,T)))toast('Pick two points further apart on the same contour.');}}syncDD();render();return;}
 }
 function ddCancel(){DD.ovDrag=null;DD.fr=null;DD.drag=null;DD.act=null;DD.stroke=null;DD.down=null;}
-// Compare: other shapes laid over this one, each with its own place and turn (about the middle of its ken)
+// Compare: other shapes laid over this one, each with its own place and turn (about the middle of its ken).
+// Drag & draw's Compare tool (a quick comparison while shaping: S.ovl, picked in DD) and the Compare view (S.cmpv, picked in CV) keep separate lists.
+const CV={ovSel:null,ovDrag:null};
+const ovCtx=()=>S.view==='compare'?{L:S.cmpv,st:CV}:{L:S.ovl,st:DD};
 const ovCol=i=>PAL[(i+1)%PAL.length];
 const ovT=(o,g,q)=>{const py=g.p.kenH/2,c=Math.cos(o.a),s=Math.sin(o.a),dx=q[0],dy=q[1]-py;return[dx*c-dy*s+o.x,py+dx*s+dy*c+o.y];};
 const ovPolys=o=>{const g=entryResult(o).G,sil=silhouette(g),f=q=>ovT(o,g,q);return{ken:sil.ken.map(f),sar:sil.sar.map(f)};};
-function ovHit(W){for(let i=S.ovl.length-1;i>=0;i--){const o=S.ovl[i];if(!o.on)continue;const P=ovPolys(o);if(pip(P.ken,W)||pip(P.sar,W))return o;}return null;}
-function ovAdd(x){const o=Object.assign({id:'o'+Date.now()+Math.random().toString(36).slice(2,6),on:true,x:0,y:0,a:0},x);S.ovl.push(o);DD.ovSel=o.id;autosave();render();toast(`Added ${o.name} to compare.`);}
+function ovHit(W){const L=ovCtx().L;for(let i=L.length-1;i>=0;i--){const o=L[i];if(!o.on)continue;const P=ovPolys(o);if(pip(P.ken,W)||pip(P.sar,W))return o;}return null;}
+function ovAdd(x){const o=Object.assign({id:'o'+Date.now()+Math.random().toString(36).slice(2,6),on:true,x:0,y:0,a:0},x),{L,st}=ovCtx();L.push(o);st.ovSel=o.id;autosave();render();toast(`Added ${o.name} to compare.`);}
 function drawOverlays(c,T){
- S.ovl.forEach((o,i)=>{if(!o.on)return;const{G:g,A:a}=entryResult(o),P=ovPolys(o),k=ovCol(i),f=q=>ovT(o,g,q);
-  c.strokeStyle=k;c.lineWidth=DD.ovSel===o.id&&DD.tool==='cmp'?2.6:1.6;pathW(c,T,P.ken,true);c.stroke();pathW(c,T,P.sar,true);c.stroke();
-  const cg=f([a.cog.x,a.cog.y]);cogMark(c,sx(T,cg[0]),sy(T,cg[1]),5,k);const tp=f([0,g.p.kenH]);c.fillStyle=k;c.font='11px -apple-system,Helvetica,Arial,sans-serif';c.textAlign='center';c.fillText(o.name,sx(T,tp[0]),sy(T,tp[1])-8);c.textAlign='left';});
+ const{L,st}=ovCtx();L.forEach((o,i)=>{if(!o.on)return;const{G:g,A:a}=entryResult(o),P=ovPolys(o),k=ovCol(i),f=q=>ovT(o,g,q);
+  c.strokeStyle=k;c.lineWidth=st.ovSel===o.id&&(DD.tool==='cmp'||S.view==='compare')?2.6:1.6;pathW(c,T,P.ken,true);c.stroke();pathW(c,T,P.sar,true);c.stroke();
+  if(S.show.cog||S.view!=='compare'){const cg=f([a.cog.x,a.cog.y]);cogMark(c,sx(T,cg[0]),sy(T,cg[1]),5,k);}const tp=f([0,g.p.kenH]);c.fillStyle=k;c.font='11px -apple-system,Helvetica,Arial,sans-serif';c.textAlign='center';c.fillText(o.name,sx(T,tp[0]),sy(T,tp[1])-8);c.textAlign='left';});
 }
+// where Compare shapes come from (Drag & draw's Compare tool and the Compare view's Add shape pill)
+function ovSources(){const cp=e=>({name:e.name,src:e.src||'',p:JSON.parse(JSON.stringify(e.p)),curves:JSON.parse(JSON.stringify(e.curves))});
+ return[['Library',LIB,e=>{const d=libDesign(e);return{name:e.name,src:'library',p:d.p,curves:d.curves};}],['Iterations',S.snaps,cp],['From project files',S.cmp,cp]];}
+// the chips for the Compare shapes and, for the picked one, its controls: show / hide, reset place, remove, turn
+function ovPanel(host,again,ib){const{L,st}=ovCtx();
+ L.forEach((o,i)=>{const b=el('button',{class:'dd-chip',title:o.name},el('span',{class:'sw',style:`background:${ovCol(i)}`}),el('span',{translate:'no'},o.name));b.classList.toggle('act',st.ovSel===o.id);b.classList.toggle('off',!o.on);b.onclick=again(()=>st.ovSel=st.ovSel===o.id?null:o.id);host.append(b);});
+ const o=L.find(q=>q.id===st.ovSel);if(!o)return;
+ const pop=el('div',{class:'dd-pop'}),m=el('button',{title:'Less'},'−'),pl=el('button',{title:'More'},'+'),save=()=>autosave();
+ pop.append(el('span',{class:'dd-n',translate:'no'},o.name));
+ const v=ib(o.on?'<svg viewBox="0 0 16 16"><path d="M1.5 8s2.4-4.6 6.5-4.6S14.5 8 14.5 8s-2.4 4.6-6.5 4.6S1.5 8 1.5 8zM8 5.9a2.1 2.1 0 1 0 0 4.2a2.1 2.1 0 1 0 0-4.2"/></svg>':'<svg viewBox="0 0 16 16"><path d="M1.5 8s2.4-4.6 6.5-4.6S14.5 8 14.5 8s-2.4 4.6-6.5 4.6S1.5 8 1.5 8zM8 5.9a2.1 2.1 0 1 0 0 4.2a2.1 2.1 0 1 0 0-4.2M2.5 2.5l11 11"/></svg>',o.on?'Hide':'Show',again(()=>{o.on=!o.on;save();}));v.dataset.k='eye';v.classList.toggle('act',!o.on);pop.append(v);
+ const rp=el('button',{},'Reset place');rp.dataset.k='reset';rp.onclick=again(()=>{o.x=o.y=o.a=0;save();});pop.append(rp);
+ const rm=ib('<svg viewBox="0 0 16 16"><path d="M3 5h10M6.5 5V3h3v2M4.5 5l.6 8h5.8l.6-8"/></svg>','Remove',again(()=>{L.splice(L.indexOf(o),1);st.ovSel=null;save();}));rm.dataset.k='remove';pop.append(rm);
+ m.onclick=again(()=>{o.a-=Math.PI/36;save();});pl.onclick=again(()=>{o.a+=Math.PI/36;save();});pop.append(el('span',{class:'dd-st'},el('span',{class:'dd-l'},'Turn'),m,el('b',{},Math.round(o.a*180/Math.PI)+'°'),pl));
+ host.append(pop);}
+// the Compare view: the Add shape pill's list and the floating panel for the shapes added
+function syncCmpView(){
+ const on=S.view==='compare',lb=$('#lCmpAdd'),box=$('#cmpCtl');lb.style.display=on?'flex':'none';box.style.display=on&&S.cmpv.length?'flex':'none';if(!on)return;
+ const sel=$('#tCmpAdd');sel.innerHTML='';sel.append(el('option',{value:''},'Add a shape…'));
+ ovSources().forEach(([name,arr],g)=>{if(!arr.length)return;const og=el('optgroup',{label:name});arr.forEach((e,i)=>og.append(el('option',{value:g+':'+i,translate:'no'},e.name)));sel.append(og);});sel.value='';
+ const host=$('#cmpOpts');host.innerHTML='';const again=fn=>()=>{fn();syncCmpView();syncCompare();render();},ib=(svg,title,fn)=>{const b=el('button',{class:'dd-ib',title});b.innerHTML=svg;b.onclick=fn;return b;};
+ ovPanel(host,again,ib);if(!CV.ovSel)host.append(el('span',{class:'dd-h'},'Pick a shape to show, hide, turn or remove it. Drag a shape to move it.'));}
 function drawDD(c,T){
  const G=CUR.G,acc=col('--accent'),P=q=>[sx(T,q[0]),sy(T,q[1])],t=DD.tool;c.save();c.lineJoin=c.lineCap='round';
  {const B=balView();if(B){const X=sx(T,B.x),Y=sy(T,B.y);c.translate(X,Y);c.rotate(-B.a);c.translate(-X,-Y);}}
@@ -2407,18 +2492,8 @@ function syncDD(){
   const sm=MK.items[MK.sel];if(sm&&sm.type==='meas'){const[a,b2]=sm.pts;host.append(el('span',{class:'dd-n'},`${f2(Math.hypot(b2[0]-a[0],b2[1]-a[1],(b2[2]||0)-(a[2]||0)))} mm`),el('span',{class:'dd-h'},`across ${f2(Math.abs(b2[0]-a[0]))} mm · along ${f2(Math.abs(b2[1]-a[1]))} mm`));}}
  else if(t==='cmp'){const ab=btn(DD.ovAdd?'Close the list':'Add a shape',again(()=>DD.ovAdd=!DD.ovAdd));ab.classList.toggle('act',!!DD.ovAdd);
   const ol=ib('<svg viewBox="0 0 16 16"><path d="M8 1.5v3.5M4.5 5h7M6.5 5l-.8 3.5h4.6L9.5 5M5.7 8.5L4.5 14.5h7l-1.2-6"/></svg>',DD.outline?'Show this design filled in again':'Show this design as an outline, like the shapes it is compared with',again(()=>DD.outline=!DD.outline));ol.classList.toggle('act',!!DD.outline);ol.dataset.k='outline';host.append(ol);
-  if(DD.ovAdd){const box=el('div',{class:'dd-list'}),grp=(name,arr,mk)=>{if(!arr.length)return;box.append(el('div',{class:'dd-lh'},name));for(const e of arr){const b=el('button',{translate:'no'},e.name);b.onclick=()=>{DD.ovAdd=false;ovAdd(mk(e));syncDD();};box.append(b);}},cp=e=>({name:e.name,src:e.src||'',p:JSON.parse(JSON.stringify(e.p)),curves:JSON.parse(JSON.stringify(e.curves))});
-   grp('Library',LIB,e=>{const d=libDesign(e);return{name:e.name,src:'library',p:d.p,curves:d.curves};});grp('Iterations',S.snaps,cp);grp('From project files',S.cmp,cp);host.append(box);}
-  S.ovl.forEach((o,i)=>{const b=el('button',{class:'dd-chip',title:o.name},el('span',{class:'sw',style:`background:${ovCol(i)}`}),el('span',{translate:'no'},o.name));b.classList.toggle('act',DD.ovSel===o.id);b.classList.toggle('off',!o.on);b.onclick=again(()=>DD.ovSel=DD.ovSel===o.id?null:o.id);host.append(b);});
-  const o=S.ovl.find(q=>q.id===DD.ovSel);
-  if(o){const pop=el('div',{class:'dd-pop'}),m=el('button',{title:'Less'},'−'),pl=el('button',{title:'More'},'+'),save=()=>autosave();
-   pop.append(el('span',{class:'dd-n',translate:'no'},o.name));
-   const v=ib(o.on?'<svg viewBox="0 0 16 16"><path d="M1.5 8s2.4-4.6 6.5-4.6S14.5 8 14.5 8s-2.4 4.6-6.5 4.6S1.5 8 1.5 8zM8 5.9a2.1 2.1 0 1 0 0 4.2a2.1 2.1 0 1 0 0-4.2"/></svg>':'<svg viewBox="0 0 16 16"><path d="M1.5 8s2.4-4.6 6.5-4.6S14.5 8 14.5 8s-2.4 4.6-6.5 4.6S1.5 8 1.5 8zM8 5.9a2.1 2.1 0 1 0 0 4.2a2.1 2.1 0 1 0 0-4.2M2.5 2.5l11 11"/></svg>',o.on?'Hide':'Show',again(()=>{o.on=!o.on;save();}));v.dataset.k='eye';v.classList.toggle('act',!o.on);pop.append(v);
-   const rp=el('button',{},'Reset place');rp.dataset.k='reset';rp.onclick=again(()=>{o.x=o.y=o.a=0;save();});pop.append(rp);
-   const rm=ib('<svg viewBox="0 0 16 16"><path d="M3 5h10M6.5 5V3h3v2M4.5 5l.6 8h5.8l.6-8"/></svg>','Remove',again(()=>{S.ovl.splice(S.ovl.indexOf(o),1);DD.ovSel=null;save();}));rm.dataset.k='remove';pop.append(rm);
-   m.onclick=again(()=>{o.a-=Math.PI/36;save();});pl.onclick=again(()=>{o.a+=Math.PI/36;save();});pop.append(el('span',{class:'dd-st'},el('span',{class:'dd-l'},'Turn'),m,el('b',{},Math.round(o.a*180/Math.PI)+'°'),pl));
-   host.append(pop);}
-  else if(!S.ovl.length&&!DD.ovAdd)hint(def[2]);}
+  if(DD.ovAdd){const box=el('div',{class:'dd-list'});for(const[name,arr,mk]of ovSources()){if(!arr.length)continue;box.append(el('div',{class:'dd-lh'},name));for(const e of arr){const b=el('button',{translate:'no'},e.name);b.onclick=()=>{DD.ovAdd=false;ovAdd(mk(e));syncDD();};box.append(b);}}host.append(box);}
+  ovPanel(host,again,ib);if(!S.ovl.length&&!DD.ovAdd)hint(def[2]);}
  else if(t==='reset'){btn('Restore all contours',()=>ddRestore(),!DD_SEGS.some(ddChanged));}
  else{const b=btn('',again(()=>DD.turn=!DD.turn));b.innerHTML='<svg viewBox="0 0 16 16"><path d="M13 8a5 5 0 1 1-1.6-3.7M13 2.2v2.6h-2.6"/></svg>';b.classList.add('dd-ib');b.classList.toggle('act',DD.turn);b.setAttribute('aria-pressed',DD.turn?'true':'false');b.title='When on, dragging spins the view on the screen. Hold Shift for 15° steps.';
   if(DD.turn||V3.roll){const deg=Math.round(V3.roll*180/Math.PI),turn=d=>again(()=>{let a=(deg+d)*Math.PI/180;a=Math.atan2(Math.sin(a),Math.cos(a));V3.roll=Math.abs(a)<1e-9?0:a;});stp('Angle',`${deg}°`,turn(-5),turn(5));btn('Upright',again(()=>V3.roll=0),!V3.roll);}else hint('Drag to move the view. Scroll or pinch to zoom.');}
@@ -2672,8 +2747,8 @@ function specPage2(D,E){
  rowT('All other contours','parametric');
  const legal=[];if(p.kenH>KWC_KEN)legal.push('KEN LENGTH');if(p.tamaCsD>KWC_BEVEL)legal.push('TAMA BEVEL');
  y+=4;head('KWC check');rowT('Ken length / tama bevel',legal.length?'NOT LEGAL: '+legal.join(', '):'OK');
- const on=entries().filter(e=>!e.cur&&S.cmpOn[e.id]);
- if(on.length){y+=4;head('Compared iterations (CoG / lunar big / small)');rowT('Current design',cmpLine(E));for(const e of on.slice(0,6))rowT(e.name.slice(0,34),cmpLine(entryResult(e)));}
+ const on=S.cmpv.filter(o=>o.on);
+ if(on.length){y+=4;head('Compared shapes (CoG / lunar big / small)');rowT('Current design',cmpLine(E));for(const e of on.slice(0,6))rowT(e.name.slice(0,34),cmpLine(entryResult(e)));}
  y+=6;D.text('Balance figures assume solid material of uniform density, unpainted.',x,y,{size:5.8,color:'#555555'});
 }
 const cmpLine=r=>`${f1(r.A.cog.y)} / ${r.A.big?f1(r.A.big.elev)+'°':'-'} / ${r.A.small?f1(r.A.small.elev)+'°':'-'}`;
@@ -2746,16 +2821,17 @@ function syncSnaps(){
  const host=$('#snapList');host.innerHTML='';
  const add=(e,arr)=>host.append(el('div',{class:'snap'},el('span',{title:e.name},e.name+(e.src?` · ${e.src}`:'')),el('button',{onclick:()=>{S.p=JSON.parse(JSON.stringify(e.p));S.curves=JSON.parse(JSON.stringify(e.curves));sanitize(S.p);refresh();commit();toast(`Loaded “${e.name}” as the current design.`);}},'Load'),el('button',{onclick:()=>{arr.splice(arr.indexOf(e),1);delete S.cmpOn[e.id];refresh();autosave();}},'✕')));
  S.snaps.forEach(e=>add(e,S.snaps));S.cmp.forEach(e=>add(e,S.cmp));
- if(!S.snaps.length&&!S.cmp.length)host.append(el('div',{class:'okmsg'},'Save an iteration, change the shape, then open Compare to see the balance side by side.'));
+ if(!S.snaps.length&&!S.cmp.length)host.append(el('div',{class:'okmsg'},'Save an iteration, change the shape, then add it in Compare to see the balance side by side.'));
 }
 function syncCompare(){
- const host=$('#cmpPanel');host.style.display=S.view==='compare'?'block':'none';if(S.view!=='compare'||!CUR.G)return;
- const es=entries(),base=CUR.A,d=(v,b,u)=>{const x=v-b;return Math.abs(x)<0.05?'':` <small style="color:var(--muted)">(${x>0?'+':''}${f1(x)}${u})</small>`;};
- let h='<table><tr><th></th><th>Design</th><th>Ken + sarado</th><th>CoG above base</th><th>CoG below sarado axis</th><th>Lunar lander, big cup (spike vs horizontal)</th><th>Lunar lander, small cup</th><th>CoG above tama (big / small)</th></tr>';
- es.forEach((e,i)=>{const{G,A}=entryResult(e),t=(L,B)=>L?f1(L.elev)+'°'+(e.cur||!B?'':d(L.elev,B.elev,'°')):'n/a';
-  h+=`<tr><td><input type="checkbox" data-id="${esc(e.id)}" ${S.cmpOn[e.id]?'checked':''}></td><td><span class="sw" style="background:${PAL[i%PAL.length]}"></span>${esc(e.name)}</td><td>${f1(A.M)} g</td><td>${f1(A.cog.y)} mm${e.cur?'':d(A.cog.y,base.cog.y,'')}</td><td>${f1(G.yA-A.cog.y)} mm</td><td>${t(A.big,base.big)}</td><td>${t(A.small,base.small)}</td><td>${A.big?f1(A.big.h):'-'} / ${A.small?f1(A.small.h):'-'} mm</td></tr>`;});
- host.innerHTML=h+'</table><p class="pnote" style="padding:0 8px">Positive angles mean the spike points above horizontal in the lunar lander balance.</p>';
- host.querySelectorAll('input').forEach(c=>c.onchange=()=>{S.cmpOn[c.dataset.id]=c.checked;render();});
+ syncCmpView();const host=$('#cmpPanel');host.style.display=S.view==='compare'?'block':'none';if(S.view!=='compare'||!CUR.G)return;
+ const base=CUR.A,d=(v,b,u)=>{const x=v-b;return Math.abs(x)<0.05?'':` <small style="color:var(--muted)">(${x>0?'+':''}${f1(x)}${u})</small>`;};
+ const rows=[{id:'current',name:'Current design',cur:true,on:S.cmpOn.current!==false,k:PAL[0],r:CUR},...S.cmpv.map((o,i)=>({id:o.id,name:o.name,on:o.on,k:ovCol(i),r:entryResult(o)}))];
+ let h='<table><tr><th></th><th>Design</th><th>Ken + sarado</th><th>Tama</th><th>Ken</th><th>Sarado</th><th>Lunar angle</th><th>CoG above base</th><th>CoG below sarado axis</th></tr>';
+ for(const e of rows){const{G,A}=e.r,g=(v,b)=>`<span class="n">${f1(v)}</span> g${e.cur?'':d(v,b,' g')}`,mm=(v,b)=>`<span class="n">${f1(v)}</span> mm${e.cur?'':d(v,b,' mm')}`,L=A.big,B=base.big;
+  h+=`<tr><td><input type="checkbox" data-id="${esc(e.id)}" ${e.on?'checked':''}></td><td><span class="sw" style="background:${e.k}"></span><span translate="no">${esc(e.name)}</span></td><td>${g(A.M,base.M)}</td><td>${g(A.tM,base.tM)}</td><td>${g(A.kM,base.kM)}</td><td>${g(A.sM,base.sM)}</td><td>${L?`<span class="n">${f1(L.elev)}</span>°`+(e.cur||!B?'':d(L.elev,B.elev,'°')):'n/a'}</td><td>${mm(A.cog.y,base.cog.y)}</td><td>${mm(G.yA-A.cog.y,CUR.G.yA-base.cog.y)}</td></tr>`;}
+ host.innerHTML=h+'</table><p class="pnote" style="padding:0 8px">Lunar angle: the spike\'s angle above (+) or below (−) horizontal in the big-cup lunar lander.</p>'+(S.cmpv.length?'':'<p class="pnote" style="padding:0 8px">Use Add shape to compare this design with a library shape, an iteration or a design from a project file.</p>');
+ host.querySelectorAll('input').forEach(c=>c.onchange=()=>{if(c.dataset.id==='current')S.cmpOn.current=c.checked;else{const o=S.cmpv.find(q=>q.id===c.dataset.id);if(o)o.on=c.checked;autosave();syncCmpView();}render();});
 }
 
 /* ================= refresh & events ================= */
@@ -2836,6 +2912,7 @@ function introClose(){INTRO.on=false;cancelAnimationFrame(INTRO.raf);if(INTRO.fi
 function readFile(input,cb){input.onchange=()=>{const f=input.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{cb(JSON.parse(r.result),f.name);}catch(e){toast('Could not open that file: '+e.message);}input.value='';};r.readAsText(f);};input.click();}
 function wire(){
  tamaMode();
+ $('#tCmpAdd').onchange=e=>{const v=e.target.value;if(!v)return;const[g,i]=v.split(':').map(Number),src=ovSources()[g],x=src&&src[1][i];if(x)ovAdd(src[2](x));syncCmpView();syncCompare();};
  $('#tView').onchange=e=>{const v=e.target.value;if(v==='dd')setMode('dd');else{if(S.mode==='dd')setMode('manual');setView(v);}};
  {const b=$('#bRight'),set=shut=>{document.body.classList.toggle('r-shut',shut);b.classList.toggle('act',!shut);b.setAttribute('aria-pressed',!shut);try{localStorage.setItem('tse.right',shut?'0':'1');}catch(e){}requestAnimationFrame(()=>{if(started){render();syncStats();}});};
   b.onclick=()=>set(!document.body.classList.contains('r-shut'));let sv=null;try{sv=localStorage.getItem('tse.right');}catch(e){}set(sv==='0');}
@@ -2863,7 +2940,7 @@ function wire(){
  $('#tTama').onchange=e=>{const nv=e.target.value;if(nv==='free'&&S.show.tama!=='free'&&S.show.tama!=='none')ddAdoptPose();else VT.design.auto=true;S.show.tama=nv;if(S.mode==='dd'){if(S.show.tama==='free')DD.tool='free';else if(DD.tool==='free')DD.tool='point';syncDD();}tamaChip();render();};tamaChip();
  $('#tEll').onclick=()=>{const on=S.show.ell=!S.show.ell,b=$('#tEll');S.ellHide={};b.classList.toggle('act',on);b.setAttribute('aria-pressed',on);b.querySelector('b').textContent=on?'On':'Off';render();};
  $('#bPage').onclick=()=>{S.page=S.page===1?2:1;$('#bPage').textContent=S.page===1?'Page 2 ›':'‹ Page 1';render();};
- $('#bSnap').onclick=()=>{const name=$('#snapName').value.trim()||`Iteration ${S.snaps.length+1}`,e={id:'s'+Date.now(),name,p:JSON.parse(JSON.stringify(S.p)),curves:JSON.parse(JSON.stringify(S.curves))};S.snaps.push(e);S.cmpOn[e.id]=true;$('#snapName').value='';refresh();autosave();toast(`Saved “${name}”. Open Compare to see it against later changes.`);};
+ $('#bSnap').onclick=()=>{const name=$('#snapName').value.trim()||`Iteration ${S.snaps.length+1}`,e={id:'s'+Date.now(),name,p:JSON.parse(JSON.stringify(S.p)),curves:JSON.parse(JSON.stringify(S.curves))};S.snaps.push(e);S.cmpOn[e.id]=true;$('#snapName').value='';refresh();autosave();toast(`Saved “${name}”. Add it in Compare to see it against later changes.`);};
  $('#bCmpFile').onclick=()=>readFile($('#fCmp'),(o,fn)=>{if(!o||o.app!=='kendama-shape-designer')throw new Error('not a Terra Shape Explorer project');const src=(o.meta&&o.meta.model)||fn,add=(e,name)=>{const d=cleanDesign(e),x={id:'c'+Date.now()+Math.random().toString(36).slice(2,6),name,src,p:d.p,curves:d.curves};S.cmp.push(x);S.cmpOn[x.id]=true;};add(o,'Current');(o.snaps||[]).forEach(e=>add(e,String(e.name||'Iteration')));setView('compare');refresh();autosave();});
  $('#zFit').onclick=()=>{const T=VT[S.view];if(T){T.auto=true;render();}};
  const zoom=(k,cx,cy)=>{const T=VT[S.view];if(!T)return;T.auto=false;const nz=clamp(T.z*k,0.5,60);T.ox=cx-(cx-T.ox)*nz/T.z;T.oy=cy-(cy-T.oy)*nz/T.z;T.z=nz;render();};
@@ -2875,12 +2952,13 @@ function wire(){
  cv.addEventListener('pointerdown',e=>{if(e.pointerType!=='touch')return;touch.set(e.pointerId,{x:e.clientX,y:e.clientY});if(touch.size===2){pan=null;mkCancel();pinch=pinchGeo();render();}},true);
  cv.addEventListener('pointermove',e=>{if(!touch.has(e.pointerId))return;touch.set(e.pointerId,{x:e.clientX,y:e.clientY});if(!pinch||touch.size<2)return;e.stopImmediatePropagation();const T=VT[S.view],g=pinchGeo();if(T&&pinch.d>0){T.auto=false;T.ox+=g.mx-pinch.mx;T.oy+=g.my-pinch.my;zoom(g.d/pinch.d,g.mx,g.my);}pinch=g;},true);
  const tEnd=e=>{touch.delete(e.pointerId);if(touch.size<2&&pinch){pinch=null;pan=null;}};cv.addEventListener('pointerup',tEnd,true);cv.addEventListener('pointercancel',tEnd,true);
- cv.onpointerdown=e=>{const T=VT[S.view];if(!T||pinch)return;cv.setPointerCapture(e.pointerId);if(S.mode==='dd'&&S.view==='design'){if(DD.tool==='mark'){if(!mkDown(e,T))pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};return;}if(!ddDown(e,T))pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};else T.auto=false;return;}if(S.view==='design'&&mkDown(e,T));else pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};};
+ cv.onpointerdown=e=>{const T=VT[S.view];if(!T||pinch)return;cv.setPointerCapture(e.pointerId);if(S.mode==='dd'&&S.view==='design'){if(DD.tool==='mark'){if(!mkDown(e,T))pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};return;}if(!ddDown(e,T))pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};else T.auto=false;return;}if(S.view==='compare'){const o=ovHit(world(e));if(o){CV.ovSel=o.id;CV.ovDrag={id:o.id,W:world(e)};T.auto=false;syncCmpView();render();return;}}if(S.view==='design'&&mkDown(e,T));else pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};};
  cv.onpointermove=e=>{const T=VT[S.view];if(!T){$('#hud').textContent='';return;}const w=world(e);$('#hud').textContent=S.view==='sarado'?`along sarado ${f1(w[0])} mm · radius ${f1(Math.abs(w[1]))} mm`:`height ${f1(w[1])} mm · radius ${f1(Math.abs(w[0]))} mm`;
   if(S.mode==='dd'&&S.view==='design'&&ddMove(e,T))return;
+  if(S.view==='compare'&&CV.ovDrag){const o=S.cmpv.find(q=>q.id===CV.ovDrag.id);if(o){o.x+=w[0]-CV.ovDrag.W[0];o.y+=w[1]-CV.ovDrag.W[1];CV.ovDrag.W=w;render();}return;}
   if(S.view==='design'&&mkMove(e,T))return;
   if(pan){T.auto=false;T.ox=pan.ox+e.clientX-pan.x;T.oy=pan.oy+e.clientY-pan.y;render();}};
- const up=e=>{if(S.mode==='dd')ddUp(e);mkUp(e);pan=null;};
+ const up=e=>{if(S.view==='compare'&&CV.ovDrag){CV.ovDrag=null;autosave();}if(S.mode==='dd')ddUp(e);mkUp(e);pan=null;};
  cv.onpointerup=up;cv.onpointercancel=up;
  new ResizeObserver(()=>{if(started)render();}).observe($('#stage'));
  window.addEventListener('keydown',e=>{const m=e.metaKey||e.ctrlKey;if(!m)return;if(e.key==='z'||e.key==='Z'){if(/INPUT|TEXTAREA/.test(document.activeElement.tagName)&&document.activeElement.type==='text')return;e.preventDefault();undo(e.shiftKey?1:-1);}else if(e.key==='s'){e.preventDefault();$('#bSave').click();}});
@@ -2890,7 +2968,20 @@ function tamaChip(){const t=TRICKS.find(t=>t[0]===S.show.tama);$('#lTama b').tex
 // the tama pill: Free (the tama where you last left it, shared by Markup and drag & draw) and the tricks. Markup can also turn it off; in drag & draw the tama is always there.
 function tamaMode(){const dd=S.mode==='dd';if(dd&&S.show.tama==='none')S.show.tama='free';const sel=$('#tTama');sel.innerHTML='';if(!dd)sel.append(el('option',{value:'none'},'Off'));sel.append(el('option',{value:'free'},'Free'));for(const[v,t]of TRICKS.slice(1))sel.append(el('option',{value:v},t));sel.value=S.show.tama;if(DD.tool==='free'&&S.show.tama!=='free')DD.tool='point';tamaChip();}
 buildParams();wire();setView('design');setMode('dd');showStart(false);if(!/[?&]selftest=/.test(location.search))introOpen();
-// phones: the top bar keeps the name, undo/redo and a menu button; everything else opens from the menu
+// the floating panels (Drag & draw's tools and the Compare view's shapes) can be dragged by their grip anywhere inside the shape view; a double-click puts one back
+{const place=(p,x,y)=>{const st=$('#stage'),w=p.offsetWidth,h=p.offsetHeight;x=clamp(x,0,Math.max(0,st.clientWidth-w));y=clamp(y,0,Math.max(0,st.clientHeight-h));p.classList.add('moved');p.style.left=x+'px';p.style.top=y+'px';p._at=[x,y];};
+ for(const p of[$('#dd'),$('#cmpCtl')]){const g=p.querySelector('.dd-grip'),fb=p.querySelector('.dd-fold');let d=null;
+  // the button beside the grip folds the panel down to just the grip and itself, and opens it again; the panel is shifted so the button stays where it was on screen
+  const fold=()=>{const a=fb.getBoundingClientRect(),s=p.classList.toggle('shut');fb.title=s?'Show the tools':'Hide the tools';fb.setAttribute('aria-expanded',s?'false':'true');
+   const b=fb.getBoundingClientRect(),r=p.getBoundingClientRect(),S0=$('#stage'),sr=S0.getBoundingClientRect();place(p,r.left-sr.left-S0.clientLeft+a.left-b.left,r.top-sr.top-S0.clientTop+a.top-b.top);};
+  fb.onclick=fold;fb.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();fold();}};
+  g.onpointerdown=e=>{e.preventDefault();e.stopPropagation();try{g.setPointerCapture(e.pointerId);}catch(_){}const r=p.getBoundingClientRect(),S0=$('#stage'),sr=S0.getBoundingClientRect();d={dx:e.clientX-r.left,dy:e.clientY-r.top,st:{left:sr.left+S0.clientLeft,top:sr.top+S0.clientTop}};};
+  g.onpointermove=e=>{if(!d)return;place(p,e.clientX-d.st.left-d.dx,e.clientY-d.st.top-d.dy);};
+  g.onpointerup=g.onpointercancel=()=>{d=null;};
+  g.ondblclick=()=>{p.classList.remove('moved');p.style.left=p.style.top='';p._at=null;};
+  new ResizeObserver(()=>{if(p._at)place(p,p._at[0],p._at[1]);}).observe(p);}
+ new ResizeObserver(()=>{for(const p of[$('#dd'),$('#cmpCtl')])if(p._at)place(p,p._at[0],p._at[1]);}).observe($('#stage'));}
+// the top bar keeps the name, undo/redo and a menu button; everything else opens from the menu
 {const mb=$('#bMenu'),hm=$('#hmenu'),setMenu=o=>{document.body.classList.toggle('m-menu',o);mb.setAttribute('aria-expanded',o);};
  mb.onclick=e=>{e.stopPropagation();setMenu(!document.body.classList.contains('m-menu'));};
  hm.addEventListener('click',e=>{if(e.target.closest('#hmenu>button'))setMenu(false);});
@@ -2919,8 +3010,8 @@ function piSetImage(src){
  const W0=src.naturalWidth||src.width,H0=src.naturalHeight||src.height,k=Math.min(1,2400/Math.max(W0,H0)),w=Math.max(1,Math.round(W0*k)),h=Math.max(1,Math.round(H0*k));
  const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(src,0,0,w,h);const d=x.getImageData(0,0,w,h).data;
  PI.img={c,w,h,d};PI.flip={ken:false,cups:false};piRedetect();} // caliper values already typed in are kept: they are of the real kendama, not the photo
-function piRedetect(){PI.det=null;PI.prof=null;PI.f=null;PI.fixed=false;PI.err='';
- try{const d=piDetect(PI.img,PI.flip);if(d.ok)PI.det=d;else PI.err=d.why;}catch(e){PI.err='The outline could not be read from this photo.';console.error(e);}
+function piRedetect(){PI.det=null;PI.detAuto=null;PI.prof=null;PI.f=null;PI.fixed=false;PI.err='';
+ try{const d=piDetect(PI.img,PI.flip);if(d.ok)PI.det=PI.detAuto=d;else PI.err=d.why;}catch(e){PI.err='The outline could not be read from this photo.';console.error(e);}
  if(PI.det&&Object.keys(PI.meas).some(k=>+PI.meas[k]>0))piRescale();}
 // find the outline: background vs wood, the ken's axis, then the edges of the ken (row by row) and of the sarado (column by column), to a fraction of a pixel
 function piDetect(I,flip){
@@ -3041,7 +3132,7 @@ function piDetect(I,flip){
  ken.unshift([0,piEnd(ken,0,1)]);ken.push([ybF-jt,0]);
  if(Math.max(capS,capE,capB)>0.012*(yb-jt))warn.push('The ends of the cups or the base can be seen in the photo, so it was taken from close up or at an angle. This has been allowed for, but a photo from further away with zoom will be more accurate.');
  if((yb-jt)<500)warn.push('The kendama is small in the photo. Zoom in or move closer so it fills most of the frame for a sharper outline.');
- return{ok:true,warn,c:{to:c.to},a,yb:ybF,jt,jA,sTilt:sl.b,sI0,sDir:dir,ken,sar,sarL:sL,yA:ybF-jA,kenH:ybF-jt,hid:[ybF-hb1,ybF-hb0]};}
+ return{ok:true,warn,c:{to:c.to},A:c.A,W:c.W,H:c.H,thr:thrF,cap:{base:capB,sm:capS,bg:capE},a,yb:ybF,jt,jA,sTilt:sl.b,sI0,sDir:dir,ken,sar,sarL:sL,yA:ybF-jA,kenH:ybF-jt,hid:[ybF-hb1,ybF-hb0]};}
 // how much of an end is the oval of a flat end face seen slightly from the side (px along the axis): from the very end inward, the outline climbs steeply until it levels out at the face's edge
 function piCap(p,x0,dir,maxC){const r=x=>interp(p,x),h=3,Wn=Math.max(10,0.012*Math.abs(p[p.length-1][0]-p[0][0]));for(let u=0;u<=maxC;u+=0.5){let ok=true;for(let k=0;k<=8;k+=2){const xa=x0+dir*(u+k);if((r(xa+dir*h)-r(xa))/h>0.35){ok=false;break;}}
   if(ok){const r0=r(x0+dir*u);for(let k=0;k<=Wn;k+=2)if(r0<0.955*r(x0+dir*(u+k))){ok=false;break;}} /* and it must be (nearly) as wide as the outline just inside: a short flat stretch partway up the oval is not the end */if(ok)return u<4?0:u+0.35*u*u/Math.max(1,r(x0+dir*u));}return 0;} // the outline levels to that slope a little short of the face's edge on an oval (by 0.35·b²/R)
@@ -3103,10 +3194,102 @@ function piDesign(){
 function piImport(){
  if(PI_CHECK.some(k=>{const d=piOff(k);return d!=null&&Math.abs(d)>0.05;}))piFix(); // real measurements typed on the check step are always used, even without pressing Fix it for me
  const e=piDesign(),d=libDesign(e),nm=(PI.name||'Photo import').trim()||'Photo import';d.p.swoopMode='two';sanitize(d.p); // the two swoop surfaces keep the photo's own curves (one surface would refit them as a single arc)
- S.p=d.p;S.curves=d.curves;S.locks={};S.snaps=[];S.cmp=[];S.ovl=[];S.cmpOn={current:true};
+ S.p=d.p;S.curves=d.curves;S.locks={};S.snaps=[];S.cmp=[];S.ovl=[];S.cmpv=[];S.cmpOn={current:true};
  S.meta={brand:S.meta.brand||'',model:nm.toUpperCase(),designer:S.meta.designer||'',tolLocked:true,imported:{file:'a photo',notes:['Traced from a photo. Curved contours follow the photo outline; cup depths, the tama and the string holes are not visible in a photo, so check them.']}};
  $('#pimp').classList.remove('show');begin();toast('Imported from the photo. Check the cup depths and the tama: a photo cannot show them.');}
 
+/* ---------- adjusting the outline by hand ----------
+   Lines are drawn over the photo where the outline should be. "Use exactly" puts them into the outline as drawn; "Use as a guide" looks for the edge of the wood
+   close to each line (the steepest step out of the wood, as the detection does) and uses that. A line along a contour replaces that stretch of it on both sides,
+   since the part is turned; a line across the base or across the end of a cup moves that end. It can be repeated until the outline is right. */
+const PE={d:null,hist:[],strokes:[],tool:'pen',z:1,ox:0,oy:0,fit:true,cur:null,pan:null,msg:null};
+// photo pixel → the turned frame the outline is kept in (i across the ken, j down it)
+function piInv(d){const o=d.c.to(0,0),a=d.c.to(1,0),b=d.c.to(0,1),ei=[a[0]-o[0],a[1]-o[1]],ej=[b[0]-o[0],b[1]-o[1]],D=ei[0]*ej[1]-ei[1]*ej[0];return(x,y)=>{const dx=x-o[0],dy=y-o[1];return[(dx*ej[1]-dy*ej[0])/D,(ei[0]*dy-ei[1]*dx)/D];};}
+// the outline as lines in that frame, each with what it is: the ken's sides, the sarado's top and bottom, the base and the two cup ends
+function piLines(d){const jA=d.yb-d.yA,sp=(x,r,s)=>{const i=d.sI0+d.sDir*x;return[i,jA+d.sTilt*(i-d.a)-s*r];},L=[],K=d.ken,X=d.sar,x1=X[X.length-1];
+ for(const s of[1,-1]){L.push({k:'ken',p:K.map(([y,r])=>[d.a+s*r,d.yb-y])});L.push({k:'sar',p:X.map(([x,r])=>sp(x,r,s))});}
+ L.push({k:'base',p:[[d.a-K[0][1],d.yb],[d.a+K[0][1],d.yb]]},{k:'sm',p:[sp(0,X[0][1],1),sp(0,X[0][1],-1)]},{k:'bg',p:[sp(x1[0],x1[1],1),sp(x1[0],x1[1],-1)]});return L;}
+function piNear(L,q){let best=null,bd=1e9;for(const l of L){const P=l.p;for(let n=0;n+1<P.length;n+=(P.length>400?2:1)){const a=P[n],b=P[Math.min(P.length-1,n+(P.length>400?2:1))],vx=b[0]-a[0],vy=b[1]-a[1],L2=vx*vx+vy*vy,t=L2?clamp(((q[0]-a[0])*vx+(q[1]-a[1])*vy)/L2,0,1):0,dd=Math.hypot(q[0]-a[0]-t*vx,q[1]-a[1]-t*vy);if(dd<bd){bd=dd;best=l;}}}return best;}
+// the edge of the wood near (i,j), looking along (di,dj) pointing out of the wood: offset along that line, or null when there is no clear edge.
+// tOut is where the current outline crosses that line: an edge further out must have wood all the way back to it, one further in background
+function piSnap(d,i,j,di,dj,tol,tOut){const A=d.A,W=d.W,at=t=>{const x=i+di*t,y=j+dj*t;if(x<0||y<0||x>W-1.001||y>d.H-1.001)return null;const x0=x|0,y0=y|0,a=x-x0,b=y-y0,o=y0*W+x0;return(A[o]*(1-a)+A[o+1]*a)*(1-b)+(A[o+W]*(1-a)+A[o+W+1]*a)*b;};
+ const avg=(t0,t1)=>{let s=0,n=0;for(let t=t0;t<=t1;t++){const v=at(t);if(v==null)return null;s+=v;n++;}return s/n;};
+ let tg=null,gv=0,best=0;for(let t=-tol;t<=tol;t+=0.5){const a=at(t-2),b=at(t+2);if(a==null||b==null||a<=b)continue;const ai=avg(t-10,t-3),bo=avg(t+3,t+10);if(ai==null||bo==null||ai<d.thr||bo>0.7*d.thr)continue;if(tOut!=null&&Math.abs(t-tOut)>6){const lo=Math.min(t,tOut)+3,hi=Math.max(t,tOut)-3,out=t>tOut;let n=0,ok=0;for(let u=lo;u<=hi;u+=1){const v=at(u);if(v==null)continue;n++;if(out?v>=0.7*d.thr:v<d.thr)ok++;}if(n&&ok<0.85*n)continue;}const g=a-b,w=g*(1-0.4*Math.abs(t)/tol);if(w>best){best=w;gv=g;tg=t;}} // wood inside, background outside; the nearer of two edges wins
+ if(tg==null||gv<Math.max(4,d.thr*0.12))return null;
+ const hi=at(tg-3),lo=at(tg+3);if(hi==null||lo==null)return tg;const lv=(hi+lo)/2;let out=tg,bd=9;for(let t=tg-3;t<tg+3;t+=0.25){const a=at(t),b=at(t+0.25);if(a!=null&&b!=null&&a>=lv&&b<lv){const p=t+0.25*(a-lv)/(a-b);if(Math.abs(p-tg)<bd){bd=Math.abs(p-tg);out=p;}}}return out;}
+// a new outline from the lines drawn (photo pixels); snap: find the edge of the wood near them
+function piGuide(d,strokes,snap){
+ const inv=piInv(d),L=piLines(d),jA=d.yb-d.yA,tol=Math.max(8,0.05*d.kenH),K=[],X=[],F={base:[],sm:[],bg:[]};let tried=0,found=0;
+ for(const st of strokes){const pts=[];st.forEach((p,n)=>{if(n){const q=st[n-1],m=Math.ceil(Math.hypot(p[0]-q[0],p[1]-q[1]));for(let k=1;k<m;k++)pts.push([q[0]+(p[0]-q[0])*k/m,q[1]+(p[1]-q[1])*k/m]);}pts.push(p);}); // about 1 px apart
+  const Q=[];for(const p of pts){const[i,j]=inv(p[0],p[1]),l=piNear(L,[i,j]);if(!l)continue;const k=l.k,mid=jA+d.sTilt*(i-d.a);
+   const dir=k==='ken'?[i>=d.a?1:-1,0]:k==='sar'?[0,j<mid?-1:1]:k==='base'?[0,1]:k==='sm'?[-d.sDir,0]:[d.sDir,0];let t=null;
+   if(snap){tried++;const y=d.yb-j,x=(i-d.sI0)*d.sDir,tOut=k==='ken'?(d.a-i)*dir[0]+interp(d.ken,y):k==='sar'?(j-mid)*(-dir[1])+interp(d.sar,x):k==='base'?d.yb-j:k==='sm'?x:d.sarL-x;
+    t=piSnap(d,i,j,dir[0],dir[1],tol,tOut);if(t!=null)found++;}Q.push({i,j,k,dir,t});}
+  // an edge found on its own, or well off from the ones found just before and after it on the line, is something else (grain, a shadow): dropped
+  if(snap){const T0=Q.map(q=>q.t);for(let n=0;n<Q.length;n++){if(T0[n]==null)continue;const nb=[];for(let m=Math.max(0,n-12);m<=Math.min(Q.length-1,n+12);m++)if(T0[m]!=null&&Q[m].k===Q[n].k)nb.push(T0[m]);if(nb.length<6||Math.abs(T0[n]-piMed(nb))>3){Q[n].t=null;found--;}}
+  // a gap with a found edge either side takes its offset from them (so the outline does not jump back and forth); with none on one side, that stretch is left out and the outline stays as it was there
+   for(let n=0;n<Q.length;n++){if(Q[n].t!=null)continue;const a=n-1;let b=n;while(b<Q.length&&Q[b].t==null&&Q[b].k===Q[n].k)b++;
+    const ta=a>=0&&Q[a].k===Q[n].k?Q[a].t:null,tb=b<Q.length&&Q[b].k===Q[n].k?Q[b].t:null;
+    for(let m=n;m<b;m++){if(ta!=null&&tb!=null)Q[m].t=ta+(tb-ta)*(m-a)/(b-a);else Q[m].skip=true;}n=b-1;}}
+  const cap=d.cap||{};for(let{i,j,k,dir,t,skip}of Q){if(skip)continue;if(t){i+=dir[0]*t;j+=dir[1]*t;}
+   const c0=snap&&t?cap[k]||0:0; // an end found in the photo is the far side of its oval; the face itself is that much further in, as the detection allows for
+   if(k==='ken')K.push([d.yb-j,Math.abs(i-d.a)]);else if(k==='sar')X.push([(i-d.sI0)*d.sDir,Math.abs(j-(jA+d.sTilt*(i-d.a)))]);else F[k].push(k==='base'?d.yb-j+c0:k==='sm'?(i-d.sI0)*d.sDir+c0:(i-d.sI0)*d.sDir-c0);}}
+ // each pixel along the part takes the middle of the radii drawn there; the stretch the lines cover replaces the outline found
+ const merge=(P,U)=>{if(!U.length)return P.map(q=>q.slice());const B=new Map();for(const[x,r]of U){const k=Math.round(x);if(!B.has(k))B.set(k,[]);B.get(k).push(r);}
+  let u=[...B].map(([x,rs])=>[x,piMed(rs)]).sort((p,q)=>p[0]-q[0]);if(snap&&u.length>6)u=piSmooth(u);
+  const R=[];let a=u[0][0],b=a;for(const[x]of u){if(x-b>6){R.push([a,b]);a=x;}b=x;}R.push([a,b]);
+  return[...P.filter(([x])=>!R.some(([a,b])=>x>=a-0.5&&x<=b+0.5)).map(q=>q.slice()),...u].sort((p,q)=>p[0]-q[0]);};
+ let ken=merge(d.ken,K),sar=merge(d.sar,X),yb=d.yb,sI0=d.sI0;
+ ken=ken.filter((q,n)=>q[1]>1e-6||n===ken.length-1);if(ken[ken.length-1][1]>0.5)ken.push([ken[ken.length-1][0]+0.5,0]); // only the spike tip closes on the axis
+ // the ends: a line across an end puts it there; a line along a contour past an end moves the end out to it
+ const fb=F.base.length?piMed(F.base):Math.min(0,ken[0][0]);if(fb){const r0=fb<ken[0][0]?ken[0][1]:interp(ken,fb);ken=[[0,r0],...ken.filter(([y])=>y>fb+0.5).map(([y,r])=>[y-fb,r])];yb-=fb;}
+ const fs=F.sm.length?piMed(F.sm):Math.min(0,sar[0][0]);if(fs){const r0=fs<sar[0][0]?sar[0][1]:interp(sar,fs);sar=[[0,r0],...sar.filter(([x])=>x>fs+0.5).map(([x,r])=>[x-fs,r])];sI0+=d.sDir*fs;}
+ if(F.bg.length){const fe=piMed(F.bg)-fs,last=sar[sar.length-1],r1=fe>last[0]?last[1]:interp(sar,fe);sar=[...sar.filter(([x])=>x<fe-0.5),[fe,r1]];}
+ const kenH=ken[ken.length-1][0];
+ return{d:Object.assign({},d,{ken,sar,yb,sI0,sarL:sar[sar.length-1][0],kenH,yA:yb-jA,jt:yb-kenH}),tried,found};}
+function piEdOpen(){if(!PI.det)return;Object.assign(PE,{d:PI.det,hist:[],strokes:[],tool:'pen',fit:true,cur:null,pan:null,msg:null});$('#pied').classList.add('show');piEdRender();requestAnimationFrame(piEdDraw);}
+function piEdClose(){$('#pied').classList.remove('show');PE.cur=PE.pan=null;}
+function piEdApply(snap){const r=piGuide(PE.d,PE.strokes,snap);PE.hist.push({t:'apply',d:PE.d,strokes:PE.strokes});PE.d=r.d;PE.strokes=[];
+ PE.msg=snap?(r.found>=r.tried*0.95?['The edge of the wood was found all along your lines. Check the new outline; draw more to change it again, or press OK.']:['Share of your lines where the edge of the wood was found:',el('b',{class:'pe-n'},Math.round(100*r.found/Math.max(1,r.tried))+'%'),'Where it was not found close enough, the outline was left as it was: draw closer to the edge, or use exactly to put a line in as drawn. Check the new outline; draw more to change it again, or press OK.']):['Your lines are now part of the outline. Draw more to change it again, or press OK.'];piEdRender();}
+function piEdOK(){PI.det=PE.d;if(PI.det&&Object.keys(PI.meas).some(k=>+PI.meas[k]>0))piRescale();else{PI.sc=PI.prof=PI.f=null;PI.fixed=false;}piEdClose();piRender();}
+function piEdUndo(){const h=PE.hist.pop();if(!h)return;if(h.t==='apply'){PE.d=h.d;PE.strokes=h.strokes;}else if(h.t==='add')PE.strokes.pop();else if(h.t==='erase')PE.strokes.splice(h.i,0,h.s);else if(h.t==='clear')PE.strokes=h.strokes;else if(h.t==='reset')PE.d=h.d;PE.msg=null;piEdRender();}
+const PE_TOOLS=[['pen','Draw','<path d="M2 11c2-7 4 4 6-1s3-4 6-5"/>'],['line','Straight line','<path d="M3.5 12.5L12.5 3.5M1.6 14a1.6 1.6 0 1 0 3.2 0a1.6 1.6 0 1 0-3.2 0M11.2 2a1.6 1.6 0 1 0 3.2 0a1.6 1.6 0 1 0-3.2 0"/>'],['erase','Erase a line','<path d="M6.3 13.5L2.6 9.8a1 1 0 0 1 0-1.4l5.5-5.5a1 1 0 0 1 1.4 0l3.7 3.7a1 1 0 0 1 0 1.4l-4.9 4.9zM5 7.5l4.6 4.6M6.3 13.5H14"/>'],['pan','Move view','<path d="M8 2v12M2 8h12M6 4l2-2 2 2M6 12l2 2 2-2M4 6L2 8l2 2M12 6l2 2-2 2"/>']];
+function piEdRender(){
+ const bar=$('#pedBar'),act=$('#pedAct'),n=PE.strokes.length,changed=PE.d!==PI.detAuto;bar.innerHTML='';act.innerHTML='';
+ const b=(t,fn,o={})=>{const x=el('button',Object.assign({},o.title?{title:o.title}:{},o.id?{id:o.id}:{},o.pri?{class:'pri'}:{}),t);x.onclick=fn;x.disabled=!!o.dis;return x;};
+ for(const[k,t,svg]of PE_TOOLS){const x=el('button',{'data-pt':k,title:t});x.innerHTML=`<svg viewBox="0 0 16 16">${svg}</svg>`;x.append(el('span',{},t));x.classList.toggle('act',PE.tool===k);x.onclick=()=>{PE.tool=k;piEdRender();};bar.append(x);}
+ bar.append(el('span',{class:'dd-sep'}),b('−',()=>piEdZoom(0.8),{title:'Zoom out'}),b('+',()=>piEdZoom(1.25),{title:'Zoom in'}),b('Fit',()=>{PE.fit=true;piEdDraw();},{title:'Fit the photo in the window'}),el('span',{class:'dd-sep'}),
+  b('Undo',piEdUndo,{dis:!PE.hist.length,id:'pedUndo'}),b('Clear lines',()=>{PE.hist.push({t:'clear',strokes:PE.strokes});PE.strokes=[];piEdRender();},{dis:!n}));
+ const hint=$('#pedHint');hint.innerHTML='';for(const x of n?['Use exactly puts your lines into the outline as drawn. Use as a guide looks for the edge of the wood close to your lines.']:PE.msg||['Draw over the photo where the outline should be: along an edge, or across the base or the end of a cup. A line on one side of the ken or sarado is used for both sides.'])hint.append(typeof x==='string'?el('span',{},x):x,' ');
+ act.append(b('Cancel',piEdClose),b('Back to the outline found',()=>{PE.hist.push({t:'reset',d:PE.d});PE.d=PI.detAuto;PE.msg=null;piEdRender();},{dis:!changed||!PI.detAuto}),
+  b('Use as a guide',()=>piEdApply(true),{dis:!n,id:'pedGuide',title:'Look for the edge of the wood close to your lines'}),b('Use exactly',()=>piEdApply(false),{dis:!n,id:'pedExact',title:'Put your lines into the outline as drawn'}),
+  b('OK, use this outline',piEdOK,{pri:1,dis:!!n,id:'pedOK',title:n?'Use or clear your lines first':'Use this outline and go on'}));
+ piEdDraw();}
+function piEdView(){const cv=$('#pedCv'),I=PI.img,r=cv.getBoundingClientRect(),W=r.width,H=r.height;if(PE.fit&&I&&W>0){PE.z=Math.min(W/I.w,H/I.h)*0.96;PE.ox=(W-I.w*PE.z)/2;PE.oy=(H-I.h*PE.z)/2;}return{W,H};}
+function piEdZoom(f,cx,cy){const{W,H}=piEdView();if(cx==null){cx=W/2;cy=H/2;}const z=clamp(PE.z*f,0.02,40);PE.ox=cx-(cx-PE.ox)*z/PE.z;PE.oy=cy-(cy-PE.oy)*z/PE.z;PE.z=z;PE.fit=false;piEdDraw();}
+function piEdDraw(){
+ const cv=$('#pedCv'),I=PI.img,d=PE.d;if(!I||!d||!$('#pied').classList.contains('show'))return;const{W,H}=piEdView();if(W<10)return;const dpr=window.devicePixelRatio||1;
+ cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,W,H);
+ c.save();c.translate(PE.ox,PE.oy);c.scale(PE.z,PE.z);c.imageSmoothingEnabled=PE.z<3;c.drawImage(I.c,0,0);c.restore();
+ const S2=([x,y])=>[PE.ox+x*PE.z,PE.oy+y*PE.z],path=(pts,col,w,dash)=>{c.strokeStyle=col;c.lineWidth=w;c.setLineDash(dash||[]);c.beginPath();pts.forEach((q,i)=>{const p=S2(q);i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]);});c.stroke();c.setLineDash([]);};
+ c.lineJoin=c.lineCap='round';
+ if(PI.detAuto&&d!==PI.detAuto)for(const l of piLines(PI.detAuto))if(l.k==='ken'||l.k==='sar')path(l.p.map(q=>PI.detAuto.c.to(q[0],q[1])),'rgba(255,255,255,.55)',1,[4,4]); // the outline first found, for comparison
+ for(const l of piLines(d))path(l.p.map(q=>d.c.to(q[0],q[1])),l.k==='ken'||l.k==='base'?'#ff4d6d':'#2bb3ff',1.6);
+ for(const st of PE.strokes){path(st,'rgba(0,0,0,.5)',4.5);path(st,'#ffd400',2.5);}
+ if(PE.cur){path(PE.cur,'rgba(0,0,0,.5)',4.5);path(PE.cur,'#ffd400',2.5);}}
+// pointer: draw, straight line (press, drag, let go), erase a line by clicking it, move the view; the wheel zooms
+{const cv=$('#pedCv'),P=e=>{const r=cv.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top];},W=q=>[(q[0]-PE.ox)/PE.z,(q[1]-PE.oy)/PE.z];
+ cv.onpointerdown=e=>{e.preventDefault();try{cv.setPointerCapture(e.pointerId);}catch(_){}const q=P(e),w=W(q);
+  if(PE.tool==='pan'||e.button===1){PE.pan={q,ox:PE.ox,oy:PE.oy};return;}
+  if(PE.tool==='erase'){let bi=-1,bd=12;PE.strokes.forEach((st,i)=>{for(let n=0;n<st.length;n++){const a=st[n],b=st[Math.min(st.length-1,n+1)],vx=b[0]-a[0],vy=b[1]-a[1],L2=vx*vx+vy*vy,t=L2?clamp(((w[0]-a[0])*vx+(w[1]-a[1])*vy)/L2,0,1):0,dd=Math.hypot(w[0]-a[0]-t*vx,w[1]-a[1]-t*vy)*PE.z;if(dd<bd){bd=dd;bi=i;}}});
+   if(bi>=0){PE.hist.push({t:'erase',i:bi,s:PE.strokes[bi]});PE.strokes.splice(bi,1);piEdRender();}return;}
+  PE.cur=PE.tool==='line'?[w,w]:[w];piEdDraw();};
+ cv.onpointermove=e=>{const q=P(e);if(PE.pan){PE.ox=PE.pan.ox+q[0]-PE.pan.q[0];PE.oy=PE.pan.oy+q[1]-PE.pan.q[1];PE.fit=false;piEdDraw();return;}if(!PE.cur)return;const w=W(q);
+  if(PE.tool==='line')PE.cur[1]=w;else{const l=PE.cur[PE.cur.length-1];if(Math.hypot(w[0]-l[0],w[1]-l[1])*PE.z>=2)PE.cur.push(w);}piEdDraw();};
+ const up=()=>{PE.pan=null;const s=PE.cur;PE.cur=null;if(!s)return;const a=s[0],b=s[s.length-1];if(s.length>1&&(s.length>2||Math.hypot(b[0]-a[0],b[1]-a[1])*PE.z>4)){PE.strokes.push(s);PE.hist.push({t:'add'});PE.msg=null;piEdRender();}else piEdDraw();};
+ cv.onpointerup=up;cv.onpointercancel=up;
+ cv.addEventListener('wheel',e=>{e.preventDefault();const q=P(e);piEdZoom(Math.exp(-e.deltaY*0.0015),q[0],q[1]);},{passive:false});
+ new ResizeObserver(()=>piEdDraw()).observe(cv);}
 /* ---------- the photo import screens ---------- */
 const PI_STEPS=[['info','Set up'],['photo','Photo'],['scale','Scale'],['check','Check']];
 function piOpen(){PI.step='info';PI.name='Photo import';piRender();$('#pimp').classList.add('show');}
@@ -3118,20 +3301,21 @@ function piRender(){
  const B=$('#piBody'),Ac=$('#piAct'),st=$('#piSteps'),btn=(t,fn,o={})=>el('button',Object.assign({onclick:fn},o.pri?{class:'pri'}:{},o.dis?{disabled:''}:{},o.id?{id:o.id}:{}),t);
  st.innerHTML='';const at=PI_STEPS.findIndex(s=>s[0]===PI.step);PI_STEPS.forEach(([k,t],i)=>st.append(el('span',{class:i===at?'on':i<at?'done':''},t)));B.innerHTML='';Ac.innerHTML='';
  if(PI.step==='info'){
-  const ex=el('canvas',{id:'piEx'});B.append(el('p',{},'A kendama is turned on a lathe, so a straight side-on photo shows its exact profile. A good photo makes a good shape:'),
+  const ex=el('canvas',{id:'piEx'});B.append(
    el('div',{class:'piinfo'},el('ol',{class:'pitips'},...['Take the tama and string off, so only the ken and sarado are in the photo.',
     'Lay the kendama on a plain sheet of white paper, with the cups pointing left and right. For light-coloured wood, use a dark sheet instead.',
     'Light it evenly, for example daylight from a window. Avoid sharp shadows next to the wood.',
     'Shoot straight down from about 1 m away with 2× or 3× zoom, so the kendama fills most of the frame. Keep the phone level; the camera grid or level helps.',
     'Leave a clear gap between the kendama and every edge of the photo.',
     'Have calipers or a ruler ready. You will type in one or more measurements to set the scale, then check the result against the real kendama.'].map(t=>el('li',{},t))),
-   el('figure',{},ex,el('figcaption',{},'A good photo: plain background, kendama square to the camera, a gap all round.'))),
+   el('figure',{},el('figcaption',{},'Example photo'),ex)),
    el('p',{class:'gnote'},'Why from further away: close up, the ends of the kendama look smaller than the middle. From a distance with zoom, the outline stays true.'));
   Ac.append(btn('Cancel',()=>$('#pimp').classList.remove('show')),btn('Choose or take a photo',piPick,{pri:1}));piExample(ex);return;}
  if(PI.step==='photo'){
   const cvs=el('canvas',{id:'piCv'});B.append(cvs);
   if(PI.err)B.append(el('p',{class:'pierr'},PI.err));else{B.append(el('p',{},'The outline found in the photo is drawn on top. Check that it follows the edge of the wood all the way round, and that the base and the two cups are labelled correctly.'));
-   B.append(el('div',{class:'row'},btn('Flip ken (base ↔ spike)',()=>{PI.flip.ken=!PI.flip.ken;piRedetect();piRender();}),btn('Swap cups',()=>{PI.flip.cups=!PI.flip.cups;piRedetect();piRender();})));}
+   if(PI.det!==PI.detAuto)B.append(el('p',{class:'piok'},'Outline adjusted by hand. Flip ken or Swap cups reads the photo again and drops these changes.'));
+   B.append(el('div',{class:'row'},btn('Adjust outline…',piEdOpen,{id:'piAdj'}),btn('Flip ken (base ↔ spike)',()=>{PI.flip.ken=!PI.flip.ken;piRedetect();piRender();}),btn('Swap cups',()=>{PI.flip.cups=!PI.flip.cups;piRedetect();piRender();})));}
   if(PI.det)for(const t of PI.det.warn)B.append(el('p',{class:'piwarn'},t));
   Ac.append(btn('Back',()=>piGo('info')),btn('Use another photo',piPick),btn('Next',()=>piGo('scale'),{pri:1,dis:!PI.det}));piDraw(cvs);return;}
  if(PI.step==='scale'){
