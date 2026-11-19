@@ -262,6 +262,13 @@ body.r-shut .wrap{grid-template-columns:350px 1fr}body.r-shut aside.right{displa
  #mnav button.act{background:color-mix(in srgb,var(--accent) 14%,var(--panel));color:var(--accent);font-weight:600}
 }
 
+/* password screen */
+.gate{position:fixed;inset:0;z-index:25;background:var(--bg);display:none;align-items:center;justify-content:center;padding:16px}.gate.show{display:flex}
+.gate .card{width:min(380px,100%)}.gate h1{font-weight:400;margin-bottom:6px}.gate h1 b{font-weight:800}
+.gate form{display:flex;gap:8px;margin-top:12px}.gate input{flex:1;min-width:0;font-size:16px;padding:7px 9px}.gate button{font-size:14px;padding:7px 14px}
+.gate p.gt-err{min-height:1.4em;margin:8px 0 0;color:var(--lock);font-size:12.5px}
+#colJoin,#colWait,#colDlg{z-index:26}
+body.gate-guest #bNew{display:none!important}
 /* Collaborate */
 aside.right>details.top:last-child{margin-bottom:0}
 label.col-name{display:flex;flex-direction:column;align-items:stretch;gap:3px;font-size:11.5px;color:var(--muted);margin:0 0 8px}label.col-name input[type=text]{width:100%;font-size:13px}
@@ -430,6 +437,12 @@ body.col-view .vtools [data-t=line],body.col-view .vtools [data-t=plane],body.co
   <div class="pied-st"><canvas id="pedCv"></canvas></div>
   <p class="gnote" id="pedHint"></p>
   <div class="row pied-act" id="pedAct"></div>
+</div></div>
+<div id="gate" class="gate"><div class="card">
+  <h1 translate="no"><b>Terra</b> Shape Explorer</h1>
+  <p>Enter the password to open the app.</p>
+  <form id="gtForm" autocomplete="on"><input type="text" name="username" value="Terra Shape Explorer" autocomplete="username" hidden><input type="password" id="gtPass" autocomplete="current-password" placeholder="Password"><button id="gtGo" class="pri">Open</button></form>
+  <p class="gt-err" id="gtErr"></p>
 </div></div>
 <div class="modal" id="colJoin"><div class="card" style="width:min(420px,100%)">
   <h1>Join a shared session</h1>
@@ -1271,7 +1284,12 @@ const JA={
 "All": "すべて",
 "Hide this mark-up": "このマークアップを隠す",
 "Show this mark-up": "このマークアップを表示",
-"You": "あなた"
+"You": "あなた",
+"Enter the password to open the app.": "アプリを開くにはパスワードを入力してください。",
+"Password": "パスワード",
+"Type the password.": "パスワードを入力してください。",
+"That password isn’t right.": "パスワードが違います。",
+"This browser can’t check the password here.": "このブラウザーではここでパスワードを確認できません。"
 };
 const MON={JAN:1,FEB:2,MAR:3,APR:4,MAY:5,JUN:6,JUL:7,AUG:8,SEP:9,OCT:10,NOV:11,DEC:12};
 const jDate=d=>{const m=d.match(/^([A-Z]{3}) (\d+), (\d{4})$/);return m?`${m[3]}年${MON[m[1]]}月${m[2]}日`:d;};
@@ -3061,7 +3079,7 @@ function wire(){
  for(const e of LIB)$('#sLib').append(el('button',{title:e.file,onclick:()=>loadLib(e.name)},e.name));
  $('#sOpen').onclick=()=>readFile($('#fOpen'),o=>loadProject(o));$('#sPhoto').onclick=()=>piOpen();
  $('#sCancel').onclick=()=>$('#start').classList.remove('show');
- $('#bNew').onclick=()=>showStart(true);
+ $('#bNew').onclick=()=>{if(!document.body.classList.contains('gate-guest'))showStart(true);};
  $('#bSave').onclick=()=>{download(slug(S.meta.model)+'.kendama.json',JSON.stringify(projectData(),null,1),'application/json');toast('Project saved to your downloads folder.');};
  $('#bUndo').onclick=()=>undo(-1);$('#bRedo').onclick=()=>undo(1);
  $('#bPdf').onclick=exportPdf;$('#bDxf').onclick=exportDxf;
@@ -3105,7 +3123,7 @@ function tamaMode(){const dd=S.mode==='dd';if(dd&&S.show.tama==='none')S.show.ta
    Several people work on one design at once, through a small relay server (relay/ in the repo). The relay only knows who is in the room and what each may do.
    The design is sent as small changes: every piece (each measure, each hand-shaped contour, each iteration, compare shape and mark-up) is one key, and the last change to a key wins.
    Each person's undo only steps back through their own changes: a change from someone else is written into every step of the local undo history. */
-const COL_RELAY_URL=''; // the deployed relay, e.g. 'wss://terra-shape-relay.<account>.workers.dev'. Empty: shared sessions are off on the public site.
+const COL_RELAY_URL='wss://terra-shape-relay.terra-kendama.workers.dev'; // the deployed relay (relay/README.md). Empty: shared sessions are off on the public site.
 const COL_LISTS=['snaps','cmp','ovl','cmpv','mk'],COL_TICK=80,COL_PART=200000;
 const COL={on:false,ws:null,phase:'off',room:null,key:null,role:null,owner:null,roster:[],keys:null,last:new Map(),pend:new Map(),n:0,live:new Set(),down:false,
  waiting:false,buf:[],parts:new Map(),timer:0,retry:0,bye:false,mkHide:new Set(),mkAll:true,mkCol:new Map(),wasOwner:false};
@@ -3215,6 +3233,7 @@ function colRecv(text){
   case'error':colFail(o.code);break;
   case'welcome':{const first=!COL.on;COL.on=true;COL.phase='in';COL.retry=0;COL.role=o.role;COL.owner=o.owner;COL.roster=o.roster||[];if(o.keys){COL.keys=o.keys;COL.key=o.keys.owner;}
    COL.wasOwner=o.role==='owner';colSave();COL.pend.clear();COL.live.clear();COL.parts.clear();
+   if(o.alone&&!gateOk()){colSend({t:'leave'});colReset();colDialog('Shared session closed','No one is in this shared session right now. Try the link again when the owner is back.',null,[['OK',null,'pri']]);break;}
    if(o.alone){if(!started){let a=null;try{a=JSON.parse(localStorage.getItem('ksd.autosave')||'null');}catch(e){}if(a&&a.app)try{loadProject(a);}catch(e){}if(!started)newDesign('kocho');}COL.waiting=false;COL.last=colFlat();colHide('#colWait');}
    else{COL.waiting=true;COL.buf=[];colShow('#colWait');}
    clearInterval(COL.timer);COL.timer=setInterval(colTick,COL_TICK);colRoleUI();
@@ -3234,11 +3253,11 @@ function colRecv(text){
 function colLoad(d){
  const keepMk=d.mk;loadProject(d.project);MK.items=Array.isArray(keepMk)?keepMk:[];MK.undo=[];MK.redo=[];MK.sel=-1;
  COL.waiting=false;COL.last=colFlat();const b=COL.buf;COL.buf=[];for(const o of b)colApply(o);
- colHide('#colWait');colHide('#start');syncTools();syncMkBox();render();}
+ colHide('#colWait');colHide('#start');syncTools();syncMkBox();render();gateGuestIn();}
 function colSave(){try{sessionStorage.setItem('tse.colSess',JSON.stringify({room:COL.room,key:COL.key}));}catch(e){}}
 function colReset(){
  COL.bye=true;colDrop();clearInterval(COL.timer);COL.on=false;COL.phase='off';COL.waiting=false;COL.buf=[];COL.roster=[];COL.owner=null;COL.keys=null;COL.pend.clear();COL.live.clear();COL.parts.clear();
- try{sessionStorage.removeItem('tse.colSess');}catch(e){}colHide('#colWait');colRoleUI();syncCol();syncMkBox();if(started)render();}
+ try{sessionStorage.removeItem('tse.colSess');}catch(e){}colHide('#colWait');colRoleUI();syncCol();syncMkBox();if(started)render();gateGuestOut();}
 // for someone who joined: when the session is over, the shared design goes and the start screen comes back (their own work from before is still under "Pick up where you left off")
 function colClearDesign(){MK.items=[];MK.undo=[];MK.redo=[];MK.sel=-1;COL.mkHide.clear();COL.mkAll=true;syncTools();syncMkBox();showStart(false);}
 function colEnd(why){
@@ -3338,7 +3357,31 @@ function colWire(){
  $('#cjCancel').onclick=()=>{COL.invite=null;colHide('#colJoin');};
  $('#cwCancel').onclick=()=>{colSend({t:'leave'});colReset();colClearDesign();};
  syncCol();}
-buildParams();wire();setView('design');setMode('dd');showStart(false);colWire();if(!colBoot()&&!/[?&]selftest=/.test(location.search))introOpen();
+
+/* ================= password screen =================
+   A simple lock for the public site: the app opens only after the password. Only a salted PBKDF2 fingerprint of it is here; a device that has
+   typed it remembers that, and a new password (a new fingerprint) locks every device again. An invite link to a shared session lets its holder
+   into that session only: nothing is remembered, and when the session is over they are back at this screen. */
+// hash: PBKDF2-SHA256 of the password, salt 'terra-shape-explorer', 200000 rounds, as hex (relay/README.md says how to make one). Empty: no password.
+const GATE={hash:'560c2d7de437c6d953e505f0ceaeba51cc63a042efccfc439e2c6286e0395d78',salt:'terra-shape-explorer',iter:200000,guest:false};
+const gateOk=()=>{if(!GATE.hash)return true;try{return localStorage.getItem('tse.gate')===GATE.hash;}catch(e){return false;}};
+async function gateDerive(pw){const E=new TextEncoder(),k=await crypto.subtle.importKey('raw',E.encode(pw),'PBKDF2',false,['deriveBits']);
+ const b=await crypto.subtle.deriveBits({name:'PBKDF2',salt:E.encode(GATE.salt),iterations:GATE.iter,hash:'SHA-256'},k,256);return Array.from(new Uint8Array(b),x=>x.toString(16).padStart(2,'0')).join('');}
+function gateShow(on){const g=$('#gate');g.classList.toggle('show',on);if(on){const i=$('#gtPass');i.value='';setTimeout(()=>{try{if(!$('#colJoin').classList.contains('show'))i.focus();}catch(e){}},50);}}
+async function gateTry(pw){
+ const err=$('#gtErr');err.textContent='';if(!pw){err.textContent='Type the password.';return false;}
+ let h='';try{h=await gateDerive(pw);}catch(e){err.textContent='This browser can’t check the password here.';return false;}
+ if(h!==GATE.hash){err.textContent='That password isn’t right.';$('#gtPass').select();return false;}
+ try{localStorage.setItem('tse.gate',h);}catch(e){}
+ GATE.guest=false;gateShow(false);if(!COL.on&&!/[?&]selftest=/.test(location.search))introOpen();return true;}
+// a guest who came in by invite link: let in once the shared design has arrived, locked out again when the session is over for them
+const gateGuestIn=()=>{if(GATE.guest){gateShow(false);document.body.classList.add('gate-guest');}};
+const gateGuestOut=()=>{document.body.classList.remove('gate-guest');if(!gateOk()){GATE.guest=false;colHide('#start');colHide('#pimp');colHide('#pied');gateShow(true);}};
+function gateBoot(){
+ $('#gtForm').onsubmit=e=>{e.preventDefault();gateTry($('#gtPass').value);};
+ if(gateOk()){if(!colBoot()&&!/[?&]selftest=/.test(location.search))introOpen();return;}
+ gateShow(true);GATE.guest=colBoot();}
+buildParams();wire();setView('design');setMode('dd');showStart(false);colWire();gateBoot();
 // the floating panels (Drag & draw's tools and the Compare view's shapes) can be dragged by their grip anywhere inside the shape view; a double-click puts one back
 {const place=(p,x,y)=>{const st=$('#stage'),w=p.offsetWidth,h=p.offsetHeight;x=clamp(x,0,Math.max(0,st.clientWidth-w));y=clamp(y,0,Math.max(0,st.clientHeight-h));p.classList.add('moved');p.style.left=x+'px';p.style.top=y+'px';p._at=[x,y];};
  for(const p of[$('#dd'),$('#cmpCtl')]){const g=p.querySelector('.dd-grip'),fb=p.querySelector('.dd-fold');let d=null;

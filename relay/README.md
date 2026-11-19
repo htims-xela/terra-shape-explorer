@@ -30,3 +30,15 @@ It listens on `ws://127.0.0.1:8787`. When the app is opened from `localhost` / `
 - Sessions live in memory only. Once everyone has left, the session is gone after ten minutes.
 - Invite links are the only key. Anyone with an edit link can edit, so share links privately. Removing someone blocks their browser from rejoining with that link, but a different browser could still use it.
 - If two people change the same measure at the same moment, the later change wins.
+
+## The app's password
+
+The public site asks for a password before the app opens. `index.html` holds only a fingerprint of it (`GATE.hash`), never the password itself. To set or change the password, run this and put the printed fingerprint into `GATE.hash`:
+
+```bash
+python3 -c "import hashlib,getpass;print(hashlib.pbkdf2_hmac('sha256',getpass.getpass('Password: ').encode(),b'terra-shape-explorer',200000).hex())"
+```
+
+A device that has typed the password remembers it. Changing the password locks every device again. An empty `GATE.hash` turns the password off.
+
+Someone who opens a shared-session invite link gets into that session without the password, but only while the session lasts. Nothing is remembered, and when the session ends they're back at the password screen. This lock only keeps casual visitors out: the page's source is public, so anyone determined can get around it.

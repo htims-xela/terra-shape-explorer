@@ -940,6 +940,41 @@ test('Collaborate: Japanese for the shared session panel, dialogs and mark-up bo
  E(`setLang('en')`);
 });
 
+test('Password screen: a wrong password is turned away, the right one opens the app and is remembered',async({w,E,ok})=>{
+ const D=w.document,shown=s=>w.getComputedStyle(D.querySelector(s)).display!=='none';
+ await E(`(async()=>{GATE.hash=await gateDerive('open sesame');localStorage.removeItem('tse.gate');gateBoot();})()`);await sleep(30);
+ ok(shown('#gate')&&D.querySelector('#gate').getBoundingClientRect().width>=w.innerWidth-1,'the password screen covers the app');
+ ok(!E('gateOk()'),'the app is locked');
+ ok(!(await E(`gateTry('nope')`))&&/isn’t right/.test(D.querySelector('#gtErr').textContent)&&shown('#gate'),'a wrong password is turned away');
+ ok(!(await E(`gateTry('')`))&&/Type the password/.test(D.querySelector('#gtErr').textContent),'an empty one asks for the password');
+ ok(await E(`gateTry('open sesame')`),'the right password opens it');
+ ok(!shown('#gate')&&E('gateOk()'),'the screen goes and this device is let in');
+ ok(w.localStorage.getItem('tse.gate')===E('GATE.hash')&&!/open sesame/.test(JSON.stringify(Object.assign({},w.localStorage))),'only the fingerprint is kept, never the password');
+ E(`GATE.hash='0'.repeat(64)`);ok(!E('gateOk()'),'a new password locks remembered devices again');
+ ok(!/open sesame/.test(D.documentElement.innerHTML),'the password is nowhere in the page');
+});
+
+test('Password screen: an invite link lets a guest into that session only, and nothing is remembered',async({w,E,ok})=>{
+ const room=new TSERoom({});
+ w.COL_SOCKET=fakeNet(room);w.eval(`COL.id=COL.dev='own${Math.random().toString(36).slice(2,6)}';loadLib('Kocho');colSetName('Ann');colStart();`);await sleep(40);
+ const g=await loadExtra(`#join=${E('COL.room')}.${E('COL.keys.edit')}`);await sleep(60);const G=x=>g.eval(x),D=g.document,shown=s=>g.getComputedStyle(D.querySelector(s)).display!=='none';
+ // the guest's browser has never had the password
+ G(`GATE.hash='f'.repeat(64);gateShow(true);GATE.guest=true;`);g.COL_SOCKET=fakeNet(room);G(`COL.id=COL.dev='gus${Math.random().toString(36).slice(2,6)}'`);
+ ok(shown('#gate')&&D.querySelector('#colJoin').classList.contains('show'),'the join window shows over the password screen');
+ ok(+g.getComputedStyle(D.querySelector('#colJoin')).zIndex>+g.getComputedStyle(D.querySelector('#gate')).zIndex,'and is in front of it');
+ D.querySelector('#cjName').value='Gus';D.querySelector('#cjGo').click();await settle(w,g);
+ ok(G('COL.on')&&!shown('#gate')&&same(w,g),'once joined, the guest sees the shared design');
+ ok(!G('gateOk()'),'the app itself stays locked for them');
+ ok(D.body.classList.contains('gate-guest')&&!shown('#bNew'),'no New / Open for a guest');
+ G(`$('#bNew').onclick()`);ok(!D.querySelector('#start').classList.contains('show'),'and the start screen can’t be opened');
+ E('colLeave()');[...w.document.querySelectorAll('#cdAct button')].find(x=>x.textContent==='End for everyone').click();await settle(w,g);
+ ok(!G('COL.on')&&shown('#gate'),'when the session ends the guest is back at the password screen');
+ ok(D.querySelector('#colDlg').classList.contains('show')&&+g.getComputedStyle(D.querySelector('#colDlg')).zIndex>+g.getComputedStyle(D.querySelector('#gate')).zIndex,'with the chance to save a copy still in front');
+ ok(!G('gateOk()')&&!G(`sessionStorage.getItem('tse.colSess')`),'nothing is left that would let them in again');
+ G(`colConnect(${JSON.stringify(E('COL.room')||'')}||'zzzzzzzzzzzz','${'x'.repeat(22)}',false)`);await settle(g);
+ ok(shown('#gate')&&!G('COL.on'),'an old or made-up link gets nowhere');
+});
+
 /* ---------- phone layout ---------- */
 test('Phone width: one-row header, four tabs, no sideways scrolling',async({w,E,ok})=>{
  E(`loadLib('Kocho');`);await sleep(60);
@@ -955,6 +990,8 @@ test('Phone width: one-row header, four tabs, no sideways scrolling',async({w,E,
 const frame=document.getElementById('app'),out=document.getElementById('out'),sum=document.getElementById('sum');
 function loadApp(width,height){return new Promise((res,rej)=>{frame.width=width||1280;frame.height=height||820;const t=setTimeout(()=>rej(new Error('app did not load')),15000);frame.onload=()=>{clearTimeout(t);res(frame.contentWindow);};frame.src='index.html?selftest='+Date.now();});}
 async function runAll(){
+ // the app's password: every test opens it as a device that has already typed it
+ let GH='';try{const m=(await (await fetch('index.html?fresh='+Date.now())).text()).match(/const GATE=\{hash:'([0-9a-f]*)'/);GH=m?m[1]:'';}catch(e){}
  out.innerHTML='';sum.className='';sum.textContent='Running…';
  const saved={};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);saved[k]=localStorage.getItem(k);}}catch(e){}
  // tests.html?only=tama|stall runs just the tests whose names match; ?skip=every%20contour leaves those out
@@ -964,7 +1001,7 @@ async function runAll(){
   const row=document.createElement('div');row.className='t';row.innerHTML='<span class="s">…</span><b></b>';row.querySelector('b').textContent=T.name;out.append(row);
   const fails=[];let checks=0;const errs=[];const s0=performance.now();
   try{
-   try{localStorage.removeItem('ksd.autosave');localStorage.removeItem('tse.rs');localStorage.removeItem('tse.colName');localStorage.setItem('tse.lang','en');localStorage.setItem('tse.right','1');sessionStorage.removeItem('tse.colSess');sessionStorage.removeItem('tse.colId');}catch(e){}
+   try{localStorage.removeItem('ksd.autosave');localStorage.removeItem('tse.rs');localStorage.removeItem('tse.colName');if(GH)localStorage.setItem('tse.gate',GH);else localStorage.removeItem('tse.gate');localStorage.setItem('tse.lang','en');localStorage.setItem('tse.right','1');sessionStorage.removeItem('tse.colSess');sessionStorage.removeItem('tse.colId');}catch(e){}
    const w=await loadApp(T.opt.width,T.opt.height);w.addEventListener('error',e=>errs.push(e.message));await sleep(60);
    const ok=(c,m)=>{checks++;if(!c)fails.push(m);};
    await T.fn(Object.assign({w,ok},helpers(w)));await sleep(20);
