@@ -16,24 +16,32 @@ const ROLES={owner:1,edit:1,view:1};
 function randomKey(n){const a='abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';const b=new Uint8Array(n||22);(root.crypto||crypto).getRandomValues(b);for(const x of b)s+=a[x%a.length];return s;}
 const clean=(s,n)=>String(s==null?'':s).replace(/[\u0000-\u001f]/g,'').trim().slice(0,n);
 class Room{
- constructor(o){o=o||{};this.later=o.setTimeout||((f,ms)=>setTimeout(f,ms));this.rand=o.rand||randomKey;this.ownerWait=o.ownerWait??60000;this.emptyWait=o.emptyWait??600000;this.reset();}
+ // o.timer(kind, gen, ms): a host that can sleep between messages (the Cloudflare relay) keeps timers itself and calls fire(kind, gen) when one is due; otherwise o.setTimeout (or setTimeout) is used.
+ // o.change(): called after anything the room has to remember changed (not for design changes, which it only passes on), so such a host can save it (dump / restore).
+ constructor(o){o=o||{};this.later=o.setTimeout||((f,ms)=>setTimeout(f,ms));this.timer=o.timer||null;this.change=o.change||null;this.rand=o.rand||randomKey;this.ownerWait=o.ownerWait??60000;this.emptyWait=o.emptyWait??600000;this.reset();}
  reset(){this.keys=null;this.members=[];this.banned=new Set();this.ownerId=null;this.gen=(this.gen||0)+1;}
  roster(){return this.members.map(m=>({id:m.id,name:m.name,role:m.role}));}
  send(m,o){try{m.conn.send(JSON.stringify(o));}catch(e){}}
  all(o,skip){const s=JSON.stringify(o);for(const m of this.members)if(m!==skip)try{m.conn.send(s);}catch(e){}}
  tell(){this.all({t:'roster',owner:this.ownerId,roster:this.roster()});}
  // a new connection: returns {message(text), close()} for the server to call
- open(conn){
-  let me=null;const room=this;
-  const fail=code=>{try{conn.send(JSON.stringify({t:'error',code}));}catch(e){}try{conn.close();}catch(e){}};
-  return{
-   message(text){let o;try{o=JSON.parse(text);}catch(e){return;}if(!o||typeof o!=='object')return;
-    if(!me){if(o.t!=='hello')return;me=room.hello(conn,o,fail);return;}
-    if(!room.members.includes(me))return;
-    room.handle(me,o);},
-   close(){if(me&&room.members.includes(me)&&me.conn===conn)room.gone(me);me=null;}
-  };
- }
+ open(conn){return{message:text=>this.msg(conn,text),close:()=>this.drop(conn)};}
+ // a message from a connection (found by the connection itself, so a host that slept can hand back the same one)
+ msg(conn,text){let o;try{o=JSON.parse(text);}catch(e){return;}if(!o||typeof o!=='object')return;
+  const me=this.members.find(m=>m.conn===conn);
+  if(!me){if(o.t!=='hello'||conn.said)return;conn.said=true;const fail=code=>{try{conn.send(JSON.stringify({t:'error',code}));}catch(e){}try{conn.close();}catch(e){}};if(this.hello(conn,o,fail))this.changed();return;}
+  this.handle(me,o);if(o.t!=='op'&&o.t!=='chunk'&&o.t!=='state')this.changed();}
+ drop(conn){const me=this.members.find(m=>m.conn===conn);if(me){this.gone(me);this.changed();}}
+ changed(){if(this.change)try{this.change();}catch(e){}}
+ // timers by name, so a host can keep them while it sleeps
+ after(kind,ms){const gen=this.gen;if(this.timer)this.timer(kind,gen,ms);else this.later(()=>this.fire(kind,gen),ms);}
+ fire(kind,gen){if(this.gen!==gen)return;
+  if(kind==='owner'){if(this.ownerId)return;const n=this.members.find(m=>m.role==='edit');if(n)this.promote(n,null);} // an owner who dropped out did not come back: the longest-standing editor takes over
+  else if(kind==='empty'){if(!this.members.length)this.reset();}
+  this.changed();}
+ // what the room has to remember, without the connections; restore puts it back with each member's connection
+ dump(){return{keys:this.keys,ownerId:this.ownerId,banned:[...this.banned],gen:this.gen,members:this.members.map(m=>({id:m.id,dev:m.dev,name:m.name,role:m.role}))};}
+ restore(d,connOf){this.keys=d.keys||null;this.ownerId=d.ownerId||null;this.banned=new Set(d.banned||[]);this.gen=d.gen||1;this.members=[];for(const m of d.members||[]){const conn=connOf(m);if(conn){conn.said=true;this.members.push({id:m.id,dev:m.dev,name:m.name,role:m.role,conn});}}}
  hello(conn,o,fail){
   const id=clean(o.id,40),dev=clean(o.dev,40),name=clean(o.name,40)||'Guest';if(!id){fail('bad');return null;}
   let role;
@@ -69,11 +77,10 @@ class Room{
  // someone left or lost their connection
  gone(me,left){
   const i=this.members.indexOf(me);if(i>=0)this.members.splice(i,1);
-  const gen=this.gen;
   if(me.role==='owner'&&this.ownerId===me.id){this.ownerId=null;
    // an owner who drops out without ending the session or handing it on: after a while the longest-standing editor takes over
-   this.later(()=>{if(this.gen!==gen||this.ownerId)return;const n=this.members.find(m=>m.role==='edit');if(n)this.promote(n,null);},this.ownerWait);}
-  if(!this.members.length)this.later(()=>{if(this.gen===gen&&!this.members.length)this.reset();},this.emptyWait);
+   this.after('owner',this.ownerWait);}
+  if(!this.members.length)this.after('empty',this.emptyWait);
   else this.tell();
  }
 }

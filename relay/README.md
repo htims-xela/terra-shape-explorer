@@ -5,7 +5,8 @@ The app's **Collaborate** section lets several people work on one design at once
 | File | What it is |
 |---|---|
 | `room.js` | The rules for one session: keys, roles, removing people, handing over, ending. Used by the worker and by `tests.html`. |
-| `worker.js`, `wrangler.toml` | The relay as a Cloudflare Worker (one Durable Object per session). |
+| `worker.js`, `wrangler.toml` | The relay as a Cloudflare Worker (one Durable Object per session), using hibernation so idle sessions cost nothing. |
+| `hibernate-test.mjs` | Checks `worker.js` with the room put to sleep between every two events: `node relay/hibernate-test.mjs`. Run it before a deploy. |
 | `relay_local.py` | The same rules in plain Python, for testing on your own computer. Nothing to install. |
 
 If you change the rules, change `room.js` and `relay_local.py` together.
@@ -27,7 +28,10 @@ It listens on `ws://127.0.0.1:8787`. When the app is opened from `localhost` / `
 
 ## Limits of this prototype
 
-- Sessions live in memory only. Once everyone has left, the session is gone after ten minutes.
+- The relay uses Cloudflare's WebSocket hibernation: while nobody sends anything, the session's room sleeps and isn't billed, even with people connected. So an open but quiet session, or a forgotten tab, costs next to nothing.
+- To wake up where it left off, a room keeps a small record in its own storage: the invite keys, who is in it and with which role, who was removed, and its timers. The design itself is never stored: the relay only passes changes on.
+- Once everyone has left, the session is gone after ten minutes, and its record is deleted. Ending a session deletes it straight away.
+- Restarting or redeploying the relay drops everyone's connection, but the session survives: the apps reconnect by themselves and carry on. Anyone who is back before the owner keeps retrying for up to two minutes.
 - Invite links are the only key. Anyone with an edit link can edit, so share links privately. Removing someone blocks their browser from rejoining with that link, but a different browser could still use it.
 - If two people change the same measure at the same moment, the later change wins.
 

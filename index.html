@@ -161,6 +161,23 @@ h3:first-child{margin-top:0}
 .snap{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--line);font-size:12px}
 .snap span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .snap button{padding:2px 7px;font-size:11px}
+.snap .wpadd{font-size:13px;padding:0 6px;line-height:18px}
+.wprow{margin-top:8px;align-items:center}
+.wprow button{min-width:34px;padding:4px 8px;font-weight:700}
+.wprow button svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.4;vertical-align:-3px}
+.wprow button.act{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.wprow button:disabled{opacity:.45}
+#wpList .pnote{margin:4px 0 2px}
+.snap.wp>span{cursor:pointer;display:flex;gap:6px;align-items:baseline}
+.snap.wp>span>span{overflow:hidden;text-overflow:ellipsis}
+.snap.wp.on>span{font-weight:600}
+.snap.wp.on{box-shadow:inset 3px 0 0 var(--accent);padding-left:7px}
+.snap.wp small{color:var(--muted);font-weight:400}
+.wp1{color:var(--accent);min-width:16px}
+.wpon{display:flex;align-items:center;gap:10px;margin:8px 0 6px;padding:7px 9px;border:1px solid var(--accent);border-radius:8px;background:color-mix(in srgb,var(--accent) 9%,transparent)}
+.wpon b{font-size:12px;white-space:nowrap}
+.wpon .seg3 button{font-size:13px;padding:5px 4px}
+body.wp-pick #cv{cursor:crosshair}
 .row{display:flex;gap:6px;align-items:center;margin:4px 0;flex-wrap:wrap}
 .row input[type=text]{flex:1;min-width:0}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:20;padding:16px}
@@ -376,6 +393,8 @@ body.col-view .vtools [data-t=line],body.col-view .vtools [data-t=plane],body.co
     <details class="top" id="rsIter" open><summary>Iterations</summary>
     <div class="row"><input type="text" id="snapName" placeholder="Iteration name"><button id="bSnap">Save iteration</button></div>
     <div id="snapList"></div>
+    <div class="row wprow"><button id="bPrim" aria-pressed="false" title="Pick the 1° kendama: click this, then click one tama and one ken (its sarado comes with it) in the Drag & draw view. The 1° kendama fills the spec sheet, is the one compared in the Compare view and is used for the exports. Use ⧉ on an iteration to add more kendamas to the view first.">1°</button><button id="bPrimEye" aria-pressed="true" title="Show or hide the 1° marking on the kendamas in the view"><svg viewBox="0 0 16 16"><path d="M1.5 8s2.4-4.5 6.5-4.5S14.5 8 14.5 8 12.1 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/></svg></button><span class="pnote">1° kendama</span></div>
+    <div id="wpList" style="display:none"></div>
     <div class="row"><button id="bCmpFile">Add designs from a project file…</button></div>
     </details>
     <details class="top" id="rsChk" open><summary>Shape checks</summary>
@@ -734,7 +753,6 @@ const JA={
 "General tolerance ±": "一般公差 ±",
 "Sarado height tolerance ±": "皿胴の高さの公差 ±",
 "Assembled": "組立図",
-"Sarado section": "皿胴の断面",
 "Spec sheet": "仕様書",
 "Compare": "比較",
 "Show tama": "玉の表示",
@@ -1295,7 +1313,21 @@ const JA={
 "Password": "パスワード",
 "Type the password.": "パスワードを入力してください。",
 "That password isn’t right.": "パスワードが違います。",
-"This browser can’t check the password here.": "このブラウザーではここでパスワードを確認できません。"
+"This browser can’t check the password here.": "このブラウザーではここでパスワードを確認できません。",
+"Work on:": "対象：",
+"1° kendama": "1° けん玉",
+"Workpiece": "ワーク",
+"Type a value or drag the slider. Values are limited automatically so the shape always stays buildable. With more than one kendama in the Drag & draw view, choose what these controls change: 1° changes only the 1° kendama (pick it with the 1° button in the Iterations panel), All changes every kendama in the view.": "値を入力するか、スライダーをドラッグします。形が常に製作可能なように、値は自動的に制限されます。ドラッグ＆ドローの表示に複数のけん玉があるときは、これらのコントロールが何を変えるかを選びます：「1°」は1° けん玉だけを変えます（イテレーションパネルの 1° ボタンで選びます）。「すべて」は表示中のすべてのけん玉を変えます。",
+"Add a copy to the Drag & draw view as another kendama you can work on": "コピーをドラッグ＆ドローの表示に追加し、もう一つの作業用けん玉にします",
+"In the Drag & draw view": "ドラッグ＆ドローの表示中",
+"You are working on this one": "いま作業中のけん玉です",
+"Click to work on this one": "クリックしてこのけん玉で作業します",
+"Take this kendama out of the view": "このけん玉を表示から外します",
+"Pick the 1° kendama: click this, then click one tama and one ken (its sarado comes with it) in the Drag & draw view. The 1° kendama fills the spec sheet, is the one compared in the Compare view and is used for the exports. Use ⧉ on an iteration to add more kendamas to the view first.": "1° けん玉を選びます：これをクリックしてから、ドラッグ＆ドローの表示で玉とけんを一つずつクリックします（皿胴はけんと一緒です）。1° けん玉は仕様書に使われ、比較ビューで比べる対象になり、書き出しにも使われます。先にイテレーションの ⧉ で表示にけん玉を追加してください。",
+"Show or hide the 1° marking on the kendamas in the view": "表示中のけん玉の 1° の印を表示 / 非表示",
+"1° kendama set. It fills the spec sheet, is the one compared in the Compare view and is used for the exports.": "1° けん玉を設定しました。仕様書に使われ、比較ビューで比べる対象になり、書き出しにも使われます。",
+"Ken + sarado": "けん＋皿胴",
+"Click one tama and one ken to make them the 1° kendama. The sarado goes with its ken.": "玉とけんを一つずつクリックして 1° けん玉にします。皿胴はけんと一緒に選ばれます。"
 };
 const MON={JAN:1,FEB:2,MAR:3,APR:4,MAY:5,JUN:6,JUL:7,AUG:8,SEP:9,OCT:10,NOV:11,DEC:12};
 const jDate=d=>{const m=d.match(/^([A-Z]{3}) (\d+), (\d{4})$/);return m?`${m[3]}年${MON[m[1]]}月${m[2]}日`:d;};
@@ -1319,6 +1351,7 @@ const TRX=[
  [/^PREPARED ([A-Z]{3} \d+, \d{4})(?: BY (.+?))?(\s+\|\s+ALL DIMENSIONS IN mm)?$/,m=>`作成日 ${jDate(m[1])}${m[2]?' 作成者 '+m[2]:''}${m[3]?'　|　寸法は全て mm':''}`],
  [/^(HANDLE STALL|RIDGE) (.+)$/,m=>`${m[1]==='RIDGE'?'稜線':'ハンドルストール'} ${q(m[2])}`],
  [/^Imported from (.+)$/,m=>`インポート元：${m[1]}`],
+ [/^Added “(.+)” to the view\. Click it to work on it\.$/,m=>`「${m[1]}」を表示に追加しました。クリックすると作業できます。`],
 ];
 /*JA-END*/
 /* ================= utilities ================= */
@@ -1875,13 +1908,18 @@ function analyze(G){
 const elevTxt=L=>L?`${f1(Math.abs(L.elev))}° ${L.elev>=0?'above':'below'} horiz.`:'n/a';
 
 /* ================= state ================= */
-const S={meta:{brand:'TERRA',model:'KOCHO',designer:'',tolLocked:true},p:defaults(),curves:{},locks:{},snaps:[],cmp:[],ovl:[],cmpv:[],cmpOn:{current:true},view:'design',show:{cog:true,tama:'none',ell:false},draw:{on:false,seg:'swoopBg',smooth:true,strength:3},page:1,mode:'manual'};
+const S={meta:{brand:'TERRA',model:'KOCHO',designer:'',tolLocked:true},p:defaults(),curves:{},locks:{},snaps:[],cmp:[],ovl:[],cmpv:[],cmpOn:{current:true},view:'design',show:{cog:true,tama:'none',ell:false},draw:{on:false,seg:'swoopBg',smooth:true,strength:3},page:1,mode:'manual',wps:[],wpId:'w0',wpName:'Current design',prim:null};
 let CUR={G:null,A:null},hist=[],hpos=-1,started=false;
 const snapState=()=>JSON.stringify({p:S.p,curves:S.curves});
-function commit(){const s=snapState();if(hist[hpos]===s)return;hist=hist.slice(0,hpos+1);hist.push(s);if(hist.length>150)hist.shift();hpos=hist.length-1;autosave();updUndo();}
-function undo(d){if(!colEdit())return;const n=hpos+d;if(n<0||n>=hist.length)return;hpos=n;const s=JSON.parse(hist[n]);S.p=s.p;S.curves=s.curves;refresh();autosave();}
+// An undo step holds every kendama in the view, so undo steps back through the whole of the last change: {w:{id: that kendama's measures and contours as text}, prim}.
+// A kendama that did not change keeps the very same text as the step before, so a long history with many kendamas costs little more than with one.
+function histState(){const prev=hist[hpos],o={};for(const w of wpList()){const t=JSON.stringify({p:w.p,curves:w.curves}),q=prev&&prev.w&&prev.w[w.id];o[w.id]=q===t?q:t;}return{w:o,prim:JSON.stringify(S.prim||null)};}
+const histSame=(a,b)=>!!a&&!!b&&a.prim===b.prim&&JSON.stringify(Object.keys(a.w))===JSON.stringify(Object.keys(b.w))&&Object.keys(a.w).every(id=>a.w[id]===b.w[id]);
+const histRead=h=>{const o={};for(const id in h.w)o[id]=JSON.parse(h.w[id]);return{w:o,prim:JSON.parse(h.prim)};};
+function commit(){const s=histState();if(histSame(hist[hpos],s))return;hist=hist.slice(0,hpos+1);hist.push(s);if(hist.length>150)hist.shift();hpos=hist.length-1;autosave();updUndo();}
+function undo(d){if(!colEdit())return;const n=hpos+d;if(n<0||n>=hist.length)return;hpos=n;wpRestore(histRead(hist[n]));refresh();autosave();}
 function updUndo(){$('#bUndo').disabled=hpos<=0;$('#bRedo').disabled=hpos>=hist.length-1;}
-const projectData=()=>({app:'kendama-shape-designer',version:2,saved:new Date().toISOString(),meta:S.meta,p:S.p,curves:S.curves,locks:S.locks,snaps:S.snaps,cmp:S.cmp,ovl:S.ovl,cmpv:S.cmpv,base:S.base});
+const projectData=()=>({app:'kendama-shape-designer',version:2,saved:new Date().toISOString(),meta:S.meta,p:S.p,curves:S.curves,locks:S.locks,snaps:S.snaps,cmp:S.cmp,ovl:S.ovl,cmpv:S.cmpv,base:S.base,...(wpMulti()?{wps:S.wps.map(w=>({id:w.id,name:w.name,p:w.p,curves:w.curves,base:w.base,P:w.P,free:w.free,sar:w.sar})),wpId:S.wpId,wpName:S.wpName,wpP:wpP(),wpOrder:wpOrderFix(),prim:S.prim}:{})});
 function autosave(){colSoon();if(COL.on&&COL.role!=='owner')return;clearTimeout(autosave.t);autosave.t=setTimeout(()=>{try{localStorage.setItem('ksd.autosave',JSON.stringify(projectData()));}catch(e){}},400);}
 function cleanCurves(c){const o={},ren={neckRing:'swoopRing'};if(c&&typeof c==='object')for(const k0 in c){const k=ren[k0]||k0,v=c[k0];if(['waistSm','waistBg','handle','edgeSm','edgeBg'].includes(k0))continue;if((k0==='smCup'||k0==='bgCup')&&v&&v.imp)continue;if(k0==='baseHole'){if(v&&Array.isArray(v.pts)&&v.pts.length>2&&v.pts.every(q=>Array.isArray(q)&&isFinite(q[0])&&isFinite(q[1])))o.baseHole={pts:v.pts.map(q=>[+q[0],+q[1]]),on:v.on!==false};continue;}if(v&&Array.isArray(v.d)&&v.d.length>3&&v.d.every(x=>typeof x==='number'&&isFinite(x)))o[k]={d:v.d,smooth:!!v.smooth,strength:+v.strength||3,bin:+v.bin||0.35,on:v.on!==false};if(v.imp)o[k].imp=true;}return o;}
 function cleanDesign(o){
@@ -1900,6 +1938,9 @@ function loadProject(o){
  const list=a=>(Array.isArray(a)?a:[]).map((e,i)=>Object.assign(cleanDesign(e),{id:e.id||('e'+Date.now()+i),name:String(e.name||'Iteration '+(i+1)),src:e.src||''}));
  S.locks={};if(o.locks&&typeof o.locks==='object')for(const k in o.locks)if(o.locks[k]&&PD[k])S.locks[k]=true;
  S.baseNext=o.base&&typeof o.base==='object'?cleanCurves(o.base):null;S.snaps=list(o.snaps);S.cmp=list(o.cmp);const ovls=a=>(Array.isArray(a)?a:[]).map((e,i)=>Object.assign(cleanDesign(e),{id:e.id||('o'+Date.now()+i),name:String(e.name||'Shape '+(i+1)),src:e.src||'',on:e.on!==false,x:+e.x||0,y:+e.y||0,a:+e.a||0}));S.ovl=ovls(o.ovl);S.cmpv=ovls(o.cmpv);S.cmpOn={current:true};S.snaps.forEach(e=>S.cmpOn[e.id]=true);
+ {const fin=v=>typeof v==='number'&&isFinite(v),pt=c=>c&&fin(c.x)&&fin(c.y)?{x:c.x,y:c.y}:null;
+  S.wpsNext=(Array.isArray(o.wps)?o.wps:[]).filter(e=>e&&e.p).map((e,i)=>{const d=cleanDesign(e),X=xOK(e.P)||xOK(e.X)||{a:0,tx:0,ty:0},f=e.free,sp=e.sar||{};return{id:String(e.id||'w'+Date.now()+i),name:String(e.name||'Workpiece '+(i+2)),p:d.p,curves:d.curves,base:cleanCurves(e.base||e.curves),free:f&&pt(f.C)&&Array.isArray(f.u)&&fin(f.u[0])&&fin(f.u[1])?{C:pt(f.C),u:[f.u[0],f.u[1]]}:null,sar:{on:!!sp.on&&!!pt(sp.C),C:pt(sp.C),a:fin(sp.a)?sp.a:0},P:X};});
+  if(S.wpsNext.length){S.wpIdNext=String(o.wpId||'w0');S.wpNameNext=String(o.wpName||'Current design');const pr=o.prim||{};S.primNext={ken:String(pr.ken||S.wpIdNext),tama:String(pr.tama||S.wpIdNext)};S.wpPNext=xOK(o.wpP);S.wpOrderNext=Array.isArray(o.wpOrder)?o.wpOrder.map(String):null;}}
  begin();
 }
 // turn a library entry into a design: fitted measures, best-fit radii for the curved segments, and exact imported contours wherever the parametric curve is more than 0.02 mm off
@@ -1978,7 +2019,7 @@ function randomShape(){
  return p;
 }
 function newDesign(t){if(t==='kocho')return loadLib('Kocho');S.p=t==='random'?randomShape():Object.assign(defaults(),t==='scratch'?STARTER:{});sanitize(S.p);S.curves={};S.locks={};S.snaps=[];S.cmp=[];S.ovl=[];S.cmpv=[];S.cmpOn={current:true};S.meta={brand:S.meta.brand||'TERRA',model:t==='scratch'||t==='random'?'NEW SHAPE':'KOCHO',designer:S.meta.designer||'',tolLocked:true};begin();}
-function begin(){started=true;S.base=JSON.parse(JSON.stringify(S.baseNext||S.curves||{}));S.baseNext=null;hist=[];hpos=-1;DD.spot=null;DD.selH=null;DD.hover=null;DD.free=null;MK.mA=null;DD.sar={on:false,C:null,a:0};DD.ovSel=null;DD.ovAdd=false;CV.ovSel=null;CV.ovDrag=null;ddCancel();$('#start').classList.remove('show');$('#mBrand').value=S.meta.brand;$('#mModel').value=S.meta.model;$('#mDesigner').value=S.meta.designer;for(const k in VT)VT[k].auto=true;refresh();commit();}
+function begin(){started=true;S.base=JSON.parse(JSON.stringify(S.baseNext||S.curves||{}));S.baseNext=null;S.wps=S.wpsNext||[];S.wpId=S.wpIdNext||'w0';S.wpName=S.wpNameNext||'Current design';S.wpP=S.wpPNext||{a:0,tx:0,ty:0};S.wpOrder=S.wpOrderNext||null;wpOrderFix();WP.gone={};S.prim=S.wps.length?Object.assign({ken:S.wpId,tama:S.wpId},S.primNext||{}):null;if(S.prim)for(const k in S.prim)if(S.prim[k]!==S.wpId&&!S.wps.some(w=>w.id===S.prim[k]))S.prim[k]=S.wpId;S.wpsNext=S.wpIdNext=S.wpNameNext=S.primNext=S.wpPNext=S.wpOrderNext=null;WP.sel=null;document.body.classList.remove('wp-pick');hist=[];hpos=-1;DD.spot=null;DD.selH=null;DD.hover=null;DD.free=null;MK.mA=null;DD.sar={on:false,C:null,a:0};DD.ovSel=null;DD.ovAdd=false;CV.ovSel=null;CV.ovDrag=null;ddCancel();$('#start').classList.remove('show');$('#mBrand').value=S.meta.brand;$('#mModel').value=S.meta.model;$('#mDesigner').value=S.meta.designer;for(const k in VT)VT[k].auto=true;refresh();commit();}
 
 /* ================= parameter panel ================= */
 const rows={},contourRows={};let lockNote=null,holeRow=null;
@@ -1998,7 +2039,11 @@ function buildParams(){
  ddp.append(sd,el('p',{class:'gnote'},'Shape the contours straight on the kendama. Pick a tool from the bar at the bottom of the viewing area; its fine-tuning controls sit just above it.'));
  for(const[,n,t]of DD_TOOLS)ddp.append(el('div',{class:'ddrow'},el('b',{},n),el('span',{},t)));
  ddp.append(el('p',{class:'gnote'},'Undo and Redo in the top bar work on every change made here.'),el('h3',{style:'margin:12px 0 4px'},'Hand-shaped contours'),el('div',{id:'ddList'}));
+ {const tip='Type a value or drag the slider. Values are limited automatically so the shape always stays buildable. With more than one kendama in the Drag & draw view, choose what these controls change: 1° changes only the 1° kendama (pick it with the 1° button in the Iterations panel), All changes every kendama in the view.',box=el('span',{class:'seg3'});
+  for(const[v,t]of[['1','1°'],['all','All']]){const b=el('button',{title:tip},t);b.dataset.v=v;b.onclick=()=>{WP.on=v;syncWorkOn();syncParams();};box.append(b);}
+  host.append(el('div',{class:'wpon',id:'wpOn',title:tip,style:'display:none'},el('b',{},'Work on:'),box));}
  host.append(el('p',{class:'gnote',html:'Type a value or drag the slider. Values are limited automatically so the shape always stays buildable.'}));
+ for(const t of['pointerdown','focusin','keydown','input','change','click']){host.addEventListener(t,wpManualPre,true);host.addEventListener(t,wpManualPost);}
  for(const g of GROUPS){
   const det=el('details',{class:'grp'});det.append(el('summary',{},g.title));
   if(g.id==='spike'){lockNote=el('p',{class:'gnote'});det.append(lockNote);}
@@ -2033,7 +2078,7 @@ function buildParams(){
     if(d.mats){sel=el('select');sel.append(el('option',{value:''},'Custom'));for(const[k,t,v]of MATS)sel.append(el('option',{value:k},`${t} (${v})`));sel.onchange=()=>{const m=MATS.find(q=>q[0]===sel.value);if(m){setParam(d.k,m[2],false);commit();}};mat=el('div',{class:'mat'},'Material',sel);}
    }
    const row=el('div',{class:'prow '+d.kind},lab,ctl);if(mat)row.append(mat);row.append(note,warn);
-   rows[d.k]={row,num,rng,sel,val,tg,lock,pin,mat:mat&&sel,note,warn,d};det.append(row);
+   rows[d.k]={row,num,rng,sel,val,tg,lock,pin,mat:mat&&sel,note,warn,d};row.dataset.wk=d.k;det.append(row);
    if(d.k==='baseCupR'){const box=el('span',{class:'seg2'}),bOn=el('button',{title:'Cut the imported hole'},'On'),bOff=el('button',{title:'Use the radius cup only'},'Off'),set=v=>{const h=S.curves.baseHole;if(!h||h.on===v)return;h.on=v;refresh();commit();};bOn.onclick=()=>set(true);bOff.onclick=()=>set(false);box.append(bOn,bOff);
     const nt=el('div',{class:'pnote'}),hr=el('div',{class:'prow added'},el('div',{class:'plab'},el('span',{},'Base cup hole (imported)'),box),nt);holeRow={row:hr,on:bOn,off:bOff,note:nt};det.append(hr);}
   }
@@ -2070,7 +2115,8 @@ function setParam(k,v,tell){
  Object.assign(S.p,t.q);const fx=t.f;refresh(true);
  if(tell&&fx.length){const hit=fx.find(f=>f.k===k)||fx[0];toast(`${PD[hit.k].label} set to ${f2(hit.to)}: ${hit.why}.`);}
 }
-function syncParams(){
+function syncParams(){if(wpMulti()&&WP.on==='1'&&!WP.swap)return withPrim(syncParams0);syncParams0();}
+function syncParams0(){
  const G=CUR.G,p=S.p;
  lockNote.innerHTML=`Spike Ø at the bevel and every 25.4 mm below it, down to ${f1(p.taperL)} mm, are <b class="lk">locked together</b> so the sarado always seats on the correct taper: <b class="lk">Ø${G.D.map(f2).join(' / ')}</b>. Change the spike size to move them all.`;
  for(const k in rows){const r=rows[k],d=r.d,v=pv(p,d,G);
@@ -2096,7 +2142,7 @@ function syncParams(){
 
 /* ================= canvas views ================= */
 const cv=$('#cv'),ctx=cv.getContext('2d');
-const VT={design:{z:1,ox:0,oy:0,auto:true},sarado:{z:1,ox:0,oy:0,auto:true},compare:{z:1,ox:0,oy:0,auto:true}};
+const VT={design:{z:1,ox:0,oy:0,auto:true},compare:{z:1,ox:0,oy:0,auto:true}};
 let CW=0,CH=0,pan=null,CSS={};
 const col=n=>LOOKC&&LOOKC[n]||CSS[n]||(CSS[n]=getComputedStyle(document.documentElement).getPropertyValue(n).trim());
 function sizeCanvas(c){const r=c.getBoundingClientRect(),d=window.devicePixelRatio||1;if(c.width!==Math.round(r.width*d)||c.height!==Math.round(r.height*d)){c.width=Math.round(r.width*d);c.height=Math.round(r.height*d);}const x=c.getContext('2d');x.setTransform(d,0,0,d,0,0);return[r.width,r.height,x];}
@@ -2111,7 +2157,6 @@ function balView(){
 const rotW=(b,q,inv)=>{const dx=q[0]-b.x,dy=q[1]-b.y,s=inv?-b.s:b.s;return[b.x+dx*b.c-dy*s,b.y+dx*s+dy*b.c];};
 function bounds(v){
  const G=CUR.G,p=G.p;
- if(v==='sarado'){const m=Math.max(p.smD,p.bgD,p.smBandD,p.bgBandD)/2+6;return[G.xS-8,-m,G.xE+8,m];}
  let x0=G.xS-G.xw-22,x1=G.xE-G.xw+8,y0=-6,y1=p.kenH+6;
  const B=v==='design'&&balView();
  if(B){const sil=silhouette(G),P=poseCached(CUR,S.show.tama),R=mkTama(p,G).Rmax,pts=[...sil.ken,...sil.sar].map(q=>rotW(B,q)),C=rotW(B,[P.C.x,P.C.y]);pts.push([C[0]-R,C[1]-R],[C[0]+R,C[1]+R]);
@@ -2119,6 +2164,7 @@ function bounds(v){
  if(v==='design'&&S.mode==='dd')for(const o of S.ovl||[])if(o.on){const P=ovPolys(o);for(const q of[...P.ken,...P.sar]){x0=Math.min(x0,q[0]-4);x1=Math.max(x1,q[0]+4);y0=Math.min(y0,q[1]-4);y1=Math.max(y1,q[1]+14);}}
  if(v==='design'&&sarApart())for(const q of sarPoly()){x0=Math.min(x0,q[0]-4);x1=Math.max(x1,q[0]+4);y0=Math.min(y0,q[1]-4);y1=Math.max(y1,q[1]+4);}
  if(v==='design'){const T=tamaPose();if(T){const R=mkTama(p,G).Rmax;x0=Math.min(x0,T.C.x-R-4);x1=Math.max(x1,T.C.x+R+4);y0=Math.min(y0,T.C.y-R-4);y1=Math.max(y1,T.C.y+R+4);}}
+ if(v==='design'&&S.mode==='dd'&&wpMulti()&&!WP.swap)for(const q of wpAllPts(S.wpId)){x0=Math.min(x0,q[0]-4);x1=Math.max(x1,q[0]+4);y0=Math.min(y0,q[1]-4);y1=Math.max(y1,q[1]+4);}
  return[x0,y0,x1,y1];
 }
 function fit(v){const T=VT[v],b=bounds(v),w=b[2]-b[0],h=b[3]-b[1],pad=v==='design'?Math.min(112,CH*0.32):0;T.z=Math.min((CW-30)/w,(CH-30-pad)/h);T.ox=CW/2-(b[0]+b[2])/2*T.z;T.oy=(CH-pad)/2+(b[1]+b[3])/2*T.z;} // room for the drag & draw tool dock; Markup fits the same way so the picture does not shift when you switch between the two
@@ -2128,9 +2174,9 @@ function pathW(c,T,pts,close){c.beginPath();if(PEN){pencilPath(c,T,pts,close);re
 function pencilPath(c,T,pts,close){const L=close&&pts.length>2?[...pts,pts[0]]:pts,d=[];for(let i=0;i<L.length;i++){const a=L[i];if(i){const b=L[i-1],n=Math.ceil(Math.hypot(a[0]-b[0],a[1]-b[1])/2);for(let j=1;j<n;j++)d.push([lerp(b[0],a[0],j/n),lerp(b[1],a[1],j/n)]);}d.push(a);}
  for(const ph of[0,2.1]){d.forEach((q,i)=>{const w=0.8+0.25*ph,X=sx(T,q[0])+w*Math.sin(q[1]*0.21+q[0]*0.07+ph),Y=sy(T,q[1])+w*Math.cos(q[0]*0.19-q[1]*0.05+ph*1.7);i?c.lineTo(X,Y):c.moveTo(X,Y);});}}
 function grid(c,T){if(NOGRID)return;c.strokeStyle=col('--grid');c.lineWidth=1;c.beginPath();const g=10*T.z;if(!(g>2))return;for(let x=((T.ox%g)+g)%g;x<CW;x+=g){c.moveTo(Math.round(x)+.5,0);c.lineTo(Math.round(x)+.5,CH);}for(let y=((T.oy%g)+g)%g;y<CH;y+=g){c.moveTo(0,Math.round(y)+.5);c.lineTo(CW,Math.round(y)+.5);}c.stroke();}
-function fromSeg(G,seg,view,s,v,sd){switch(seg.part){case'ken':return[sd*v,s];case'kcav':return[sd*s,v];case'sar':return view==='sarado'?[s,sd*v]:[s-G.xw,G.yA+sd*v];case'cupS':return[G.xS+v,sd*s];default:return[G.xE-v,sd*s];}}
-function toSeg(G,seg,view,X,Y){switch(seg.part){case'ken':return[Y,Math.abs(X)];case'kcav':return[Math.abs(X),Y];case'sar':return view==='sarado'?[X,Math.abs(Y)]:[X+G.xw,Math.abs(Y-G.yA)];case'cupS':return[Math.abs(Y),X-G.xS];default:return[Math.abs(Y),G.xE-X];}}
-const segOK=(seg,v)=>seg&&(seg.view==='both'?(v==='design'||v==='sarado'):seg.view===v);
+function fromSeg(G,seg,view,s,v,sd){switch(seg.part){case'ken':return[sd*v,s];case'kcav':return[sd*s,v];case'sar':return[s-G.xw,G.yA+sd*v];case'cupS':return[G.xS+v,sd*s];default:return[G.xE-v,sd*s];}}
+function toSeg(G,seg,view,X,Y){switch(seg.part){case'ken':return[Y,Math.abs(X)];case'kcav':return[Math.abs(X),Y];case'sar':return[X+G.xw,Math.abs(Y-G.yA)];case'cupS':return[Math.abs(Y),X-G.xS];default:return[Math.abs(Y),G.xE-X];}}
+const segOK=(seg,v)=>seg&&(seg.view==='both'?v==='design':seg.view===v);
 function cogMark(c,x,y,r,color){c.save();c.fillStyle=col('--canvas');c.beginPath();c.arc(x,y,r,0,7);c.fill();c.fillStyle=color;c.beginPath();c.moveTo(x,y);c.arc(x,y,r,0,Math.PI/2);c.closePath();c.fill();c.beginPath();c.moveTo(x,y);c.arc(x,y,r,Math.PI,Math.PI*1.5);c.closePath();c.fill();c.strokeStyle=color;c.lineWidth=1.4;c.beginPath();c.arc(x,y,r,0,7);c.stroke();c.restore();}
 function label(c,t,x,y,color,align){c.font='11px -apple-system,Helvetica,Arial,sans-serif';c.textAlign=align||'left';const w=c.measureText(t).width,x0=align==='right'?x-w:align==='center'?x-w/2:x;c.fillStyle=col('--canvas');c.globalAlpha=.85;c.fillRect(x0-3,y-11,w+6,15);c.globalAlpha=1;c.fillStyle=color||col('--ink');c.fillText(t,x,y);c.textAlign='left';}
 function tamaOutline(p,C,u,G){ // world polygons for the tama's hole walls (two sides)
@@ -2161,7 +2207,29 @@ function drawEllipses(c,T,v){
    if(sd===1){c.fillStyle=k;c.fillText(`${Math.abs(e.rx-e.ry)<0.01?'R'+f2(e.rx):f2(e.rx)+' × '+f2(e.ry)}`,X+7,Y-5);}}}
  c.restore();
 }
+// with more than one kendama in Drag & draw, the others are drawn first, each in its own place, then the one being worked on
 function drawDesign(c,T){
+ grid(c,T);const ng=NOGRID;NOGRID=true;
+ try{if(S.mode==='dd'&&wpMulti())drawOthers(c,T);
+  drawDesign1(c,T,null);}finally{NOGRID=ng;}
+}
+// The kendamas not being worked on are drawn once into a picture kept aside (WPC) and reused while none of them, the look or the view changes, so shaping one kendama never redraws the others.
+// Panning slides the picture (it has a margin round it); moving the working ken changes nothing for the others, so it is reused as it is. WPC.off draws them afresh every time (tests).
+const WPC={cv:null,sig:'',ef:null,m:0,builds:0,off:false};
+function drawOthers(c,T){
+ const base=c.getTransform(),pc=c.canvas,Tm=new DOMMatrix([T.z,0,0,-T.z,T.ox,T.oy]),mats=[],lin=[],ef=[],parts=[];
+ for(const w of S.wps){const X=wpX(w),M=base.translate(T.ox+X.tx*T.z,T.oy-X.ty*T.z).rotate(-X.a*180/Math.PI).translate(-T.ox,-T.oy),K=M.multiply(Tm);
+  mats.push(M);lin.push([K.a,K.b,K.c,K.d].map(v=>Math.round(v*1e6)));ef.push([K.e,K.f]);parts.push(JSON.stringify([w.id,w.p,w.curves,w.free,w.sar]));}
+ const draw=(o,pre)=>{for(let i=0;i<S.wps.length;i++){const w=S.wps[i];wpWith(w,()=>{o.save();o.setTransform(pre?pre.multiply(mats[i]):mats[i]);try{drawDesign1(o,T,w.id);}finally{o.restore();}});}};
+ if(WPC.off){draw(c);return;}
+ const sig=JSON.stringify([pc.width,pc.height,LOOK,LOOKC,matchMedia('(prefers-color-scheme: dark)').matches,document.documentElement.dataset.theme||'',LANG.cur,S.show.cog,S.show.tama,WP.show,S.prim,S.mode,lin,parts]);
+ let dx=0,dy=0,ok=WPC.cv&&sig===WPC.sig&&WPC.ef&&WPC.ef.length===ef.length;
+ if(ok){dx=ef[0][0]-WPC.ef[0][0];dy=ef[0][1]-WPC.ef[0][1];ok=Math.abs(dx)<WPC.m&&Math.abs(dy)<WPC.m&&Math.abs(dx-Math.round(dx))<0.01&&Math.abs(dy-Math.round(dy))<0.01&&ef.every((q,i)=>Math.abs(q[0]-WPC.ef[i][0]-dx)<0.01&&Math.abs(q[1]-WPC.ef[i][1]-dy)<0.01);}
+ if(!ok){const m=Math.round(Math.max(pc.width,pc.height)*0.25),oc=WPC.cv||(WPC.cv=document.createElement('canvas'));oc.width=pc.width+2*m;oc.height=pc.height+2*m;
+  draw(oc.getContext('2d'),new DOMMatrix().translate(m,m));WPC.sig=sig;WPC.ef=ef;WPC.m=m;WPC.builds++;dx=dy=0;}
+ c.save();c.setTransform(1,0,0,1,0,0);c.drawImage(WPC.cv,Math.round(dx)-WPC.m,Math.round(dy)-WPC.m);c.restore();
+}
+function drawDesign1(c,T,oth){
  const G=CUR.G,A=CUR.A,p=G.p,sil=silhouette(G);grid(c,T);
  const B=balView();if(B){const X=sx(T,B.x),Y=sy(T,B.y);c.save();c.translate(X,Y);c.rotate(-B.a);c.translate(-X,-Y);}
  c.lineJoin='round';PEN=LOOK==='pencil';const ga=c.globalAlpha;if(PEN)c.globalAlpha=.8;
@@ -2175,14 +2243,15 @@ function drawDesign(c,T){
  if(sarApart())drawSarApart(c,T);else drawSarBody(c,T,q=>q,LK);
  const P=tamaPose();if(P){drawTama(c,T,p,P,S.show.tama==='free'?'':TRICKS.find(t=>t[0]===S.show.tama)[1],'line');}
  PEN=false;c.globalAlpha=ga;
+ if(S.mode==='dd')wpCue(c,T,oth||S.wpId);
  if(S.show.cog&&!B&&!sarApart()){cogMark(c,sx(T,A.cog.x),sy(T,A.cog.y),7,col('--cog'));label(c,`CoG ${f1(A.cog.y)} mm`,sx(T,A.cog.x)+12,sy(T,A.cog.y)+4,col('--cog'));}
- drawEllipses(c,T,'design');
+ if(!oth)drawEllipses(c,T,'design');
  if(B){c.restore();const g=rotW(B,[A.cog.x,A.cog.y]),X=sx(T,B.x);
   const top=B.kenOnTama?g[1]:rotW(B,[poseCached(CUR,S.show.tama).C.x,poseCached(CUR,S.show.tama).C.y])[1];
   c.strokeStyle=col('--cog');c.lineWidth=1;c.setLineDash([4,4]);c.beginPath();c.moveTo(X,sy(T,B.y)+14);c.lineTo(X,sy(T,top)-26);c.stroke();c.setLineDash([]);
   c.fillStyle=col('--cog');c.beginPath();c.arc(X,sy(T,B.y),3.5,0,7);c.fill();
   if(S.show.cog){cogMark(c,sx(T,g[0]),sy(T,g[1]),7,col('--cog'));label(c,'CoG',sx(T,g[0])+12,sy(T,g[1])+4,col('--cog'));}
-  const deg=B.a*180/Math.PI,ST=S.show.tama==='handlestall'?'Ken held level: the tama rests on the handle stall ridge':S.show.tama==='slipstall'?'Ken held level: the tama rests on the slip stall ridge':'';flat(c,()=>label(c,ST||(B.kenOnTama?'Balanced: tama held, ken + sarado CoG straight above the contact':'Balanced: ken held, tama centre straight above the contact')+` · ken tilted ${f1(Math.abs(deg))}° ${deg>=0?'toward the big cup':'toward the small cup'}`,12,22,col('--ink')));}
+  const deg=B.a*180/Math.PI,ST=S.show.tama==='handlestall'?'Ken held level: the tama rests on the handle stall ridge':S.show.tama==='slipstall'?'Ken held level: the tama rests on the slip stall ridge':''; if(!oth)flat(c,()=>label(c,ST||(B.kenOnTama?'Balanced: tama held, ken + sarado CoG straight above the contact':'Balanced: ken held, tama centre straight above the contact')+` · ken tilted ${f1(Math.abs(deg))}° ${deg>=0?'toward the big cup':'toward the small cup'}`,12,22,col('--ink')));}
 }
 // the sarado as it is drawn on the ken: outline, hidden cup lines, band edges (bird ridges), string holes. m maps a design-frame point to where it is drawn (Sarado apart moves and turns it).
 function drawSarBody(c,T,m,LK,apart){
@@ -2245,15 +2314,6 @@ function drawSarApart(c,T){
  drawSarBody(c,T,m,LOOK||'fill',true);
  if(LOOK!=='section'&&LOOK!=='silhouette'){c.lineWidth=1;c.setLineDash([4,3]);c.strokeStyle=col('--edge');for(const sd of[1,-1]){pathW(c,T,[w([G.xw+sd*G.kR,-p.waistD/2]),w([G.xw+sd*G.kR,p.waistD/2])]);c.stroke();}c.setLineDash([]);}
 }
-function drawSarado(c,T){
- const G=CUR.G,p=G.p;grid(c,T);
- pathW(c,T,sarSection(G),true);c.fillStyle=col('--sarado');c.fill();c.strokeStyle=col('--edge');c.lineWidth=1.5;c.lineJoin='round';c.stroke();
- c.lineWidth=1;c.setLineDash([8,3,2,3]);c.strokeStyle=col('--muted');pathW(c,T,[[G.xS-6,0],[G.xE+6,0]]);c.stroke();
- c.setLineDash([4,3]);c.strokeStyle=col('--lock');for(const sd of[1,-1]){pathW(c,T,[[G.xw+sd*G.kR,-p.waistD/2-4],[G.xw+sd*G.kR,p.waistD/2+4]]);c.stroke();}c.setLineDash([]);
- label(c,'ken hole',sx(T,G.xw),sy(T,p.waistD/2+4)-6,col('--lock'),'center');
- label(c,'SMALL CUP',sx(T,G.xS),sy(T,-Math.max(p.smD,p.smBandD)/2)+18,col('--muted'));label(c,'BIG CUP',sx(T,G.xE),sy(T,-Math.max(p.bgD,p.bgBandD)/2)+18,col('--muted'),'right');
- drawEllipses(c,T,'sarado');
-}
 const PAL=['#2f6f5e','#c0392b','#2c6fbb','#b7791f','#7d3c98','#0e8f8f','#d35400','#5d6d7e'];
 function entries(){return[{id:'current',name:'Current design',p:S.p,curves:S.curves,cur:true},...S.snaps,...S.cmp];}
 function entryResult(e){if(e.cur)return CUR;const key=JSON.stringify([e.p,e.curves]);if(!e._r||e._k!==key){const G=build(e.p,e.curves);Object.defineProperty(e,'_r',{value:{G,A:analyze(G)},writable:true,enumerable:false,configurable:true});Object.defineProperty(e,'_k',{value:key,writable:true,enumerable:false,configurable:true});}return e._r;}
@@ -2312,7 +2372,7 @@ function draw3D(c,T){
  flat(c,()=>label(c,'3D view · drag to turn',CW/2,CH-10,col('--muted'),'center'));
 }
 // mark-ups: flat sketches for looking at the shape. They are not part of the design and are not saved or exported.
-const mkPts=m=>{const r=rot3(),pv=piv3();return m.pts.map(q=>proj3(q,r,pv));};
+const mkPts=m=>{const r=rot3(),pv=piv3();return m.pts.map(q=>proj3(mkLoc(q),r,pv));}; // kept on the table, so a ken that moves leaves them where they are
 function mkShape(t,a,b){ // view-plane outline for a drag from a to b
  if(t==='line'||t==='meas')return[a,b];
  if(t==='plane')return[a,[b[0],a[1]],b,[a[0],b[1]]];
@@ -2365,10 +2425,10 @@ function mkUp(e){
  const T=VT.design,u=MK.cur,d=MK.down;MK.spin=null;MK.orb=null;MK.cur=null;MK.down=null;if(S.view!=='design'||!d)return;
  const still=e&&Math.hypot(e.clientX-d.x,e.clientY-d.y)<5;
  if(u&&u.type==='meas'){const size=Math.hypot(u.b[0]-u.a[0],u.b[1]-u.a[1])*T.z;
-  if(u.fromA||size>4){if(size>0.5){const r=rot3(),pv=piv3();mkSnap();MK.items.push({type:'meas',closed:false,pts:[u.a,u.b].map(q=>unproj3(q[0],q[1],r,pv).map(x=>Math.round(x*1000)/1000))});MK.sel=MK.items.length-1;}MK.mA=null;}else MK.mA=u.a;
+  if(u.fromA||size>4){if(size>0.5){const r=rot3(),pv=piv3();mkSnap();MK.items.push({type:'meas',closed:false,pts:[u.a,u.b].map(q=>mkTab(unproj3(q[0],q[1],r,pv)).map(x=>Math.round(x*1000)/1000))});MK.sel=MK.items.length-1;}MK.mA=null;}else MK.mA=u.a;
   syncTools();render();return;}
  if(u){const pp=u.type==='pen'?u.path:mkShape(u.type,u.a,u.b),size=Math.hypot(u.b[0]-u.a[0],u.b[1]-u.a[1])*T.z;
-  if((u.type==='pen'?pp.length>2:size>4)){const r=rot3(),pv=piv3();mkSnap();MK.items.push({type:u.type,closed:u.type==='plane'||u.type==='circle',pts:pp.map(q=>unproj3(q[0],q[1],r,pv).map(x=>Math.round(x*100)/100))});}
+  if((u.type==='pen'?pp.length>2:size>4)){const r=rot3(),pv=piv3();mkSnap();MK.items.push({type:u.type,closed:u.type==='plane'||u.type==='circle',pts:pp.map(q=>mkTab(unproj3(q[0],q[1],r,pv)).map(x=>Math.round(x*100)/100))});}
   syncTools();render();return;}
  if(MK.tool==='move'&&still&&e){const w=evW(e,T);let best=-1,bd=9/T.z;MK.items.forEach((m,i)=>{if(!mkVis(m))return;const pp=mkPts(m),n=pp.length;for(let j=0;j<(m.closed?n:n-1);j++){const a=pp[j],b=pp[(j+1)%n],vx=b[0]-a[0],vy=b[1]-a[1],L=vx*vx+vy*vy||1,t=clamp(((w[0]-a[0])*vx+(w[1]-a[1])*vy)/L,0,1),dd=Math.hypot(w[0]-a[0]-t*vx,w[1]-a[1]-t*vy);if(dd<=bd){bd=dd;best=i;}}});
   if(best!==MK.sel){MK.sel=best;syncTools();render();}}}
@@ -2524,9 +2584,9 @@ function ddSarMove(dx,dy){const P=DD.sar,f=ddFree(),go=(ax,ay)=>{if(!ax&&!ay)ret
 function ddSarTurn(da){const P=DD.sar,f=ddFree(),k=ddFar(m=>({C:f.C,u:f.u,sp:{C:P.C,a:P.a+da*m}}));P.a+=da*k;return k;}
 function ddTamaTurn(da){const f=ddFree(),k=ddFar(m=>({C:f.C,u:rot2(f.u[0],f.u[1],da*m)}));f.u=rot2(f.u[0],f.u[1],da*k);return k;}
 function ddKenTurn(da){const f=ddFree(),py=CUR.G.p.kenH/2,at=m=>{const c=rot2(f.C.x,f.C.y-py,da*m),ap=sarApart(),sc=ap?rot2(DD.sar.C.x,DD.sar.C.y-py,da*m):null;return{C:{x:c[0],y:py+c[1]},u:rot2(f.u[0],f.u[1],da*m),sp:ap?{C:{x:sc[0],y:py+sc[1]},a:DD.sar.a+da*m}:null};},k=ddFar(at),q=at(k);
- f.C=q.C;f.u=q.u;if(q.sp){DD.sar.C=q.sp.C;DD.sar.a=q.sp.a;}let a=V3.roll+da*k;a=Math.atan2(Math.sin(a),Math.cos(a));V3.roll=Math.abs(a)<1e-9?0:a;return k;}
+ f.C=q.C;f.u=q.u;if(q.sp){DD.sar.C=q.sp.C;DD.sar.a=q.sp.a;}if(k)wpShift(xRotAbout([0,py],da*k));let a=V3.roll+da*k;a=Math.atan2(Math.sin(a),Math.cos(a));V3.roll=Math.abs(a)<1e-9?0:a;return k;}
 function ddKenStep(dxs,dys){const T=VT.design,f=ddFree(),c=Math.cos(-V3.roll),s=Math.sin(-V3.roll),wx=-(dxs*c-dys*s)/T.z,wy=(dxs*s+dys*c)/T.z,k=ddFar(m=>({C:{x:f.C.x+wx*m,y:f.C.y+wy*m},u:f.u,sp:sarApart()?{C:{x:DD.sar.C.x+wx*m,y:DD.sar.C.y+wy*m},a:DD.sar.a}:null}));
- f.C={x:f.C.x+wx*k,y:f.C.y+wy*k};if(sarApart())DD.sar.C={x:DD.sar.C.x+wx*k,y:DD.sar.C.y+wy*k};T.auto=false;T.ox+=dxs*k;T.oy+=dys*k;return k;}
+ f.C={x:f.C.x+wx*k,y:f.C.y+wy*k};if(k)wpShift({a:0,tx:wx*k,ty:wy*k});if(sarApart())DD.sar.C={x:DD.sar.C.x+wx*k,y:DD.sar.C.y+wy*k};T.auto=false;T.ox+=dxs*k;T.oy+=dys*k;return k;}
 function ddKenMove(dxs,dys){const n=Math.max(1,Math.ceil(Math.hypot(dxs,dys)/VT.design.z/3));let tot=0;for(let i=0;i<n;i++){const k=ddKenStep(dxs/n,dys/n);tot+=k/n;if(k<1)break;}return tot;} // in steps, so nothing jumps through anything
 const ddKnobs=T=>{const f=ddFree(),G=CUR.G,M=mkTama(G.p,G),R=M.rhoAt(Math.PI),o=16/T.z;return{t:[f.C.x-f.u[0]*(R+o),f.C.y-f.u[1]*(R+o)],k:[0,G.p.kenH+o],s:sarApart()?sarW(G.xE-G.xw+o,0):null,s0:sarApart()?sarW(G.xE-G.xw,0):null};};
 const pip=(poly,W)=>{let inn=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if((a[1]>W[1])!==(b[1]>W[1])&&W[0]<(b[0]-a[0])*(W[1]-a[1])/(b[1]-a[1])+a[0])inn=!inn;}return inn;};
@@ -2701,7 +2761,7 @@ function syncDD(){
  else if(t==='mark'){const vb=$('#vtools .vt-body');if(vb)for(const b0 of vb.children){if(b0.tagName==='HR'){host.append(el('span',{class:'dd-sep'}));continue;}const b=b0.cloneNode(true);b.classList.add('dd-ic');b.removeAttribute('id');
    if(b.dataset.t){b.classList.toggle('act',b.dataset.t===MK.tool);b.onclick=()=>setTool(b.dataset.t);}else b.onclick=()=>{mkAct(b.dataset.a);syncDD();};host.append(b);}
   if(MK.tool==='measure'){const b=btn('Snap',again(()=>DD.snap=!DD.snap));b.classList.toggle('act',DD.snap);b.append(' ',el('b',{},DD.snap?'On':'Off'));}
-  const sm=MK.items[MK.sel];if(sm&&sm.type==='meas'){const[a,b2]=sm.pts;host.append(el('span',{class:'dd-n'},`${f2(Math.hypot(b2[0]-a[0],b2[1]-a[1],(b2[2]||0)-(a[2]||0)))} mm`),el('span',{class:'dd-h'},`across ${f2(Math.abs(b2[0]-a[0]))} mm · along ${f2(Math.abs(b2[1]-a[1]))} mm`));}}
+  const sm=MK.items[MK.sel];if(sm&&sm.type==='meas'){const[a,b2]=sm.pts.map(mkLoc);host.append(el('span',{class:'dd-n'},`${f2(Math.hypot(b2[0]-a[0],b2[1]-a[1],(b2[2]||0)-(a[2]||0)))} mm`),el('span',{class:'dd-h'},`across ${f2(Math.abs(b2[0]-a[0]))} mm · along ${f2(Math.abs(b2[1]-a[1]))} mm`));}}
  else if(t==='cmp'){const ab=btn(DD.ovAdd?'Close the list':'Add a shape',again(()=>DD.ovAdd=!DD.ovAdd));ab.classList.toggle('act',!!DD.ovAdd);
   if(DD.ovAdd){const box=el('div',{class:'dd-list'});for(const[name,arr,mk]of ovSources()){if(!arr.length)continue;box.append(el('div',{class:'dd-lh'},name));for(const e of arr){const b=el('button',{translate:'no'},e.name);b.onclick=()=>{DD.ovAdd=false;ovAdd(mk(e));syncDD();};box.append(b);}}host.append(box);}
   ovPanel(host,again,ib);if(!S.ovl.length&&!DD.ovAdd)hint(def[2]);}
@@ -2721,6 +2781,7 @@ function setDDTool(t){if(t==='free'&&S.show.tama!=='free'){ddAdoptPose();S.show.
  if(STY.look==='3d'&&t!=='mark'&&t!=='pan'){STY.look=STY.flat;try{localStorage.setItem('tse.look',STY.look);}catch(e){}V3.on=false;V3.yaw=V3.pitch=0;lookPill();toast('Back to the flat view: the shaping tools work on the flat shape.');} /* the shaping tools work on the flat view */
  DD.tool=t;DD.hover=null;DD.focus=null;DD.lA=null;DD.rA=null;DD.ctl=null;DD.rb=null;ddCancel();syncDD();render();}
 function setMode(m,keepView){
+ if(m!=='dd'&&S.view==='design')m='dd'; // the design view is always Drag & draw (the old Markup view is gone); 'manual' is only the mode of the spec sheet and Compare view
  S.mode=m;tamaMode();document.body.classList.toggle('ddmode',m==='dd');ddCancel();
  if(m==='dd'){S.draw.on=false;MK.tool='move';if(S.view!=='design')setView('design');applyLook();syncTools();}
  viewPill();syncDraw();syncDD();render();}
@@ -2729,10 +2790,10 @@ function render0(){
  if(!CUR.G)return;
  const[w,h,c]=sizeCanvas(cv);CW=w;CH=h;CSS={};c.clearRect(0,0,w,h);if(w<40||h<40)return;
  const v=S.view;if(LOOKC&&LOOKC['--canvas']){c.fillStyle=LOOKC['--canvas'];c.fillRect(0,0,w,h);}
- if(v==='spec'){const k=Math.min((w-24)/792,(h-24)/612),ox=(w-792*k)/2,oy=(h-612*k)/2;c.save();c.translate(ox,oy);c.scale(k,k);c.fillStyle='#fff';c.shadowColor='rgba(0,0,0,.25)';c.shadowBlur=12;c.fillRect(0,0,792,612);c.shadowBlur=0;const D=new CanvasDrawer(c);(S.page===1?specPage1:specPage2)(D,CUR);c.restore();return;}
- const T=VT[v];if(T.auto)fit(v);
+ if(v==='spec'){const k=Math.min((w-24)/792,(h-24)/612),ox=(w-792*k)/2,oy=(h-612*k)/2;c.save();c.translate(ox,oy);c.scale(k,k);c.fillStyle='#fff';c.shadowColor='rgba(0,0,0,.25)';c.shadowBlur=12;c.fillRect(0,0,792,612);c.shadowBlur=0;const D=new CanvasDrawer(c);withPrim(()=>(S.page===1?specPage1:specPage2)(D,CUR));c.restore();return;}
+ const T=VT[v];if(v==='compare'){withPrim(()=>{if(T.auto)fit(v);drawCompare(c,T);});return;}if(T.auto)fit(v);
  if(v==='design'&&V3.roll){grid(c,T);NOGRID=true;const[px,py]=rollPiv(T);c.save();c.translate(px,py);c.rotate(V3.roll);c.translate(-px,-py);try{(V3.on?draw3D:drawDesign)(c,T);drawMarks(c,T);if(S.mode==='dd'&&!V3.on)drawDD(c,T);}finally{NOGRID=false;c.restore();}return;}
- (v==='design'?(V3.on?draw3D:drawDesign):v==='sarado'?drawSarado:drawCompare)(c,T);if(v==='design'){drawMarks(c,T);if(S.mode==='dd'&&!V3.on)drawDD(c,T);}
+ (v==='design'?(V3.on?draw3D:drawDesign):drawCompare)(c,T);if(v==='design'){drawMarks(c,T);if(S.mode==='dd'&&!V3.on)drawDD(c,T);}
 }
 function drawMini(id,L){
  const[w,h,c]=sizeCanvas($(id)),G=CUR.G,A=CUR.A,p=G.p;c.clearRect(0,0,w,h);
@@ -2773,7 +2834,7 @@ function applyStroke(seg,pts,opt){
 function syncDraw(){
  if(!CUR.G)return;const G=CUR.G;S.draw.on=false;
  if(!G.segs[S.draw.seg]||G.segs[S.draw.seg].nodraw)S.draw.seg=G.segs.swoopBg?'swoopBg':'smRidge';
- cv.style.cursor=S.mode==='dd'&&S.view==='design'?(DD.tool==='pan'?'grab':'crosshair'):(S.view==='design'||S.view==='sarado'||S.view==='compare'?'grab':'default');
+ cv.style.cursor=S.mode==='dd'&&S.view==='design'?(DD.tool==='pan'?'grab':'crosshair'):(S.view==='design'||S.view==='compare'?'grab':'default');
 }
 
 /* ================= drawing surface for spec sheet (canvas + PDF) ================= */
@@ -3032,14 +3093,23 @@ function syncStats(){
 }
 function syncSnaps(){
  const host=$('#snapList');host.innerHTML='';
- const add=(e,arr)=>host.append(el('div',{class:'snap'},el('span',{title:e.name},e.name+(e.src?` · ${e.src}`:'')),el('button',{onclick:()=>{S.p=JSON.parse(JSON.stringify(e.p));S.curves=JSON.parse(JSON.stringify(e.curves));sanitize(S.p);refresh();commit();toast(`Loaded “${e.name}” as the current design.`);}},'Load'),el('button',{onclick:()=>{arr.splice(arr.indexOf(e),1);delete S.cmpOn[e.id];refresh();autosave();}},'✕')));
+ const add=(e,arr)=>host.append(el('div',{class:'snap'},el('span',{title:e.name},e.name+(e.src?` · ${e.src}`:'')),el('button',{class:'wpadd',title:'Add a copy to the Drag & draw view as another kendama you can work on',onclick:()=>wpAdd(e)},'⧉'),el('button',{onclick:()=>{S.p=JSON.parse(JSON.stringify(e.p));S.curves=JSON.parse(JSON.stringify(e.curves));sanitize(S.p);refresh();commit();toast(`Loaded “${e.name}” as the current design.`);}},'Load'),el('button',{onclick:()=>{arr.splice(arr.indexOf(e),1);delete S.cmpOn[e.id];refresh();autosave();}},'✕')));
  S.snaps.forEach(e=>add(e,S.snaps));S.cmp.forEach(e=>add(e,S.cmp));
  if(!S.snaps.length&&!S.cmp.length)host.append(el('div',{class:'okmsg'},'Save an iteration, change the shape, then add it in Compare to see the balance side by side.'));
+ // the kendamas in the Drag & draw view, with the 1° picker and the 1° cue switch
+ const m=wpMulti(),bp=$('#bPrim'),be=$('#bPrimEye'),wl=$('#wpList');if(!bp)return;
+ bp.disabled=be.disabled=!m;bp.classList.toggle('act',!!WP.sel);bp.setAttribute('aria-pressed',!!WP.sel);be.classList.toggle('act',m&&WP.show);be.setAttribute('aria-pressed',WP.show);
+ wl.innerHTML='';wl.style.display=m?'':'none';if(!m)return;
+ wl.append(el('div',{class:'pnote'},'In the Drag & draw view'));
+ const PN={ken:'Ken + sarado',tama:'Tama'};
+ for(const w of wpList()){const pr=['ken','tama'].filter(k=>wpIsPrim(w.id,k));
+  wl.append(el('div',{class:'snap wp'+(w.act?' on':'')},el('span',{title:w.act?'You are working on this one':'Click to work on this one',onclick:()=>{if(!w.act){if(S.mode!=='dd')setMode('dd');wpActivate(w.id);}}},el('b',{class:'wp1'},pr.length?'1°':''),el('span',{translate:'no'},w.name),pr.length===1?el('small',{},pr.map(k=>PN[k]).join(', ')):''),el('button',{title:'Take this kendama out of the view',onclick:()=>wpRemove(w.id)},'✕')));}
 }
-function syncCompare(){
+function syncCompare(){withPrim(syncCompare0);}
+function syncCompare0(){
  syncCmpView();const host=$('#cmpPanel');host.style.display=S.view==='compare'?'block':'none';if(S.view!=='compare'||!CUR.G)return;
  const base=CUR.A,d=(v,b,u)=>{const x=v-b;return Math.abs(x)<0.05?'':` <small style="color:var(--muted)">(${x>0?'+':''}${f1(x)}${u})</small>`;};
- const rows=[{id:'current',name:'Current design',cur:true,on:S.cmpOn.current!==false,k:PAL[0],r:CUR},...S.cmpv.map((o,i)=>({id:o.id,name:o.name,on:o.on,k:ovCol(i),r:entryResult(o)}))];
+ const rows=[{id:'current',name:wpMulti()?'1° kendama':'Current design',cur:true,on:S.cmpOn.current!==false,k:PAL[0],r:CUR},...S.cmpv.map((o,i)=>({id:o.id,name:o.name,on:o.on,k:ovCol(i),r:entryResult(o)}))];
  let h='<table><tr><th></th><th>Design</th><th>Ken + sarado</th><th>Tama</th><th>Ken</th><th>Sarado</th><th>Lunar angle</th><th>CoG above base</th><th>CoG below sarado axis</th></tr>';
  for(const e of rows){const{G,A}=e.r,g=(v,b)=>`<span class="n">${f1(v)}</span> g${e.cur?'':d(v,b,' g')}`,mm=(v,b)=>`<span class="n">${f1(v)}</span> mm${e.cur?'':d(v,b,' mm')}`,L=A.big,B=base.big;
   h+=`<tr><td><input type="checkbox" data-id="${esc(e.id)}" ${e.on?'checked':''}></td><td><span class="sw" style="background:${e.k}"></span><span translate="no">${esc(e.name)}</span></td><td>${g(A.M,base.M)}</td><td>${g(A.tM,base.tM)}</td><td>${g(A.kM,base.kM)}</td><td>${g(A.sM,base.sM)}</td><td>${L?`<span class="n">${f1(L.elev)}</span>°`+(e.cur||!B?'':d(L.elev,B.elev,'°')):'n/a'}</td><td>${mm(A.cog.y,base.cog.y)}</td><td>${mm(G.yA-A.cog.y,CUR.G.yA-base.cog.y)}</td></tr>`;}
@@ -3047,20 +3117,147 @@ function syncCompare(){
  host.querySelectorAll('input').forEach(c=>c.onchange=()=>{if(c.dataset.id==='current')S.cmpOn.current=c.checked;else{const o=S.cmpv.find(q=>q.id===c.dataset.id);if(o)o.on=c.checked;autosave();syncCmpView();}render();});
 }
 
+/* ================= workpieces: more than one kendama in Drag & draw =================
+   The kendama being worked on lives in S.p / S.curves / S.base, with its tama and sarado in DD.free and DD.sar, exactly as with one kendama, so every tool works on it unchanged.
+   The others wait in S.wps. Every kendama has P {a,tx,ty}: where it sits on a fixed table (turned by a about its origin, then moved); S.wpP is the working one's.
+   The view is drawn in the working kendama's frame; moving or turning its ken changes S.wpP, so the others and the mark-up (kept in table coordinates) stay put.
+   S.wpOrder is the order of all kendamas (the working one included); one undo history covers them all.
+   The 1° kendama (S.prim: which kendama gives the ken + sarado, and which the tama) feeds the spec sheet, the Compare view and the exports. */
+const WP={sel:null,show:true,on:'1',act:{},gone:{}}; // sel: picking the 1° pieces (the parts picked so far); show: the 1° cue (per viewer); on: what Manual control changes; gone: kendamas taken out, for undo
+try{WP.show=localStorage.getItem('tse.prim1')!=='0';}catch(e){}
+const wpMulti=()=>!!(S.wps&&S.wps.length);
+const XI={a:0,tx:0,ty:0};
+const xAp=(X,q)=>{const c=Math.cos(X.a),s=Math.sin(X.a);return[q[0]*c-q[1]*s+X.tx,q[0]*s+q[1]*c+X.ty];};
+const xMul=(A,B)=>{const t=xAp(A,[B.tx,B.ty]);return{a:A.a+B.a,tx:t[0],ty:t[1]};}; // A after B
+const xInv=X=>{const c=Math.cos(-X.a),s=Math.sin(-X.a);return{a:-X.a,tx:-(X.tx*c-X.ty*s),ty:-(X.tx*s+X.ty*c)};};
+const xRotAbout=(P,a)=>{const c=Math.cos(a),s=Math.sin(a);return{a,tx:P[0]-(P[0]*c-P[1]*s),ty:P[1]-(P[0]*s+P[1]*c)};};
+const xOK=X=>{const f=v=>typeof v==='number'&&isFinite(v);return X&&f(X.a)&&f(X.tx)&&f(X.ty)?{a:X.a,tx:X.tx,ty:X.ty}:null;};
+const wpP=()=>S.wpP||(S.wpP={a:0,tx:0,ty:0});
+// the working ken moved or turned by M (in its own frame): it moves on the table, everything else stays where it is on screen
+const wpShift=M=>{S.wpP=xMul(wpP(),xInv(M));};
+const wpX=w=>w.act||w.id===S.wpId?XI:xMul(xInv(wpP()),w.P||XI); // a kendama's place in the working one's frame
+// mark-up points are kept on the table; these turn them into the working frame and back (a third value, depth in 3D, is kept)
+const mkLoc=q=>{const r=xAp(xInv(wpP()),q);return q.length>2?[r[0],r[1],...q.slice(2)]:r;};
+const mkTab=q=>{const r=xAp(wpP(),q);return q.length>2?[r[0],r[1],...q.slice(2)]:r;};
+const wpClone=o=>JSON.parse(JSON.stringify(o));
+function wpGet(id){if(id===S.wpId)return Object.assign(WP.act,{id:S.wpId,name:S.wpName,p:S.p,curves:S.curves,base:S.base,P:wpP(),free:DD.free,sar:DD.sar,act:true});return(S.wps||[]).find(w=>w.id===id)||null;}
+function wpOrderFix(){const ids=[S.wpId,...(S.wps||[]).map(w=>w.id)];S.wpOrder=(S.wpOrder||[]).filter((id,i,a)=>ids.includes(id)&&a.indexOf(id)===i);for(const id of ids)if(!S.wpOrder.includes(id))S.wpOrder.push(id);return S.wpOrder;}
+const wpList=()=>wpOrderFix().map(wpGet);
+function wpCur(w){if(w.act&&!WP.swap)return CUR;const k=JSON.stringify([w.p,w.curves]);if(w._k!==k){sanitize(w.p);const G=build(w.p,w.curves);w._c={G,A:analyze(G)};w._k=JSON.stringify([w.p,w.curves]);}return w._c;}
+// run fn with another kendama swapped in as if it were the working one
+function wpWith(w,fn){if(!w||w.id===S.wpId)return fn();const sv=[S.p,S.curves,S.base,CUR,DD.free,DD.sar];WP.swap=(WP.swap||0)+1;S.p=w.p;S.curves=w.curves;S.base=w.base||{};CUR=wpCur(w);DD.free=w.free||null;DD.sar=w.sar||(w.sar={on:false,C:null,a:0});
+ try{return fn();}finally{w.free=DD.free;w.sar=DD.sar;[S.p,S.curves,S.base,CUR,DD.free,DD.sar]=sv;WP.swap--;}}
+// which piece of a kendama a measure or a contour belongs to: the tama, or the ken with its sarado
+const wpPartOf=k=>{if(k==='tamaRho')return'tama';const d=PD[k];return d&&d.group==='tama'?'tama':'ken';};
+const wpSegPart=(G,id)=>{if(id==='baseHole')return'ken';const sg=G.segs[id];if(!sg)return/^tama/.test(id)?'tama':'ken';return sg.part==='tama'||sg.part==='tbev'?'tama':'ken';};
+const wpOwner=part=>S.prim&&(part==='tama'?S.prim.tama:S.prim.ken);
+// the 1° kendama, put together from the picked ken + sarado and tama: {p,curves,base,cur}; null while there is only one kendama
+function wpPrim(){
+ if(!wpMulti()||!S.prim)return null;
+ const g=id=>wpGet(id)||wpGet(S.wpId),K=g(S.prim.ken),Ta=g(S.prim.tama);
+ const key=JSON.stringify([K.id,Ta.id,K.p,K.curves,K.base,Ta.p,Ta.curves,Ta.base]);if(WP._pk===key)return WP._pv;
+ const p=wpClone(K.p);for(const k in p)if(wpPartOf(k)==='tama'&&k in Ta.p)p[k]=Ta.p[k];
+ const curves={},base={},take=(src,part)=>{const G=wpCur(src).G;for(const id in src.curves)if(wpSegPart(G,id)===part)curves[id]=wpClone(src.curves[id]);for(const id in src.base||{})if(wpSegPart(G,id)===part)base[id]=wpClone(src.base[id]);};
+ take(K,'ken');take(Ta,'tama');sanitize(p);const G=build(p,curves);
+ WP._pk=key;WP._pv={p,curves,base,cur:{G,A:analyze(G)}};return WP._pv;}
+// run fn with the 1° kendama in place of the working one (spec sheet, Compare view, exports)
+function withPrim(fn){const P=wpPrim();if(!P)return fn();const sv=[S.p,S.curves,S.base,CUR];S.p=P.p;S.curves=P.curves;S.base=P.base;CUR=P.cur;WP.swap=(WP.swap||0)+1;try{return fn();}finally{[S.p,S.curves,S.base,CUR]=sv;WP.swap--;}}
+const wpIsPrim=(id,part)=>wpOwner(part)===id;
+// a kendama's outlines in its own frame: ken, sarado (on the ken or apart) and tama
+function wpShapes(){const G=CUR.G,sil=silhouette(G),P=tamaPose(),ap=sarApart();return{ken:sil.ken,sar:ap?sarPoly():sil.sar,tama:P?tamaLoop(mkTama(G.p,G),P.C,P.u,60):null,apart:ap};}
+const nearPoly=(poly,W,d)=>{for(let i=0;i<poly.length;i++){const a=poly[i],c=poly[(i+1)%poly.length],vx=c[0]-a[0],vy=c[1]-a[1],L=vx*vx+vy*vy||1e-9,t=clamp(((W[0]-a[0])*vx+(W[1]-a[1])*vy)/L,0,1);if(Math.hypot(W[0]-a[0]-t*vx,W[1]-a[1]-t*vy)<=d)return true;}return false;};
+// which kendama and which part of it is under a point of the view (working frame): {id,part}
+function wpPartAt(W,T){
+ const d=10/T.z,test=q=>{const s=wpShapes();for(const[part,poly]of[['tama',s.tama],['sar',s.sar],['ken',s.ken]])if(poly&&pip(poly,q))return{part};for(const[part,poly]of[['tama',s.tama],['sar',s.sar],['ken',s.ken]])if(poly&&nearPoly(poly,q,d))return{part};return null;};
+ let r=test(W);if(r)return Object.assign(r,{id:S.wpId});
+ for(const w of S.wps||[]){r=wpWith(w,()=>test(xAp(xInv(wpX(w)),W)));if(r)return Object.assign(r,{id:w.id});}
+ return null;}
+// all the points of every kendama in the view, in the working frame (for fitting the view and placing a new kendama)
+function wpAllPts(skip){const o=[];for(const w of wpList()){if(w.id===skip)continue;const X=wpX(w);wpWith(w,()=>{const s=wpShapes();for(const poly of[s.ken,s.sar,s.tama])if(poly)for(const q of poly)o.push(xAp(X,q));});}return o;}
+// the view's frame changes to X (given in the old frame), whose ken is kenH tall: the picture stays still
+function wpReanchor(X,kenH){
+ const T=VT.design,piv=[0,kenH/2],q=xAp(X,piv);let s=[sx(T,q[0]),sy(T,q[1])];
+ if(V3.roll&&S.view==='design'){const[px,py]=rollPiv(T),c=Math.cos(V3.roll),n=Math.sin(V3.roll),dx=s[0]-px,dy=s[1]-py;s=[px+dx*c-dy*n,py+dx*n+dy*c];}
+ let r=V3.roll-X.a;r=Math.atan2(Math.sin(r),Math.cos(r));V3.roll=Math.abs(r)<1e-9?0:r;T.auto=false;T.ox=s[0];T.oy=s[1]+piv[1]*T.z;}
+// make another kendama the working one; the picture stays still
+function wpActivate(id,quiet){
+ const i=(S.wps||[]).findIndex(w=>w.id===id);if(i<0)return false;ddCancel();wpOrderFix();
+ const w=S.wps[i];wpReanchor(wpX(w),w.p.kenH);
+ const old={id:S.wpId,name:S.wpName,p:S.p,curves:S.curves,base:S.base,P:wpP(),free:DD.free,sar:DD.sar};
+ S.wps.splice(i,1,old);
+ S.p=w.p;S.curves=w.curves;S.base=w.base||{};S.wpId=w.id;S.wpName=w.name;S.wpP=w.P||{a:0,tx:0,ty:0};DD.free=w.free||null;DD.sar=w.sar||{on:false,C:null,a:0};
+ Object.assign(DD,{spot:null,selH:null,hover:null,rng:null,rA:null,rb:null,ctl:null,focus:null,lA:null});
+ if(!quiet)refresh();return true;}
+// a new kendama on the table (a copy of an iteration, or one someone else added in a shared session)
+function wpNew(id,name,d){const w={id,name:String(name||'Workpiece'),p:wpClone(d.p||defaults()),curves:wpClone(d.curves||{}),base:wpClone(d.base||d.curves||{}),P:{a:0,tx:0,ty:0},free:null,sar:{on:false,C:null,a:0}};sanitize(w.p);S.wps.push(w);wpOrderFix();return w;}
+// a copy of an iteration as another full kendama, to the right of the others
+function wpAdd(e){
+ if(!colEdit())return;
+ if(!wpMulti())S.prim={ken:S.wpId,tama:S.wpId};
+ if(S.mode!=='dd')setMode('dd');
+ const all=wpAllPts(),x1=Math.max(...all.map(q=>q[0])),w=wpNew('w'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),e.name,e);
+ const own=wpWith(w,()=>{const s=wpShapes(),o=[];for(const poly of[s.ken,s.sar,s.tama])if(poly)o.push(...poly);return o;});
+ w.P=xMul(wpP(),{a:0,tx:x1-Math.min(...own.map(q=>q[0]))+14,ty:0});
+ VT.design.auto=true;refresh();commit();toast(`Added “${w.name}” to the view. Click it to work on it.`);}
+// take a kendama out (kept aside so undo can bring it back)
+function wpDrop(id){if(!wpMulti())return false;if(id===S.wpId)wpActivate(S.wps[0].id,true);const w=S.wps.find(x=>x.id===id);if(!w)return false;WP.gone[id]=w;S.wps=S.wps.filter(x=>x!==w);wpOrderFix();
+ if(S.prim)for(const k in S.prim)if(!wpGet(S.prim[k]))S.prim[k]=S.wpId;if(!S.wps.length){S.prim=null;WP.sel=null;document.body.classList.remove('wp-pick');}return true;}
+function wpRemove(id){if(!colEdit()||!wpDrop(id))return;VT.design.auto=true;refresh();commit();}
+// one undo step holds every kendama's measures and contours, and the 1° choice
+function wpSnap(){const o={};for(const w of wpList())o[w.id]={p:w.p,curves:w.curves};return{w:o,prim:S.prim||null};}
+function wpRestore(s){
+ if(!s.w){s={w:{[S.wpId]:{p:s.p,curves:s.curves}},prim:null};}
+ const ids=Object.keys(s.w);
+ for(const id of ids)if(!wpGet(id)&&WP.gone[id]){S.wps.push(WP.gone[id]);delete WP.gone[id];}
+ if(!ids.includes(S.wpId)){const b=ids.find(id=>S.wps.some(w=>w.id===id));if(b)wpActivate(b,true);}
+ for(const w of S.wps.slice())if(!ids.includes(w.id))wpDrop(w.id);
+ for(const id of ids){const v=s.w[id],w=wpGet(id);if(!w)continue;if(w.act){S.p=wpClone(v.p);S.curves=wpClone(v.curves);}else{w.p=wpClone(v.p);w.curves=wpClone(v.curves);}}
+ S.wpOrder=ids.filter(id=>wpGet(id));wpOrderFix();S.prim=S.wps.length?(s.prim&&wpGet(s.prim.ken)&&wpGet(s.prim.tama)?{ken:s.prim.ken,tama:s.prim.tama}:{ken:S.wpId,tama:S.wpId}):null;
+ if(!S.wps.length){WP.sel=null;document.body.classList.remove('wp-pick');}}
+// picking the 1° kendama: one tama, and one ken (its sarado comes with it)
+function wpPickStart(on){if(on&&(!wpMulti()||!colEdit()))return;WP.sel=on?{}:null;document.body.classList.toggle('wp-pick',!!WP.sel);if(WP.sel){if(S.mode!=='dd'||S.view!=='design')setMode('dd');toast('Click one tama and one ken to make them the 1° kendama. The sarado goes with its ken.');}syncSnaps();render();}
+function wpPick(W,T){const h=wpPartAt(W,T);if(!h)return;const part=h.part==='tama'?'tama':'ken';
+ S.prim[part]=h.id;WP.sel[part]=1;commit();
+ if(WP.sel.ken&&WP.sel.tama){wpPickStart(false);toast('1° kendama set. It fills the spec sheet, is the one compared in the Compare view and is used for the exports.');}
+ else{syncSnaps();render();}}
+function wpShowCue(on){WP.show=on;try{localStorage.setItem('tse.prim1',on?'1':'0');}catch(e){}syncSnaps();render();}
+// the 1° cue: a soft green wash and a small 1° tag on each picked piece
+function wpCue(c,T,id){
+ if(!WP.show||!wpMulti()||!S.prim)return;const s=wpShapes(),parts=[];if(S.prim.ken===id)parts.push('ken','sar');if(S.prim.tama===id)parts.push('tama');if(!parts.length)return;
+ const k=col('--accent'),pen=PEN;PEN=false;c.save();c.lineJoin='round';
+ for(const part of parts){const poly=s[part];if(!poly)continue;pathW(c,T,poly,true);c.globalAlpha=.2;c.fillStyle=k;c.fill();c.globalAlpha=.85;c.strokeStyle=k;c.lineWidth=1.8;c.stroke();}
+ c.globalAlpha=1;c.font='700 12px -apple-system,Helvetica,Arial,sans-serif';c.fillStyle=k;c.textAlign='center';
+ for(const part of parts){if(part==='sar'&&!s.apart)continue;const poly=s[part];if(!poly)continue;let x0=1e9,x1=-1e9,y1=-1e9;for(const q of poly){x0=Math.min(x0,q[0]);x1=Math.max(x1,q[0]);y1=Math.max(y1,q[1]);}
+  const at=part==='ken'?[0,y1]:[(x0+x1)/2,y1];c.fillText('1°',sx(T,at[0]),sy(T,at[1])-6);}
+ c.restore();PEN=pen;}
+// Manual control with more than one kendama: '1' changes the 1° kendama's pieces, 'all' changes every kendama in the view (one undo step for all)
+function wpManualPre(e){
+ const row=e.target.closest&&e.target.closest('[data-wk]');if(!row||!wpMulti()||!e.target.closest('#topMan'))return;const k=row.dataset.wk;
+ if(WP.on==='1'){const id=wpOwner(wpPartOf(k));if(id&&id!==S.wpId)wpActivate(id);return;}
+ WP.pre={k,h:hpos,hl:hist.length,v:JSON.stringify(S.p[k]),on:JSON.stringify(Object.fromEntries(Object.entries(S.curves).map(([i,c])=>[i,c&&c.on!==false])))};}
+function wpManualPost(e){
+ const P=WP.pre;if(!P||WP.on!=='all'||!wpMulti())return;if(e.type==='pointerdown'||e.type==='focusin'||e.type==='keydown')return;WP.pre=null;
+ const on0=JSON.parse(P.on),pv=JSON.stringify(S.p[P.k]);let any=false;
+ for(const w of S.wps){let ch=false;if(pv!==P.v&&P.k in w.p){w.p[P.k]=wpClone(S.p[P.k]);ch=true;}
+  for(const id in S.curves){const c=S.curves[id],now=c&&c.on!==false;if(id in on0&&on0[id]!==now&&w.curves[id]){w.curves[id].on=now;ch=true;}}
+  if(ch){sanitize(w.p);any=true;}}
+ if(any&&(hpos!==P.h||hist.length!==P.hl)&&hpos>=0)hist[hpos]=histState(); // the change was already saved as an undo step: it now holds every kendama
+ render();autosave();}
+function syncWorkOn(){const b=$('#wpOn');if(!b)return;b.style.display=wpMulti()?'':'none';b.querySelectorAll('button').forEach(x=>x.classList.toggle('act',x.dataset.v===WP.on));}
 /* ================= refresh & events ================= */
 function refresh(light){
  if(!started)return;
  sanitize(S.p);const G=build(S.p,S.curves);CUR={G,A:analyze(G)};
  if(!G.segs[S.draw.seg])S.draw.seg=G.order[0];
- syncParams();syncDraw();ddFreeFix();if(S.mode==='dd')syncDD();render();syncStats();
+ syncParams();syncWorkOn();syncDraw();ddFreeFix();if(S.mode==='dd')syncDD();render();syncStats();
  if(!light)syncSnaps();
  syncCompare();updUndo();
 }
 const viewPill=()=>{const d=S.mode==='dd'&&S.view==='design';$('#tView').value=d?'dd':S.view;$('#lView b').textContent=d?'Drag & draw':VIEWS[S.view];};
-const VIEWS={design:'Markup',sarado:'Sarado section',spec:'Spec sheet',compare:'Compare'};
-function setView(v){if(v!=='design'&&S.mode==='dd'){S.mode='manual';tamaMode();document.body.classList.remove('ddmode');}S.view=v;viewPill();mkCancel();applyLook();lookPill();
- $('#lTama').style.display=v==='design'?'flex':'none';$('#tEll').style.display=v==='design'||v==='sarado'?'':'none';$('#vtools').style.display=v==='design'?'':'none';syncTools();$('#bPage').style.display=v==='spec'?'':'none';
- document.querySelector('.zoom').style.display=v==='spec'?'none':'flex';syncDraw();syncCompare();render();}
+const VIEWS={design:'Drag & draw',spec:'Spec sheet',compare:'Compare'};
+function setView(v){if(v==='sarado')v='design';if(v!=='design'&&S.mode==='dd'){S.mode='manual';tamaMode();document.body.classList.remove('ddmode');}S.view=v;viewPill();mkCancel();applyLook();lookPill();
+ $('#lTama').style.display=v==='design'?'flex':'none';$('#tEll').style.display=v==='design'?'':'none';$('#vtools').style.display=v==='design'?'':'none';syncTools();$('#bPage').style.display=v==='spec'?'':'none';
+ document.querySelector('.zoom').style.display=v==='spec'?'none':'flex';syncDraw();syncCompare();render();if(v==='design'&&S.mode!=='dd')setMode('dd');}
 function showStart(canCancel){
  const host=$('#sRecent');host.innerHTML='';$('#sCancel').style.display=canCancel?'':'none';
  try{const a=JSON.parse(localStorage.getItem('ksd.autosave')||'null');if(a&&a.app){host.append(el('p',{style:'margin:14px 0 6px'},'Pick up where you left off'));host.append(el('div',{class:'choices'},el('button',{onclick:()=>{try{loadProject(a);}catch(e){toast(e.message);}}},el('b',{},`${a.meta&&a.meta.model||'Untitled'}`),el('small',{},'Last session, saved in this browser '+new Date(a.saved).toLocaleString()))));}}catch(e){}
@@ -3135,6 +3332,7 @@ function wire(){
  document.querySelectorAll('#dd button[data-d]').forEach(b=>b.onclick=()=>b.dataset.d==='sarado'?ddSarToggle():setDDTool(b.dataset.d));
  $('#vtTog').onclick=()=>$('#vtools').classList.toggle('shut');if(matchMedia('(max-width:760px)').matches)$('#vtools').classList.add('shut');
  $('#vtools').querySelectorAll('button[data-t]').forEach(b=>b.onclick=()=>setTool(b.dataset.t));$('#vtools').querySelectorAll('button[data-a]').forEach(b=>b.onclick=()=>mkAct(b.dataset.a));
+ window.addEventListener('keydown',e=>{if(e.key==='Escape'&&WP.sel)wpPickStart(false);});
  window.addEventListener('keydown',e=>{if((e.key==='Delete'||e.key==='Backspace')&&MK.sel>=0&&colEdit()&&S.view==='design'&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();mkAct('del');}});
  document.querySelectorAll('#start [data-t]').forEach(b=>b.onclick=()=>newDesign(b.dataset.t));
  for(const e of LIB)$('#sLib').append(el('button',{title:e.file,onclick:()=>loadLib(e.name)},e.name));
@@ -3143,17 +3341,18 @@ function wire(){
  $('#bNew').onclick=()=>{if(!document.body.classList.contains('gate-guest'))showStart(true);};
  $('#bSave').onclick=()=>{download(slug(S.meta.model)+'.kendama.json',JSON.stringify(projectData(),null,1),'application/json');toast('Project saved to your downloads folder.');};
  $('#bUndo').onclick=()=>undo(-1);$('#bRedo').onclick=()=>undo(1);
- $('#bPdf').onclick=exportPdf;$('#bDxf').onclick=exportDxf;
- $('#bGcode').onclick=()=>{gStockDefault();$('#gOut').value=gcode();$('#gmodal').classList.add('show');};
- $('#gPart').onchange=()=>{gStockDefault();$('#gOut').value=gcode();};$('#gGen').onclick=()=>$('#gOut').value=gcode();
+ $('#bPdf').onclick=()=>withPrim(exportPdf);$('#bDxf').onclick=()=>withPrim(exportDxf);
+ $('#bGcode').onclick=()=>{withPrim(gStockDefault);$('#gOut').value=withPrim(gcode);$('#gmodal').classList.add('show');};
+ $('#gPart').onchange=()=>{withPrim(gStockDefault);$('#gOut').value=withPrim(gcode);};$('#gGen').onclick=()=>$('#gOut').value=withPrim(gcode);
  $('#gClose').onclick=()=>$('#gmodal').classList.remove('show');
- $('#gSave').onclick=()=>download(`${slug(S.meta.model)}_${$('#gPart').value}.nc`,gcode(),'text/plain');
+ $('#gSave').onclick=()=>download(`${slug(S.meta.model)}_${$('#gPart').value}.nc`,withPrim(gcode),'text/plain');
  for(const[id,k]of[['#mBrand','brand'],['#mModel','model'],['#mDesigner','designer']])$(id).oninput=e=>{S.meta[k]=e.target.value;autosave();if(S.view==='spec')render();};
  $('#tCog').onchange=e=>{S.show.cog=e.target.checked;render();};
  $('#tStyle').onchange=e=>setLook(e.target.value);lookPill();
  $('#tTama').onchange=e=>{const nv=e.target.value;if(nv==='free'&&S.show.tama!=='free'&&S.show.tama!=='none')ddAdoptPose();else VT.design.auto=true;S.show.tama=nv;if(S.mode==='dd'){if(S.show.tama==='free')DD.tool='free';else if(DD.tool==='free')DD.tool='point';syncDD();}tamaChip();render();};tamaChip();
  $('#tEll').onclick=()=>{const on=S.show.ell=!S.show.ell,b=$('#tEll');S.ellHide={};b.classList.toggle('act',on);b.setAttribute('aria-pressed',on);b.querySelector('b').textContent=on?'On':'Off';render();};
  $('#bPage').onclick=()=>{S.page=S.page===1?2:1;$('#bPage').textContent=S.page===1?'Page 2 ›':'‹ Page 1';render();};
+ $('#bPrim').onclick=()=>wpPickStart(!WP.sel);$('#bPrimEye').onclick=()=>wpShowCue(!WP.show);
  $('#bSnap').onclick=()=>{const name=$('#snapName').value.trim()||`Iteration ${S.snaps.length+1}`,e={id:'s'+Date.now(),name,p:JSON.parse(JSON.stringify(S.p)),curves:JSON.parse(JSON.stringify(S.curves))};S.snaps.push(e);S.cmpOn[e.id]=true;$('#snapName').value='';refresh();autosave();toast(`Saved “${name}”. Add it in Compare to see it against later changes.`);};
  $('#bCmpFile').onclick=()=>readFile($('#fCmp'),(o,fn)=>{if(!o||o.app!=='kendama-shape-designer')throw new Error('not a Terra Shape Explorer project');const src=(o.meta&&o.meta.model)||fn,add=(e,name)=>{const d=cleanDesign(e),x={id:'c'+Date.now()+Math.random().toString(36).slice(2,6),name,src,p:d.p,curves:d.curves};S.cmp.push(x);S.cmpOn[x.id]=true;};add(o,'Current');(o.snaps||[]).forEach(e=>add(e,String(e.name||'Iteration')));setView('compare');refresh();autosave();});
  $('#zFit').onclick=()=>{const T=VT[S.view];if(T){T.auto=true;render();}};
@@ -3166,8 +3365,8 @@ function wire(){
  cv.addEventListener('pointerdown',e=>{if(e.pointerType!=='touch')return;touch.set(e.pointerId,{x:e.clientX,y:e.clientY});if(touch.size===2){pan=null;mkCancel();pinch=pinchGeo();render();}},true);
  cv.addEventListener('pointermove',e=>{if(!touch.has(e.pointerId))return;touch.set(e.pointerId,{x:e.clientX,y:e.clientY});if(!pinch||touch.size<2)return;e.stopImmediatePropagation();const T=VT[S.view],g=pinchGeo();if(T&&pinch.d>0){T.auto=false;T.ox+=g.mx-pinch.mx;T.oy+=g.my-pinch.my;zoom(g.d/pinch.d,g.mx,g.my);}pinch=g;},true);
  const tEnd=e=>{touch.delete(e.pointerId);if(touch.size<2&&pinch){pinch=null;pan=null;}};cv.addEventListener('pointerup',tEnd,true);cv.addEventListener('pointercancel',tEnd,true);
- cv.onpointerdown=e=>{const T=VT[S.view];if(!T||pinch)return;cv.setPointerCapture(e.pointerId);if(lookTurn()){MK.orb={x:e.clientX,y:e.clientY,yaw:V3.yaw,pitch:V3.pitch};return;}if(colViewOnly()){if(S.view==='design'&&MK.tool!=='move'&&mkDown(e,T))return;pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};return;}if(S.mode==='dd'&&S.view==='design'){if(DD.tool==='mark'){if(!mkDown(e,T))pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};return;}if(!ddDown(e,T))pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};else T.auto=false;return;}if(S.view==='compare'){const o=ovHit(world(e));if(o){CV.ovSel=o.id;CV.ovDrag={id:o.id,W:world(e)};T.auto=false;syncCmpView();render();return;}}if(S.view==='design'&&mkDown(e,T));else pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};};
- cv.onpointermove=e=>{const T=VT[S.view];if(!T){$('#hud').textContent='';return;}const w=world(e);$('#hud').textContent=S.view==='sarado'?`along sarado ${f1(w[0])} mm · radius ${f1(Math.abs(w[1]))} mm`:`height ${f1(w[1])} mm · radius ${f1(Math.abs(w[0]))} mm`;
+ cv.onpointerdown=e=>{const T=VT[S.view];if(!T||pinch)return;cv.setPointerCapture(e.pointerId);if(lookTurn()){MK.orb={x:e.clientX,y:e.clientY,yaw:V3.yaw,pitch:V3.pitch};return;}if(colViewOnly()){if(S.view==='design'&&MK.tool!=='move'&&mkDown(e,T))return;pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};return;}if(S.mode==='dd'&&S.view==='design'){if(WP.sel){wpPick(ddEv(e,T),T);return;}if(wpMulti()&&!['mark','pan','cmp'].includes(DD.tool)&&!lookTurn()){const h=wpPartAt(ddEv(e,T),T);if(h&&h.id!==S.wpId)wpActivate(h.id);}if(DD.tool==='mark'){if(!mkDown(e,T))pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};return;}if(!ddDown(e,T))pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};else T.auto=false;return;}if(S.view==='compare'){const o=ovHit(world(e));if(o){CV.ovSel=o.id;CV.ovDrag={id:o.id,W:world(e)};T.auto=false;syncCmpView();render();return;}}if(S.view==='design'&&mkDown(e,T));else pan={x:e.clientX,y:e.clientY,ox:T.ox,oy:T.oy};};
+ cv.onpointermove=e=>{const T=VT[S.view];if(!T){$('#hud').textContent='';return;}const w=world(e);$('#hud').textContent=`height ${f1(w[1])} mm · radius ${f1(Math.abs(w[0]))} mm`;
   if(S.mode==='dd'&&S.view==='design'&&ddMove(e,T))return;
   if(S.view==='compare'&&CV.ovDrag){const o=S.cmpv.find(q=>q.id===CV.ovDrag.id);if(o){o.x+=w[0]-CV.ovDrag.W[0];o.y+=w[1]-CV.ovDrag.W[1];CV.ovDrag.W=w;render();}return;}
   if(S.view==='design'&&mkMove(e,T))return;
@@ -3179,8 +3378,8 @@ function wire(){
  if(window.matchMedia)window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(started){render();syncStats();}});
 }
 function tamaChip(){const t=TRICKS.find(t=>t[0]===S.show.tama);$('#lTama b').textContent=S.show.tama==='free'?'Free':t?t[1]:'Off';}
-// the tama pill: Free (the tama where you last left it, shared by Markup and drag & draw) and the tricks. Markup can also turn it off; in drag & draw the tama is always there.
-function tamaMode(){const dd=S.mode==='dd';if(dd&&S.show.tama==='none')S.show.tama='free';const sel=$('#tTama');sel.innerHTML='';if(!dd)sel.append(el('option',{value:'none'},'Off'));sel.append(el('option',{value:'free'},'Free'));for(const[v,t]of TRICKS.slice(1))sel.append(el('option',{value:v},t));sel.value=S.show.tama;if(DD.tool==='free'&&S.show.tama!=='free')DD.tool='point';tamaChip();}
+// the tama pill: Free (the tama where you last left it) and the tricks; in drag & draw the tama is always there.
+function tamaMode(){const dd=S.mode==='dd';if(dd&&S.show.tama==='none')S.show.tama='free';const sel=$('#tTama');sel.innerHTML='';sel.append(el('option',{value:'free'},'Free'));for(const[v,t]of TRICKS.slice(1))sel.append(el('option',{value:v},t));sel.value=S.show.tama;if(DD.tool==='free'&&S.show.tama!=='free')DD.tool='point';tamaChip();}
 /* ================= shared sessions (Collaborate) =================
    Several people work on one design at once, through a small relay server (relay/ in the repo). The relay only knows who is in the room and what each may do.
    The design is sent as small changes: every piece (each measure, each hand-shaped contour, each iteration, compare shape and mark-up) is one key, and the last change to a key wins.
@@ -3207,10 +3406,11 @@ const colList=L=>L==='mk'?MK.items:S[L];
 function colFlat(){
  const F=new Map(),J=JSON.stringify,put=(k,v)=>{if(v!==undefined)F.set(k,J(v));};
  for(const k in S.meta)put('meta.'+k,S.meta[k]);
- for(const k in S.p)put('p.'+k,S.p[k]);
- for(const k in S.curves)put('c.'+k,S.curves[k]);
+ // every kendama on the table under its own id (who is working on which one is each person's own business): order and 1° first, so a new one exists before its measures arrive
+ const ws=wpList();put('wp#',ws.map(w=>w.id));put('prim',S.prim||null);
+ for(const w of ws)put('wp.'+w.id,{name:w.name,P:w.P||XI,free:w.free||null,sar:w.sar||null});
+ for(const w of ws){for(const k in w.p)put('p.'+w.id+'.'+k,w.p[k]);for(const k in w.curves)put('c.'+w.id+'.'+k,w.curves[k]);put('base.'+w.id,w.base||null);}
  for(const k in S.locks)if(S.locks[k])put('lk.'+k,true);
- put('base',S.base||null);
  for(const L of COL_LISTS){const a=colList(L)||[];
   if(L==='mk')for(const m of a)if(!m.id){m.id='m'+COL.id.slice(0,6)+Math.random().toString(36).slice(2,8);m.by=COL.id;m.bn=colName();} // a new mark-up of mine
   put(L+'#',a.map(e=>e.id));for(const e of a)put(L+'.'+e.id,e);}
@@ -3237,14 +3437,19 @@ function colApply(o){
   ch.push([k,c[1]]);}
  if(ch.length)colPut(ch,!o.live);}
 function colPut(ch,final){
- const L=COL.last,hs=[],ms=[],selId=MK.items[MK.sel]&&MK.items[MK.sel].id;let des=false,lists=false,mk=false,meta=false;
+ const L=COL.last,hs=[],ms=[],wh=[],selId=MK.items[MK.sel]&&MK.items[MK.sel].id;let des=false,lists=false,mk=false,meta=false;
  const cp=v=>v==null?v:JSON.parse(JSON.stringify(v));
  for(const[k,v]of ch){
-  if(v==null&&k!=='base')L.delete(k);else L.set(k,JSON.stringify(v));
+  if(v==null&&!k.startsWith('base.'))L.delete(k);else L.set(k,JSON.stringify(v));
   const i=k.indexOf('.'),hd=i<0?k:k.slice(0,i),sub=i<0?'':k.slice(i+1);
-  if(k==='base'){S.base=v||{};}
+  if(k==='wp#'){if(Array.isArray(v)&&v.length){const ids=v.map(String);for(const id of ids)if(!wpGet(id))wpNew(id,'Workpiece',{});for(const w of S.wps.slice())if(!ids.includes(w.id))wpDrop(w.id);S.wpOrder=ids;wpOrderFix();wh.push(ids);des=true;}}
+  else if(k==='prim'){const ok=v&&wpGet(v.ken)&&wpGet(v.tama);S.prim=wpMulti()?(ok?{ken:v.ken,tama:v.tama}:{ken:S.wpId,tama:S.wpId}):null;if(final)wh.push(['prim',S.prim]);des=true;}
+  else if(hd==='wp'){const w=wpGet(sub);if(w&&v){const P=xOK(v.P)||XI;if(w.act){S.wpName=String(v.name||S.wpName);const P0=wpP();if(JSON.stringify(P0)!==JSON.stringify(P)){wpReanchor(xMul(xInv(P0),P),S.p.kenH);S.wpP=P;}DD.free=v.free||null;DD.sar=v.sar||{on:false,C:null,a:0};}
+   else{w.name=String(v.name||w.name);w.P=P;w.free=v.free||null;w.sar=v.sar||{on:false,C:null,a:0};}des=true;}}
+  else if(hd==='base'){const w=wpGet(sub);if(w){if(w.act)S.base=v||{};else w.base=v||{};}}
   else if(hd==='meta'){if(v==null)delete S.meta[sub];else S.meta[sub]=v;meta=true;}
-  else if(hd==='p'||hd==='c'){const o=hd==='p'?S.p:S.curves;if(v==null)delete o[sub];else o[sub]=cp(v);des=true;if(final)hs.push([hd,sub,v]);}
+  else if(hd==='p'||hd==='c'){const j=sub.indexOf('.'),id=sub.slice(0,j),kk=sub.slice(j+1),w=j>0?wpGet(id):null;if(!w)continue;
+   const o=hd==='p'?(w.act?S.p:w.p):(w.act?S.curves:w.curves);if(v==null)delete o[kk];else o[kk]=cp(v);des=true;if(final)hs.push([hd,id,kk,v]);}
   else if(hd==='lk'){if(v)S.locks[sub]=true;else delete S.locks[sub];des=true;}
   else if(k.endsWith('#')&&COL_LISTS.includes(k.slice(0,-1))){const a=colList(k.slice(0,-1));if(Array.isArray(v)){const pos=new Map(v.map((id,j)=>[id,j]));a.sort((x,y)=>(pos.get(x.id)??1e9)-(pos.get(y.id)??1e9));}if(k==='mk#')mk=true;else lists=true;}
   else if(COL_LISTS.includes(hd)){const a=colList(hd),j=a.findIndex(e=>e.id===sub);
@@ -3252,7 +3457,14 @@ function colPut(ch,final){
    if(hd==='mk'){mk=true;ms.push([sub,v]);}else lists=true;}
  }
  // someone else's change is the same in every step of my undo history, so undo only steps back through mine
- if(hs.length){hist=hist.map(h=>{const s=JSON.parse(h);for(const[hd,sub,v]of hs){const o=hd==='p'?s.p:s.curves;if(v==null)delete o[sub];else o[sub]=cp(v);}return JSON.stringify(s);});if(hpos>=0)hist[hpos]=snapState();}
+ // (kendamas someone else adds or takes out, and their 1° choice, likewise)
+ if(hs.length||wh.length){const now={},memo=new Map(),byId={};for(const w of wpList())now[w.id]=JSON.stringify({p:w.p,curves:w.curves});for(const c of hs)(byId[c[1]]=byId[c[1]]||[]).push(c);
+  // the same text in many steps is changed once and stays shared
+  const fix=(id,t)=>{const k=id+'\n'+t;if(memo.has(k))return memo.get(k);const e=JSON.parse(t);for(const[hd,,sub,v]of byId[id]){const o=hd==='p'?e.p:e.curves;if(v==null)delete o[sub];else o[sub]=cp(v);}const r=JSON.stringify(e);memo.set(k,r);return r;};
+  hist=hist.map(h=>{if(!h||!h.w)return h;const s={w:Object.assign({},h.w),prim:h.prim};
+   for(const x of wh){if(x[0]==='prim')s.prim=JSON.stringify(x[1]||null);else{const o={};for(const id of x)o[id]=s.w[id]||now[id];s.w=o;}}
+   for(const id in byId)if(s.w[id])s.w[id]=fix(id,s.w[id]);return s;});
+  if(hpos>=0)hist[hpos]=histState();}
  if(ms.length){const rb=t=>{const a=JSON.parse(t);for(const[id,v]of ms){const j=a.findIndex(e=>e.id===id);if(v==null){if(j>=0)a.splice(j,1);}else if(j>=0)a[j]=cp(v);else a.push(cp(v));}return JSON.stringify(a);};MK.undo=MK.undo.map(rb);MK.redo=MK.redo.map(rb);}
  if(mk){MK.sel=selId?MK.items.findIndex(m=>m.id===selId):-1;}
  if(meta){for(const[id,k]of[['#mBrand','brand'],['#mModel','model'],['#mDesigner','designer']]){const e=$(id);if(e&&document.activeElement!==e)e.value=S.meta[k]||'';}}
@@ -3283,6 +3495,8 @@ function colLost(){
  if(COL.on){COL.phase='retry';syncCol();const wait=Math.min(10000,1000*Math.pow(2,COL.retry++));clearTimeout(COL.again);COL.again=setTimeout(()=>{if(COL.on&&!COL.ws)colConnect(COL.room,COL.key,false);},wait);return;}
  colFail('net');}
 function colFail(code){
+ // back after a lost connection (or a relay restart) and nobody else is back yet: keep trying for two minutes before giving up
+ if(code==='empty'&&COL.on&&!COL.waiting&&(COL.emptyTries=(COL.emptyTries||0)+1)<=24){colDrop();COL.phase='retry';syncCol();clearTimeout(COL.again);COL.again=setTimeout(()=>{if(COL.on&&!COL.ws)colConnect(COL.room,COL.key,false);},5000);return;}
  const msg={net:'Couldn’t reach the shared session server.',gone:'This shared session has ended.',badkey:'This invite link no longer works.',banned:'You were removed from this shared session.',empty:'No one is in this shared session right now. Try the link again when the owner is back.',exists:'Couldn’t start a shared session. Try again.',bad:'Couldn’t join the shared session.'}[code]||'Couldn’t join the shared session.';
  const was=COL.on,joining=COL.waiting||!started;colReset();
  if(was&&COL.role!=='owner'&&code!=='net'){colClearDesign();}
@@ -3293,7 +3507,7 @@ function colRecv(text){
   if(P.got<P.n)return;COL.parts.delete(id);try{o=Object.assign(JSON.parse(P.s.join('')),{from:o.from});}catch(e){return;}}
  switch(o.t){
   case'error':colFail(o.code);break;
-  case'welcome':{const first=!COL.on;COL.on=true;COL.phase='in';COL.retry=0;COL.role=o.role;COL.owner=o.owner;COL.roster=o.roster||[];if(o.keys){COL.keys=o.keys;COL.key=o.keys.owner;}
+  case'welcome':{const first=!COL.on;COL.on=true;COL.phase='in';COL.emptyTries=0;COL.retry=0;COL.role=o.role;COL.owner=o.owner;COL.roster=o.roster||[];if(o.keys){COL.keys=o.keys;COL.key=o.keys.owner;}
    COL.wasOwner=o.role==='owner';colSave();COL.pend.clear();COL.live.clear();COL.parts.clear();
    if(o.alone&&!gateOk()){colSend({t:'leave'});colReset();colDialog('Shared session closed','No one is in this shared session right now. Try the link again when the owner is back.',null,[['OK',null,'pri']]);break;}
    if(o.alone){if(!started){let a=null;try{a=JSON.parse(localStorage.getItem('ksd.autosave')||'null');}catch(e){}if(a&&a.app)try{loadProject(a);}catch(e){}if(!started)newDesign('kocho');}COL.waiting=false;COL.last=colFlat();colHide('#colWait');}
