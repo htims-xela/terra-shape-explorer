@@ -36,7 +36,7 @@ const TESTS=[];const test=(name,fn,opt)=>TESTS.push({name,fn,opt:opt||{}});
 // A pause that lets the app catch up. Browsers slow timers right down in a tab that is not on screen, so there the pause is a few turns of the message queue instead.
 const tick=()=>new Promise(r=>{const c=new MessageChannel();c.port1.onmessage=()=>r();c.port2.postMessage(0);});
 const sleep=async ms=>{if(!document.hidden)return new Promise(r=>setTimeout(r,ms));for(let i=0;i<6;i++)await tick();};
-const LIBS=['Kocho','Aurum','Ditto','GFN','Gyro','Nemus','ROD26','Prefect','P1','Jon Rogers'];
+const LIBS=['Kocho','Aurum','Ditto','GFN','Gyro','Nemus','R26','Prefect','P1','Jon Rogers'];
 
 function helpers(w){
  const E=c=>w.eval(c);
