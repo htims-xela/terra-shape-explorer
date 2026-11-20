@@ -83,7 +83,7 @@ for(const name of LIBS)test(`Library shape loads, draws and exports: ${name}`,as
  ok(got.length===1&&/\.dxf$/i.test(got[0][0])&&got[0][1]>1000,'DXF exports');
  for(const part of['ken','sarado']){const n=E(`(()=>{$('#gPart').value='${part}';gStockDefault();const t=gcode();return t?t.length:0;})()`);ok(n>200,'G-code builds for the '+part);}
  for(const m of[['two',''],['one','radius'],['one','mirror']]){E(`S.p.swoopMode='${m[0]}';${m[1]?`S.p.swAMode='${m[1]}';`:''}refresh();`);ok(finite(),'swoop mode '+m.join(' ')+' builds');}
- E(`setTool('rot');render();`);ok(E('M3&&M3.q.length')>500,'3D model builds');E(`setTool('front');`);
+ E(`setLook('3d');render();`);ok(E('M3&&M3.q.length')>500,'3D model builds');E(`setLook('fill');`);
 });
 
 test('Bird ridge steps drawn in the CAD are kept in the one-swoop view',async({E,ok})=>{
@@ -118,7 +118,9 @@ test('Straight line tool makes the part between two clicks straight',async({E,ok
  const dev=E(`(()=>{const sg=CUR.G.segs.flare,a=${r.a},b=${r.b},va=ddRadAt(sg,a),vb=ddRadAt(sg,b);let m=0;for(let i=1;i<20;i++){const s=a+(b-a)*i/20;m=Math.max(m,Math.abs(ddRadAt(sg,s)-(va+(vb-va)*i/20)));}return m;})()`);
  ok(dev<0.02,`straight between the two points (within ${dev.toFixed(3)} mm)`);
  E(`setDDTool('line')`);const tb=E(`(()=>{const sg=CUR.G.segs.tamaBall;return sg?1:0;})()`);ok(tb===1,'tama contour exists for the next check');
- ok(!E(`ddLine('tamaBall',1,10)`),'the tama outside is not straightened');
+ const tl=E(`(()=>{const G=CUR.G,sg=G.segs.tamaBall,a=sg.s0+(sg.s1-sg.s0)*0.25,b=sg.s0+(sg.s1-sg.s0)*0.6,R=sg.R,P=s=>{const v=ddRadAt(CUR.G.segs.tamaBall,s);return[v*Math.cos(s/R),v*Math.sin(s/R)];};const A=P(a),B=P(b);if(!ddLine('tamaBall',a,b))return null;
+  let m=0;for(let i=1;i<20;i++){const q=P(a+(b-a)*i/20),d=Math.abs((B[0]-A[0])*(q[1]-A[1])-(B[1]-A[1])*(q[0]-A[0]))/Math.hypot(B[0]-A[0],B[1]-A[1]);m=Math.max(m,d);}return m;})()`);
+ ok(tl!==null&&tl<0.05,`the tama outside is straightened along the chord (within ${tl==null?'-':tl.toFixed(3)} mm)`);
 });
 
 test('Two points: Push / pull pulls the stretch about like a curve tool, keeping its shape; Smooth acts on it',async({E,ok,ev,PP})=>{
@@ -142,12 +144,13 @@ test('Two points: Push / pull pulls the stretch about like a curve tool, keeping
 test('Mark-up tools open from the Drag & draw bar and draw over the shape',async({E,ok,ev,PP,fitView})=>{
  E(`loadLib('Kocho');setMode('dd');MK.items=[];setDDTool('mark');`);await sleep(30);fitView();
  const ids=E(`[...$('#ddOpts').querySelectorAll('button')].map(b=>b.dataset.t||b.dataset.a).join(',')`);
- ok(ids==='move,rot,spin,front,line,plane,circle,measure,pen,undo,redo,del,clear','the mark-up tools pop out above the bar ('+ids+')');
+ ok(ids==='move,spin,line,plane,circle,measure,pen,undo,redo,del,clear','the mark-up tools pop out above the bar ('+ids+')');
  E(`$('#ddOpts button[data-t=line]').click()`);ok(E('MK.tool')==='line','picking a mark-up tool');
  const a=PP([-30,40]),b=PP([10,80]);ev('pointerdown',a[0],a[1]);ev('pointermove',(a[0]+b[0])/2,(a[1]+b[1])/2);ev('pointermove',b[0],b[1]);ev('pointerup',b[0],b[1]);
  ok(E('MK.items.length')===1,'a line is drawn on the canvas');
- E(`$('#ddOpts button[data-t=rot]').click()`);ok(E('V3.on'),'3D turn is available');
- E(`setDDTool('push')`);ok(!E('V3.on'),'a shaping tool goes back to the flat view');
+ ok(!E(`!!$('#ddOpts button[data-t=rot]')`)&&!E(`!!$('#ddOpts button[data-t=front]')`),'no 3D / 2D buttons in the mark-up tools (3D is in the Style pill)');
+ E(`setLook('3d')`);ok(E('V3.on')&&E('DD.tool')==='mark','3D keeps the mark-up tools');
+ E(`setDDTool('push')`);ok(!E('V3.on')&&E('STY.look')==='fill','a shaping tool goes back to the flat view');
 });
 
 test('Sarado apart: off the ken, moved, turned, still shaped, and back',async({E,ok,drag,PP,fitView,finite})=>{
@@ -184,9 +187,65 @@ test('Compare tool: add shapes, show / hide, move, turn and remove each one',asy
  ok(E('projectData().ovl.length')===1,'kept with the project');
  ok(E(`[...$('#ddOpts .dd-pop').children].map(b=>b.dataset.k||(b.classList.contains('dd-st')?'turn':'name')).join(',')`)==='name,eye,reset,remove,turn','its toolbar is name, eye, reset place, bin, turn');
  ok(!/Drag its outline/.test(E(`$('#ddOpts').textContent`)),'no drag hint text');
- E(`$('#ddOpts [data-k=outline]').click()`);ok(E('DD.outline')&&E(`$('#ddOpts [data-k=outline]').textContent.trim()`)==='','an icon button turns this design into an outline');
- E(`DD.outline=false;syncDD();`);
+ ok(!E(`!!$('#ddOpts [data-k=outline]')`),'the outline button has moved to the Style pill');
+ ok(E(`$('#ddOpts').getBoundingClientRect().width`)<=460,'the Compare toolbox is compact ('+Math.round(E(`$('#ddOpts').getBoundingClientRect().width`))+' px)');
+ E(`DD.ovAdd=true;syncDD();`);ok(E(`$('#ddOpts').getBoundingClientRect().width`)<=460,'and stays compact with the shape list open');E(`DD.ovAdd=false;syncDD();`);
  E(`$('#ddOpts .dd-pop [data-k=remove]').click()`);ok(E('S.ovl.length')===0,'remove');
+});
+
+test('Tama: the outside and the hole bevel take every shaping tool; the drilled hole stays a drill size',async({E,ok,ev,PP})=>{
+ E(`loadLib('Kocho');setMode('dd');DD.sar.on=false;VT.design.auto=true;render();`);await sleep(30);
+ E(`(()=>{const T=VT.design,P=tamaPose();T.auto=false;const z=T.z*3;T.ox=CW/2-P.C.x*z;T.oy=CH/2+P.C.y*z;T.z=z;render();})()`);
+ const W=(id,f,d=0)=>E(`(()=>{const G=CUR.G,sg=G.segs['${id}'],s=sg.s0+(sg.s1-sg.s0)*${f};return ddFrom(G,sg,s,ddRadAt(sg,s)+${d},1);})()`);
+ const tap=w=>{const p=PP(w);ev('pointerdown',p[0],p[1]);ev('pointerup',p[0],p[1]);};
+ const drag=(a,b)=>{const p=PP(a),q=PP(b);ev('pointerdown',p[0],p[1]);for(let k=1;k<=5;k++)ev('pointermove',p[0]+(q[0]-p[0])*k/5,p[1]+(q[1]-p[1])*k/5);ev('pointerup',q[0],q[1]);};
+ ok(E('!!CUR.G.segs.tamaBev')&&E(`ddSegs(CUR.G).includes('tamaBev')`),'the hole bevel is a shapeable contour');
+ for(const id of['tamaBall','tamaBev']){const sig=()=>E(`JSON.stringify(S.curves.${id}||null)`),hd=E('S.p.tamaHoleD');
+  E(`setDDTool('push');DD.range=false;`);let b=sig();drag(W(id,.5),W(id,.5,1.2));ok(sig()!==b,id+': Push / pull');
+  E(`setDDTool('smooth')`);b=sig();drag(W(id,.5),W(id,.52));ok(sig()!==b,id+': Smooth');
+  E(`setDDTool('push');DD.range=true;DD.rng=null;syncDD();`);tap(W(id,.3));tap(W(id,.7));ok(E('DD.rng&&DD.rng.id')===id,id+': two points');b=sig();drag(W(id,.5),W(id,.5,1));ok(sig()!==b,id+': two-point pull');E('DD.range=false');
+  E(`setDDTool('line')`);b=sig();tap(W(id,.2));tap(W(id,.8));ok(sig()!==b,id+': Straight line');
+  E(`setDDTool('draw')`);b=sig();{const pts=[];for(let i=2;i<=8;i++)pts.push(PP(W(id,i/10,0.5)));ev('pointerdown',...pts[0]);for(const q of pts.slice(1))ev('pointermove',...q);ev('pointerup',...pts[pts.length-1]);}ok(sig()!==b,id+': Redraw');
+  E(`setDDTool('reset')`);tap(W(id,.5));ok(E(`!S.curves.${id}`),id+': Restore');
+  ok(E('S.p.tamaHoleD')===hd,id+': the hole Ø is untouched');}
+ E(`(()=>{const sg=CUR.G.segs.tamaBev;ddPush('tamaBev',(sg.s0+sg.s1)/2,ddBase(sg),-5);commit();})()`);
+ ok(E(`CUR.G.segs.tamaBev.out.every(q=>q[1]>=S.p.tamaHoleD/2-1e-6)`),'the bevel never comes inside the drilled hole');
+ const m0=E('CUR.A.tM');E(`(()=>{const sg=CUR.G.segs.tamaBev;ddPush('tamaBev',(sg.s0+sg.s1)/2,ddBase(sg),4);commit();})()`);
+ ok(E('mkTama(CUR.G.p,CUR.G).bevShaped')&&E('CUR.A.tM')<m0,'a wider bevel makes the tama lighter');
+ E(`setDDTool('push')`);const hp=E(`(()=>{const P=tamaPose(),M=mkTama(CUR.G.p,CUR.G),al=(M.yJ+M.end)/2;return[P.C.x+P.u[0]*al-P.u[1]*M.hr,P.C.y+P.u[1]*al+P.u[0]*M.hr];})()`);
+ drag(hp,[hp[0]-2,hp[1]]);ok(E(`DRILLS.some(d=>Math.abs(d[0]-S.p.tamaHoleD)<1e-6)`),'pushing the hole wall still steps through drill sizes');
+});
+
+test('Sarado apart draws the sarado as it looks on the ken',async({E,ok})=>{
+ E(`loadLib('Kocho');setMode('dd');setLook('fill');ddSarToggle();VT.design.auto=true;render();`);await sleep(20);
+ const n=E(`(()=>{const c=cv.getContext('2d'),seen={arc:0,dash:0};const a=c.arc,sd=c.setLineDash;c.arc=function(...x){seen.arc++;return a.apply(this,x);};c.setLineDash=function(d){if(d&&d.length===2&&d[0]===4)seen.dash++;return sd.call(this,d);};
+  const G=CUR.G,T=VT.design;drawSarBody(c,T,q=>sarW(q[0],q[1]-G.yA),'fill');c.arc=a;c.setLineDash=sd;return seen;})()`);
+ ok(n.arc>=E('S.p.sarStrCount'),'the string holes are drawn');ok(n.dash>=1,'the cups are drawn as hidden lines');
+ ok(!/drawSarApart[^}]*sarPoly\(\),true\);if/.test(E('drawSarApart.toString()')),'no longer drawn as the cut-open section');
+ E(`ddSarToggle()`);
+});
+
+test('Style pill: Filled, Lathe shading, Outline, Blueprint, Section cut, Pencil sketch, Silhouette and 3D',async({E,ok})=>{
+ E(`loadLib('Kocho');setMode('dd');render();`);await sleep(20);
+ const pills=E(`[...document.querySelectorAll('.tabs > .chip')].filter(e=>e.style.display!=='none').map(e=>e.id).join(',')`);
+ ok(/lView,lStyle,lTama/.test(pills),'the Style pill sits between View and Tama ('+pills+')');
+ ok(E(`[...$('#tStyle').options].map(o=>o.value).join(',')`)==='fill,shade,outline,blueprint,section,pencil,silhouette,3d','it offers every look');
+ for(const v of['fill','shade','outline','blueprint','section','pencil','silhouette','3d']){E(`$('#tStyle').value='${v}';$('#tStyle').dispatchEvent(new Event('change'));`);ok(E('STY.look')===v&&E(`$('#lStyle b').textContent`).length>0,v+' is picked and named on the pill');}
+ ok(E('V3.on'),'3D turns the shape in 3D');E(`setLook('blueprint');render();`);
+ const px=E(`(()=>{const d=devicePixelRatio||1,p=cv.getContext('2d').getImageData(4*d,4*d,1,1).data;return[p[0],p[1],p[2]];})()`);ok(px[2]>px[0]+30,'Blueprint paints a blue sheet');
+ E(`setLook('silhouette');render();`);ok(E('LOOKC')===null&&!E('PEN'),'outside a render the theme colours are back');
+ const dash=tool=>E(`(()=>{setDDTool('${tool}');const c=cv.getContext('2d'),sd=c.setLineDash;let n=0;c.setLineDash=function(d){if(d&&d[0]===5&&d[1]===4)n++;return sd.call(this,d);};drawDD(c,VT.design);c.setLineDash=sd;return n;})()`);
+ E(`setLook('blueprint')`);ok(dash('free')===0&&dash('pan')===0&&dash('mark')===0,'no hand-shaped contour dashes with Move pieces, Move view or Mark-up');ok(dash('push')>0,'they still show with Push / pull');
+ E(`setLook('section');setDDTool('point');`);const sc=E(`(()=>{let n=0;const c=cv.getContext('2d'),f=c.fill;c.fill=function(...a){if(this.fillStyle instanceof CanvasPattern)n++;return f.apply(this,a);};render();c.fill=f;return n;})()`);
+ ok(sc>=4,'Section cut hatches the whole of the ken, the sarado and both halves of the tama ('+sc+' cut faces)');
+ const strokesAcrossMouth=E(`(()=>{const c=cv.getContext('2d'),a=c.arc;let n=0;c.arc=function(...x){n++;return a.apply(this,x);};LOOK='section';try{drawTama(c,VT.design,CUR.G.p,tamaPose(),'','line');}finally{LOOK=null;c.arc=a;}return n;})()`);
+ ok(strokesAcrossMouth===0,'the tama gets no round outline across the bevel mouth in Section cut');
+ E(`if(!DD.sar.on)ddSarToggle();setDDTool('pan');setLook('section');VT.design.auto=true;render();`);
+ const hp=E(`(()=>{const d=devicePixelRatio||1,T=VT.design,P=sarW(0,0),x=sx(T,P[0])+0.4,y=sy(T,P[1])+0.4,q=sarW(-9,0),x2=sx(T,q[0]),y2=sy(T,q[1]);const g=cv.getContext('2d');return[g.getImageData(x*d,y*d,1,1).data[3],g.getImageData(x2*d,y2*d,1,1).data[3]];})()`);
+ ok(hp[0]<40&&hp[1]>200,'off the ken, the sarado shows the hole drilled through it for the ken ('+hp.join(' / ')+')');
+ E(`ddSarToggle();`);
+ E(`setView('spec');`);ok(E(`$('#lStyle').style.display`)==='none','hidden on the spec sheet');E(`setMode('dd');setLook('fill');`);
+ E(`localStorage.removeItem('tse.look')`);
 });
 
 test('Sarado apart: every piece still bumps into the others',async({E,ok})=>{
@@ -371,7 +430,7 @@ test('View and tama pills: Free in Drag & draw, Little bird, no Axe',async({w,E,
  E(`setDDTool('free');VT.design.auto=false;ddTamaMove(14,9);ddKenTurn(0.3);render();`);const st=()=>JSON.stringify([E('ddFree()'),E('VT.design.ox'),E('VT.design.oy'),E('VT.design.z'),E('V3.roll')]),dd0=st();
  E(`setMode('manual');render();`);ok(opts()[0]==='none:Off'&&opts()[1]==='free:Free'&&E('S.show.tama')==='free','Markup view keeps the free tama, and also offers Off');
  ok(st()===dd0&&JSON.stringify(E('tamaPose()'))===JSON.stringify(E('ddFree()')),'Markup shows the tama and ken exactly where Drag & draw left them');
- E(`setTool('rot');render();`);const nq=E('M3.q.length');E(`S.show.tama='none';render();`);ok(nq>E('M3.q.length')+500,'the 3D view includes the free tama');E(`S.show.tama='free';setTool('front');`);
+ E(`setLook('3d');render();`);const nq=E('M3.q.length');E(`S.show.tama='none';render();`);ok(nq>E('M3.q.length')+500,'the 3D view includes the free tama');E(`S.show.tama='free';setLook('fill');`);
  E(`setMode('dd');render();`);ok(JSON.stringify(E('ddFree()'))===JSON.stringify(JSON.parse(dd0)[0]),'and going back to Drag & draw finds the tama unchanged');
  E(`V3.roll=0;S.show.tama='none';setMode('manual');`);ok(E('S.show.tama')==='none','Markup can turn the tama off');
  E(`S.show.tama='bird';setMode('dd')`);ok(E('S.show.tama')==='bird','a chosen trick carries into Drag & draw');
@@ -469,14 +528,14 @@ test('Overlap uses the 3D shapes: a round rim cannot slip into the tama hole',as
 });
 
 /* ---------- view tools ---------- */
-test('View tools: 3D turn, flat turn, mark-ups with undo and delete',async({E,ok,drag,click,fitView})=>{
+test('View tools: 3D look, flat turn, mark-ups with undo and delete',async({E,ok,drag,click,fitView})=>{
  E(`loadLib('Kocho');setMode('manual');setView('design');`);await sleep(30);fitView();
  const c=E('[CW/2,CH/2]');
  for(const t of['line','plane','circle','pen']){E(`setTool('${t}')`);drag([c[0]-50,c[1]-20],[c[0]+40,c[1]+30]);}
  ok(E('MK.items.length')===4,'four mark-ups drawn');
- E(`setTool('rot')`);drag(c,[c[0]+40,c[1]+10]);ok(E('V3.on')&&E('MK.items.length')===4,'3D turn keeps the mark-ups');E('render()');
+ E(`setLook('3d');setTool('move')`);const y0=E('V3.yaw');drag(c,[c[0]+40,c[1]+10]);ok(E('V3.on')&&E('V3.yaw')!==y0&&E('MK.items.length')===4,'the 3D look turns by dragging and keeps the mark-ups');E(`setLook('fill');render()`);
  E(`setTool('spin')`);const pv=E('rollPiv(VT.design)');drag([pv[0]+50,pv[1]],[pv[0]+30,pv[1]+40]);ok(Math.abs(E('V3.roll'))>0.3,'flat turn works');E('render()');
- E(`setTool('front')`);ok(!E('V3.on')&&E('V3.roll')===0,'2D button puts the view back upright');
+ ok(!E('V3.on'),'Filled puts the view back flat');E('V3.roll=0;render()');
  E(`mkAct('undo')`);ok(E('MK.items.length')===3,'undo removes the last mark-up');E(`mkAct('redo')`);ok(E('MK.items.length')===4,'redo brings it back');
  E(`MK.sel=0;mkAct('del')`);ok(E('MK.items.length')===3,'delete removes the selected mark-up');E(`mkAct('clear')`);ok(E('MK.items.length')===0,'clear removes all of yours');
 });
@@ -1001,7 +1060,7 @@ async function runAll(){
   const row=document.createElement('div');row.className='t';row.innerHTML='<span class="s">…</span><b></b>';row.querySelector('b').textContent=T.name;out.append(row);
   const fails=[];let checks=0;const errs=[];const s0=performance.now();
   try{
-   try{localStorage.removeItem('ksd.autosave');localStorage.removeItem('tse.rs');localStorage.removeItem('tse.colName');if(GH)localStorage.setItem('tse.gate',GH);else localStorage.removeItem('tse.gate');localStorage.setItem('tse.lang','en');localStorage.setItem('tse.right','1');sessionStorage.removeItem('tse.colSess');sessionStorage.removeItem('tse.colId');}catch(e){}
+   try{localStorage.removeItem('ksd.autosave');localStorage.removeItem('tse.rs');localStorage.removeItem('tse.colName');localStorage.removeItem('tse.look');if(GH)localStorage.setItem('tse.gate',GH);else localStorage.removeItem('tse.gate');localStorage.setItem('tse.lang','en');localStorage.setItem('tse.right','1');sessionStorage.removeItem('tse.colSess');sessionStorage.removeItem('tse.colId');}catch(e){}
    const w=await loadApp(T.opt.width,T.opt.height);w.addEventListener('error',e=>errs.push(e.message));await sleep(60);
    const ok=(c,m)=>{checks++;if(!c)fails.push(m);};
    await T.fn(Object.assign({w,ok},helpers(w)));await sleep(20);
