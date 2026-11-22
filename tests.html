@@ -100,6 +100,40 @@ test('Bird ridge steps drawn in the CAD are kept in the one-swoop view',async({E
  ok(none.length===0,'shapes with rounded ridges get no step'+(none.length?': '+none.join(', '):''));
 });
 
+test('Spec sheet: cup depths as labels, contour types not values, no ADDED / LOCKED',async({E,ok})=>{
+ E(`loadLib('Kocho');setView('spec');`);await sleep(30);
+ const txt=pg=>E(`(()=>{const T=[];const D={style(){},line(){},poly(){},fill(){},hatch(){},tw:s=>String(s).length*3.5,text:s=>T.push(s)};withPrim(()=>(${pg})(D,CUR));return T;})()`);
+ let p1=txt('specPage1'),p2=txt('specPage2');
+ ok(p1.some(t=>/^SMALL CUP DEPTH /.test(t))&&p1.some(t=>/^BIG CUP DEPTH /.test(t))&&p1.some(t=>/^BOTTOM CUP DEPTH /.test(t)),'page 1 names each cup depth');
+ ok(!p1.some(t=>/^RIM |IMPORTED|HAND-DRAWN|^TIP |SARADO-FIT|SWOOP|BASE CUP HOLE|, R\d/.test(t)),'page 1 drops the rim, contour, tip, taper and hole notes');
+ ok(!p2.some(t=>t==='ADDED'||t==='LOCKED'),'page 2 has no ADDED / LOCKED tags');
+ ok(!p2.some(t=>/ellipse|radius$|rounding|density|Contours|CoG above tama|small cup: spike|Swoop diameter|waist length|step height$/i.test(t)&&!/^Spike tip radius$|bird ridge step height$|^Radius$|^Balance figures/.test(t)),'page 2 leaves out the contour values and removed rows');
+ const i=p2.indexOf('Swoop Ø at handle stall step');ok(i>0&&Math.abs(+p2[i+1]-(E('CUR.G.p.baseBandD')-2*E('CUR.G.p.hsStepH')))<0.051,'page 2 gives the swoop Ø where the handle stall step starts');
+ ok(p2.filter(t=>/^-?\d+\.\d+$/.test(t)).every(t=>/\.\d$/.test(t)||['0.25','0.76'].includes(t))&&p1.filter(t=>/^-?\d+\.\d+$/.test(t)).every(t=>/\.\d$/.test(t)),'measures read to 0.1 mm; only the tolerances keep two decimals');
+ ok(E(`fmtV(PD.smD,10.64)`)==='10.6'&&E(`fmtV(PD.tol,0.25)`)==='0.25','the measures panel shows 0.1 mm, tolerances 0.01');
+ E(`S.p.smRidgeMode='radius';S.p.bgRidgeMode='ellipse';refresh();`);await sleep(20);p2=txt('specPage2');
+ const v=l=>p2[p2.indexOf(l)+1];
+ ok(v('Small bird ridge profile')==='Curved'&&v('Big bird ridge profile')==='Curved'&&v('Handle stall profile')==='Flat','ridges show Flat / Curved, no radius or ellipse values');
+ E(`withPrim(()=>{CUR.G.segs.baseRidge.drawn=true;})`);p2=txt('specPage2');E('refresh()');
+ ok(p2[p2.indexOf('Handle stall profile')+1]==='Hand drawn','a hand-drawn ridge says Hand drawn');
+});
+
+test('Points box: new point names, measure names, handle stall step as a ken Ø, sarado width on its own',async({w,E,ok})=>{
+ E(`loadLib('Kocho');setMode('dd');setDDTool('point');`);await sleep(30);
+ const box=id=>E(`(()=>{DD.selH='${id}';syncDD();return[...document.querySelectorAll('#dd .dd-n')].map(x=>x.textContent).concat([...document.querySelectorAll('#dd .dd-st')].map(x=>x.textContent));})()`);
+ const names=E(`ddHandles().map(h=>h.label)`);
+ ok(['Spike','Small cup','Big cup','Sarado width','Sarado position','Ring stall width','Ring stall','Base cup','Handle stall step'].every(n=>names.includes(n)),'points carry the new names');
+ const H=E(`ddHandles().filter(h=>['step','bgEdge','sarW','bevel'].includes(h.id)).map(h=>[h.id,h.n,h.ks||[h.ax,h.ay].filter(Boolean).map(a=>a[0])])`),g=id=>H.find(q=>q[0]===id);
+ ok(g('step')[1][0]==='Ken Ø above step'&&g('step')[2][0]==='hsKenD','the handle stall step point shows the ken Ø above the step');
+ ok(g('bgEdge')[2].join()==='bgD'&&g('sarW')[2].join()==='sarL','the big cup point is only its Ø; sarado width has its own point');
+ ok(g('bevel')[1].join('|')==='Ø at bevel|Length; base to bevel','measure names follow the list');
+ const t=JSON.stringify(box('step'));ok(/Ken Ø above step/.test(t)&&/Height for step end/.test(t),'the Points box shows the new measure names ('+t.slice(0,120)+')');
+ const h0=E('S.p.hsStepH'),bb=E('S.p.baseBandD');E(`setParam('hsKenD',${bb-6})`);
+ ok(Math.abs(E('S.p.hsStepH')-3)<1e-6&&Math.abs(E(`pv(S.p,PD.hsKenD)`)-(bb-6))<1e-6,'setting Ken Ø above handle stall sets the step height');
+ E(`setParam('hsStepH',${h0})`);
+ ok(E(`(()=>{const r=[...document.querySelectorAll('[data-wk]')].map(x=>x.dataset.wk);return r.indexOf('hsKenD')>=0&&r.indexOf('hsKenD')===r.indexOf('hsStepH')-1;})()`),'the measures panel has Ken Ø above handle stall just above the step height');
+});
+
 test('Hand-drawn in the measures panel opens Drag & draw on that contour',async({E,ok})=>{
  E(`loadLib('Kocho');setView('spec');`);await sleep(30);
  E(`setDrawn('flare',true)`);await sleep(20);

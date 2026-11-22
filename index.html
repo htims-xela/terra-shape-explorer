@@ -45,8 +45,8 @@ main{display:flex;flex-direction:column;min-width:0;min-height:0}
 .chip{position:relative;display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:999px;padding:4px 11px;background:var(--panel);color:var(--ink);font-size:12px;cursor:pointer;white-space:nowrap;min-width:0}
 .chip:hover{border-color:var(--accent)}
 .chip>span{color:var(--muted)}.chip>b{font-weight:600;overflow:hidden;text-overflow:ellipsis}
-label.chip::after{content:'';flex:none;width:5px;height:5px;margin:0 1px 2px 2px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(45deg)}
-.chip select{position:absolute;inset:0;width:100%;height:100%;opacity:0;padding:0;border:none;cursor:pointer;font-size:16px}
+label.chip::after{content:'';flex:none;width:5px;height:5px;margin:0 1px 2px 2px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(45deg);pointer-events:none}
+.chip select{position:absolute;inset:-1px;z-index:1;width:calc(100% + 2px);height:calc(100% + 2px);opacity:0;padding:0;border:none;cursor:pointer;font-size:16px}
 button.chip.act{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,var(--panel))}button.chip.act>b{color:var(--accent)}
 .vtools{position:absolute;left:8px;top:8px;display:flex;flex-direction:column;gap:4px;z-index:2}
 .vtools .vt-body{display:grid;grid-template-columns:30px 30px;gap:4px;padding:4px;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:9px}
@@ -802,6 +802,23 @@ const JA={
 "Show or hide the right-hand panel (balance, iterations, shape checks)": "右側のパネル（バランス、イテレーション、形状チェック）の表示 / 非表示",
 "Clear": "消去",
 "Sarado height on the ken": "けん上の皿胴の高さ",
+"Ring stall": "リングストール",
+"Handle stall step": "ハンドルストールの段差",
+"Ring stall width": "リングストールの幅",
+"Sarado position": "皿胴の位置",
+"Height": "高さ",
+"Width": "幅",
+"Length": "長さ",
+"Waist Ø": "くびれ径",
+"Waist height": "くびれの高さ",
+"Ø at bevel": "面取り位置の径",
+"Length; base to bevel": "長さ（底から面取りまで）",
+"Height (base to midpoint)": "高さ（底から中心まで）",
+"Height (base to top of big cup)": "高さ（底から大皿の上端まで）",
+"Ken Ø above step": "段差の上のけん径",
+"Height for step end": "段差の終わりの高さ",
+"Ken Ø above handle stall": "ハンドルストールの上のけん径",
+"The ken Ø just above the handle stall step. Changing it sets the step height.": "ハンドルストール段差のすぐ上のけん径。変えると段差の高さが決まります。",
 "Big cup edge": "大皿のふち",
 "Big cup bird ridge": "大皿のバードリッジ",
 "Sarado waist": "皿胴のくびれ",
@@ -1095,6 +1112,13 @@ const JA={
 "ALL CUP RIMS SHOULD BE # mm": "皿の縁は全て # mm",
 "UNLESS SPECIFIED, TOLERANCES ARE +/- # mm": "指定のない限り、公差は +/- # mm",
 "CUP DEPTH #, R#": "皿の深さ #、R#",
+"SMALL CUP DEPTH #": "小皿の深さ #",
+"BIG CUP DEPTH #": "大皿の深さ #",
+"BOTTOM CUP DEPTH #": "中皿の深さ #",
+"Swoop Ø at handle stall step": "ハンドルストール段差でのスウープ径",
+"Hand drawn": "手描き",
+"Curved": "曲線",
+"Tolerances": "公差",
 "RIM #": "縁 #",
 "SWOOP Ø# · EDGE R# | EDGE R#": "スウープØ# · 縁 R# | 縁 R#",
 "ONE SWOOP SURFACE": "スウープ1面",
@@ -1357,7 +1381,7 @@ const TRX=[
 /* ================= utilities ================= */
 const $=s=>document.querySelector(s);
 const el=(t,a={},...ch)=>{const e=document.createElement(t);for(const k in a){if(k==='class')e.className=a[k];else if(k==='html')e.innerHTML=a[k];else if(k.startsWith('on'))e[k]=a[k];else e.setAttribute(k,a[k]);}for(const c of ch)e.append(c);return e;};
-const lerp=(a,b,t)=>a+(b-a)*t, clamp=(v,a,b)=>Math.min(Math.max(v,a),b), f2=v=>(+v).toFixed(2), f1=v=>(+v).toFixed(1);
+const lerp=(a,b,t)=>a+(b-a)*t, clamp=(v,a,b)=>Math.min(Math.max(v,a),b), fmm=v=>(+v).toFixed(1), ftol=v=>(+v).toFixed(2), f1=v=>(+v).toFixed(1);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function interp(pts,x){const n=pts.length;if(x<=pts[0][0])return pts[0][1];if(x>=pts[n-1][0])return pts[n-1][1];let lo=0,hi=n-1;while(hi-lo>1){const m=(lo+hi)>>1;if(pts[m][0]<=x)lo=m;else hi=m;}const a=pts[lo],b=pts[hi],d=b[0]-a[0];return d>1e-12?a[1]+(b[1]-a[1])*(x-a[0])/d:b[1];}
 function mono(pts){const o=[pts[0]];for(let i=1;i<pts.length;i++)if(pts[i][0]>o[o.length-1][0]+1e-6)o.push(pts[i]);return o;}
@@ -1438,6 +1462,7 @@ def('baseD','Base cup Ø','base',41.53,25,58);
 def('baseBandD','Handle stall Ø','base',39.88,20,58);
 def('baseBandL','Handle stall height','base',10.67,1,25);
 ridge('base','base','Handle stall');
+def('hsKenD','Ken Ø above handle stall','base',0,10,58,{fn:p=>p.baseBandD-2*(+p.hsStepH||0),to:['hsStepH',(p,v)=>(p.baseBandD-v)/2],note:'The ken Ø just above the handle stall step. Changing it sets the step height.'});
 def('hsStepH','Handle stall step height','base',1.91,0,8,{note:'How far the step cuts in from the top edge of the handle stall ridge.'});
 def('hsStepL','Handle stall step, ends above ridge','base',0,0,10,{kind:'added',note:'How far above the top edge of the handle stall ridge the step finishes. 0 = a square step.',show:p=>p.hsStepH>0});
 def('hsStepTopR','Handle stall step, ridge edge radius','base',0.5,0,5,{kind:'added',show:p=>p.hsStepH>0});
@@ -1448,12 +1473,12 @@ def('sarTop','Sarado height (base to top of big cup)','sarado',134.87,100,190);
 def('sarL','Sarado width','sarado',72.87,45,110);
 def('waistSpan','Sarado waist length (between bands)','sarado',0,0,0,{kind:'display',fn:p=>p.sarL-p.smBandL-p.bgBandL});
 def('waistD','Sarado waist Ø','sarado',21.97,14,45,{dimBy:'swoopAll',note:'The narrowest point of the sarado swoop.'});
-def('swoopDia','Swoop diameter','sarado',0,0,0,{kind:'display',fnG:G=>G.swoopDia,note:'The largest ball that fits the tighter of the two sarado swoops.',warn:(p,G)=>G&&G.swoopDia<p.tamaD?`Smaller than the tama (Ø${f2(p.tamaD)}): the tama may not fit the swoop.`:''});
+def('swoopDia','Swoop diameter','sarado',0,0,0,{kind:'display',fnG:G=>G.swoopDia,note:'The largest ball that fits the tighter of the two sarado swoops.',warn:(p,G)=>G&&G.swoopDia<p.tamaD?`Smaller than the tama (Ø${fmm(p.tamaD)}): the tama may not fit the swoop.`:''});
 def('swoopMode','Sarado swoop surfaces','sarado','one',0,0,{kind:'choice',options:[['one','One surface across the waist'],['two','Two surfaces (small and big cup sides)']]});
 def('swAMode','Swoop (one surface) profile','sarado','radius',0,0,{kind:'choice',seg:'swoopAll',options:[['radius','Radius'],['mirror','Mirrored ellipses']],show:p=>p.swoopMode==='one'});
 def('swARv','Swoop (one surface) radius','sarado',0,0,0,{kind:'display',dimBy:'swoopAll',fnG:G=>G&&G.oneSw?G.oneSw.R:NaN,show:p=>p.swoopMode==='one'&&p.swAMode==='radius',note:'One arc from bird ridge to bird ridge, set by the waist Ø.'});
 def('swARx','Swoop (one surface) ellipse, length','sarado',NaN,3,1000,{kind:'added',dimBy:'swoopAll',show:p=>p.swoopMode==='one'&&p.swAMode==='mirror',note:'Both sides use this same ellipse, mirrored at the waist.'});
-def('swARy','Swoop (one surface) ellipse, depth','sarado',NaN,3,1000,{kind:'added',dimBy:'swoopAll',show:p=>p.swoopMode==='one'&&p.swAMode==='mirror',info:(p,G)=>{const o=G&&G.oneSw;if(!o)return'';return o.flat>0.05?`Flat at the waist: ${f2(o.flat)} mm long. A longer ellipse shortens it (up to ${f2(o.rxMax)} long, no flat).`:'No flat at the waist: the two ellipses meet at their lowest points.';}});
+def('swARy','Swoop (one surface) ellipse, depth','sarado',NaN,3,1000,{kind:'added',dimBy:'swoopAll',show:p=>p.swoopMode==='one'&&p.swAMode==='mirror',info:(p,G)=>{const o=G&&G.oneSw;if(!o)return'';return o.flat>0.05?`Flat at the waist: ${fmm(o.flat)} mm long. A longer ellipse shortens it (up to ${fmm(o.rxMax)} long, no flat).`:'No flat at the waist: the two ellipses meet at their lowest points.';}});
 {const sw=(pre,name,seg,mode)=>{
   const on=(p,G)=>p.swoopMode===mode&&!(G&&G.segs[seg]&&G.segs[seg].drawn),is=m=>(p,G)=>on(p,G)&&p[pre+'Mode']===m;
   def(pre+'Mode',name+' profile','sarado','radius',0,0,{kind:'choice',options:[['radius','Radius'],['ellipse','Ellipse']],seg,show:p=>p.swoopMode===mode});
@@ -1502,17 +1527,17 @@ def('rim','Cup rim width (all cups)','mat',2.29,0.5,5);
 def('kenRho','Ken density','mat',0.705,0.3,9.5,{kind:'added',unit:'g/cm³',step:0.005,mats:1});
 def('sarRho','Sarado density','mat',0.705,0.3,9.5,{kind:'added',unit:'g/cm³',step:0.005,mats:1});
 def('tamaRho','Tama density','mat',0.705,0.3,9.5,{kind:'added',unit:'g/cm³',step:0.005,mats:1});
-def('tol','General tolerance ±','mat',0.25,0,2,{lockable:1});
-def('sarTol','Sarado height tolerance ±','mat',0.76,0,3,{lockable:1});
+def('tol','General tolerance ±','mat',0.25,0,2,{lockable:1,step:0.01,tolv:1});
+def('sarTol','Sarado height tolerance ±','mat',0.76,0,3,{lockable:1,step:0.01,tolv:1});
 for(const d of P)if(d.group==='')d.group=d.grp;
 P.filter(d=>d.k.endsWith('RidgeMode')).forEach(d=>{d.group=d.k.startsWith('base')?'base':d.k.startsWith('sm')?'small':'big';});
 const PD={};P.forEach(d=>PD[d.k]=d);
 {const k=LIB.find(e=>e.name==='Kocho');if(k)for(const key in k.p){const d=PD[key];if(d&&isFinite(k.p[key])&&!d.fn&&!d.fnG&&d.kind!=='choice')d.val=k.p[key];}}
 const isInput=d=>!d.fn&&!d.fnG;
-const fmtV=(d,v)=>d.step>=1?String(Math.round(v)):d.step<0.01?(+v).toFixed(3):f2(v);
+const fmtV=(d,v)=>d.step>=1?String(Math.round(v)):d.step<0.01?(+v).toFixed(3):d.tolv?ftol(v):fmm(v);
 const defaults=()=>{const o={};P.forEach(d=>{if(isInput(d))o[d.k]=d.val;});return o;};
 const STARTER={baseToBevel:154,bevelL:8,spikeD:9.6,ringHandleRx:90,ringHandleRy:40,ringD:26,ringW:0,ringPos:42,swoopRingRx:120,swoopRingRy:120,swoopD:26,swoopPos:30,flareRx:40,flareRy:40,baseD:40,baseBandD:39,baseBandL:9,baseDepth:3.5,rim:2.3,sarTop:133,sarL:70,waistD:22,smD:46,smBandD:45,smBandL:10,smDepth:8,bgD:50,bgBandD:49,bgBandL:10,bgDepth:9,tamaD:60,tamaHoleD:12.7,tamaCsD:22,tamaCsDepth:9,kenStr:48};
-const ellInfo=(G,id)=>{const s=G&&G.segs[id],e=s&&s.ellAct;if(!e||s.drawn)return'';return`Actual ellipse: ${f2(e.rx)} long × ${f2(e.ry)} deep`+(Math.abs(e.dx-e.want[0])+Math.abs(e.dy-e.want[1])>0.01?` (centre shift limited to ${f2(e.dx)} / ${f2(e.dy)}).`:'.');};
+const ellInfo=(G,id)=>{const s=G&&G.segs[id],e=s&&s.ellAct;if(!e||s.drawn)return'';return`Actual ellipse: ${fmm(e.rx)} long × ${fmm(e.ry)} deep`+(Math.abs(e.dx-e.want[0])+Math.abs(e.dy-e.want[1])>0.01?` (centre shift limited to ${fmm(e.dx)} / ${fmm(e.dy)}).`:'.');};
 const pv=(p,d,G)=>d.fnG?(G?d.fnG(G):0):d.fn?d.fn(p):p[d.k];
 // locked taper stations from the bevel down: every 25.4 mm, then the bottom of the taper
 const taperSt=p=>{const o=[];for(let i=0;i<=3;i++)if(i*STEP<p.taperL-1e-6)o.push(i*STEP);o.push(p.taperL);return o;};
@@ -1742,8 +1767,8 @@ function build(p,curves){
  let lower=[...br,...fl1],stepR=[0,0];
  if(hasStep){const sp=[];for(let i=0;i<=12;i++)sp.push([lerp(bandEnd[0],stepEnd[0],i/12),lerp(bandEnd[1],stepEnd[1],i/12)]);
   const fa=fillet(br,sp,p.hsStepTopR,turnSide(br,sp)),fb=fillet(fa.B,fl1,p.hsStepInR,turnSide(sp,fl1));stepR=[fa.r,fb.r];
-  if(fa.r<p.hsStepTopR-0.01)W.push(`Handle stall step, ridge edge: only R${f2(fa.r)} fits here.`);
-  if(fb.r<p.hsStepInR-0.01)W.push(`Handle stall step, inner edge: only R${f2(fb.r)} fits here.`);
+  if(fa.r<p.hsStepTopR-0.01)W.push(`Handle stall step, ridge edge: only R${fmm(fa.r)} fits here.`);
+  if(fb.r<p.hsStepInR-0.01)W.push(`Handle stall step, inner edge: only R${fmm(fb.r)} fits here.`);
   lower=[...fa.A,...fa.arc,...fb.A,...fb.arc,...fb.B];}
  const kenPts=mono([...lower,...nr,...rh,...st.slice(0,nT).map((y,i)=>[y,D[i]/2]).reverse(),...tipPts(p,yB,D[0]/2)]);
  // sarado (local x along its own axis, small cup at -x)
@@ -1761,7 +1786,7 @@ function build(p,curves){
  if(p.swoopMode==='one'){oneSw=oneSwoop(p.swAMode,smS0[0],smS0[1],bgS1[0],bgS1[1],p.waistD/2,p.swARx,p.swARy);
   const sg=mk('swoopAll','Sarado swoop (one surface)','sar','both',smS0,bgS1,{grp:'Sarado',fn:lin(smS0,bgS1),lo:wLo,hi:wHi,nodraw:true});
   if(oneSw){sg.pts=oneSw.pts;sg.ellActs=oneSw.ells.map(e=>({rx:e.rx,ry:e.ry,c:e.c,dx:0,dy:0,want:[0,0],convex:false}));sg.ellAct=sg.ellActs[0];}
-  else{const R=circ3(smS0,wp,bgS1);sg.pts=ellPath(smS0[0],smS0[1],bgS1[0],bgS1[1],[R,R,false]).pts;W.push(`Sarado swoop: no single radius joins both bird ridges with a Ø${f2(p.waistD)} waist without undercutting a ridge. Widen the waist or use mirrored ellipses.`);}
+  else{const R=circ3(smS0,wp,bgS1);sg.pts=ellPath(smS0[0],smS0[1],bgS1[0],bgS1[1],[R,R,false]).pts;W.push(`Sarado swoop: no single radius joins both bird ridges with a Ø${fmm(p.waistD)} waist without undercutting a ridge. Widen the waist or use mirrored ellipses.`);}
   swAll=evalSeg(sg,curves.swoopAll,W); // drag & draw can hand-shape the single surface too
   const wm=[xw,interp(swAll,xw)];ws=[...swAll.filter(q=>q[0]<xw-1e-6),wm];wb=[wm,...swAll.filter(q=>q[0]>xw+1e-6)];}
  else{ws=run(mk('swoopSm','Sarado swoop, small cup side','sar','both',smS0,wp,Object.assign({grp:'Sarado',fn:arcS,lo:wLo,hi:wHi},swOpt('swS'))));
@@ -1774,8 +1799,8 @@ function build(p,curves){
  const cS=stepCorner(sr,ws,smEnd,smSE,smSt?p.smStepH:0,smSt?p.smStepL:0,p.smStepTopR,p.smStepInR,p.smFilletR);
  const cB=stepCorner(mir(gr),mir(wb),mp(bgEnd),mp(bgSE),bgSt?p.bgStepH:0,bgSt?p.bgStepL:0,p.bgStepTopR,p.bgStepInR,p.bgFilletR);
  for(const[c,n,pre]of[[cS,'small','sm'],[cB,'big','bg']]){const N=n==='small'?'Small':'Big';
-  if(c.step){if(c.r[0]<p[pre+'StepTopR']-0.01)W.push(`${N} cup bird ridge step, ridge edge: only R${f2(c.r[0])} fits here.`);if(c.r[1]<p[pre+'StepInR']-0.01)W.push(`${N} cup bird ridge step, inner edge: only R${f2(c.r[1])} fits here.`);}
-  else if(c.r[0]<p[pre+'FilletR']-0.01)W.push(`${N} cup bird ridge rounding: only R${f2(c.r[0])} fits here.`);}
+  if(c.step){if(c.r[0]<p[pre+'StepTopR']-0.01)W.push(`${N} cup bird ridge step, ridge edge: only R${fmm(c.r[0])} fits here.`);if(c.r[1]<p[pre+'StepInR']-0.01)W.push(`${N} cup bird ridge step, inner edge: only R${fmm(c.r[1])} fits here.`);}
+  else if(c.r[0]<p[pre+'FilletR']-0.01)W.push(`${N} cup bird ridge rounding: only R${fmm(c.r[0])} fits here.`);}
  const fS={r:cS.step?0:cS.r[0]},fB={r:cB.step?0:cB.r[0]};
  const sarPts=mono([...cS.pts,...mir(cB.pts)]);
  const swoopR=swAll?[minConcaveR(swAll),minConcaveR(swAll)]:[minConcaveR(ws),minConcaveR(wb)],swoopDia=2*Math.min(...swoopR),fil=[fS.r,fB.r];
@@ -1788,13 +1813,13 @@ function build(p,curves){
  if(wall(smDR,d=>xS+d)<1.5)W.push('Small cup: the wall between the cup and the outside of the sarado is under 1.5 mm.');
  if(wall(bgDR,d=>xE-d)<1.5)W.push('Big cup: the wall between the cup and the outside of the sarado is under 1.5 mm.');
  {let m=1e9;for(let i=1;i<cav.length;i++){const w=G.rK(cav[i][0])-cav[i][1];if(w<m)m=w;}if(m<1.5)W.push('Base cup: the wall between the cup and the outside of the ken is under 1.5 mm.');}
- if(p.spikeD+0.3>p.tamaHoleD)W.push(`The spike (Ø${f2(p.spikeD)} at the bevel) will not fit the tama hole (Ø${f2(p.tamaHoleD)}).`);
+ if(p.spikeD+0.3>p.tamaHoleD)W.push(`The spike (Ø${fmm(p.spikeD)} at the bevel) will not fit the tama hole (Ø${fmm(p.tamaHoleD)}).`);
  if(p.kenH-(yA+p.waistD/2)>p.tamaHoleDepth)W.push('The spike above the sarado is longer than the tama hole is deep, so the tama cannot seat fully.');
- if(p.kenH>KWC_KEN)W.push(`Overall ken length ${f2(p.kenH)} mm is over ${KWC_KEN} mm: not legal for KWC.`);
- if(p.tamaCsD>KWC_BEVEL)W.push(`Tama hole bevel Ø${f2(p.tamaCsD)} is over ${KWC_BEVEL} mm: not legal for KWC.`);
- if(swAll){const wr=interp(sarPts,xw);if(2*wr<2*kR+3)W.push(`Sarado waist: the one-surface swoop passes over the ken at Ø${f2(2*wr)}, leaving under 1.5 mm of wood around the ken.`);}
+ if(p.kenH>KWC_KEN)W.push(`Overall ken length ${fmm(p.kenH)} mm is over ${KWC_KEN} mm: not legal for KWC.`);
+ if(p.tamaCsD>KWC_BEVEL)W.push(`Tama hole bevel Ø${fmm(p.tamaCsD)} is over ${KWC_BEVEL} mm: not legal for KWC.`);
+ if(swAll){const wr=interp(sarPts,xw);if(2*wr<2*kR+3)W.push(`Sarado waist: the one-surface swoop passes over the ken at Ø${fmm(2*wr)}, leaving under 1.5 mm of wood around the ken.`);}
  else{const n=ws.length,sl=(ws[n-1][1]-ws[n-2][1])/(ws[n-1][0]-ws[n-2][0]),sr2=(wb[1][1]-wb[0][1])/(wb[1][0]-wb[0][0]);if(sl>sr2+0.05)W.push('Sarado waist: the two swoop surfaces meet in a ridge at the ken. Adjust their sizes so they meet smoothly, or use one surface.');}
- if(swoopDia<p.tamaD)W.push(`Swoop diameter ${f1(swoopDia)} mm is smaller than the tama (Ø${f2(p.tamaD)}): the tama may not fit the swoop.`);
+ if(swoopDia<p.tamaD)W.push(`Swoop diameter ${f1(swoopDia)} mm is smaller than the tama (Ø${fmm(p.tamaD)}): the tama may not fit the swoop.`);
  for(const[n,a0,d]of[['Base',p.baseD/2-p.rim,p.baseDepth],['Small',p.smD/2-p.rim,p.smDepth],['Big',p.bgD/2-p.rim,p.bgDepth]])if(sphR(a0,d)>p.tamaD/2)W.push(`${n} cup (R${f1(sphR(a0,d))}): ${SHALLOW}.`);
  return G;
 }
@@ -2067,13 +2092,13 @@ function buildParams(){
      if(d.tick!=null){const id='dl_'+d.k;rng.setAttribute('list',id);ctl.append(el('datalist',{id},el('option',{value:d.tick})));note.textContent=`Tick mark at ${d.tick} mm = KWC limit.`;}}
     rng.onchange=()=>commit();num.onchange=()=>{setParam(d.k,+num.value,true);commit();};
     const stp=el('span',{class:'stp'}),dn=el('button',{title:`Down ${d.steps?'one drill size':d.step+' '+d.unit}`},'−'),up=el('button',{title:`Up ${d.steps?'one drill size':d.step+' '+d.unit}`},'+');
-    const nudge=dir=>{const v=+S.p[d.k];if(d.steps){const i=d.steps.findIndex(q=>Math.abs(q[0]-v)<1e-6),j=clamp((i<0?0:i)+dir,0,d.steps.length-1);setParam(d.k,d.steps[j][0],false);}else setParam(d.k,Math.round((v+dir*d.step)*1e4)/1e4,false);};
+    const nudge=dir=>{const v=+pv(S.p,d,CUR.G);if(d.steps){const i=d.steps.findIndex(q=>Math.abs(q[0]-v)<1e-6),j=clamp((i<0?0:i)+dir,0,d.steps.length-1);setParam(d.k,d.steps[j][0],false);}else setParam(d.k,Math.round((v+dir*d.step)*1e4)/1e4,false);};
     for(const[b,dir]of[[dn,-1],[up,1]]){let t=null;const stop=()=>{if(t!=null){clearTimeout(t);clearInterval(t);t=null;commit();}};
      b.onpointerdown=e=>{e.preventDefault();nudge(dir);t=setTimeout(()=>{t=setInterval(()=>nudge(dir),70);},420);};b.onpointerup=b.onpointerleave=b.onpointercancel=stop;
      b.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();nudge(dir);commit();}};}
     stp.append(dn,up);
     ctl.append(rng,stp,num,el('span',{class:'u'},d.unit));
-    if(!d.lockable){pin=el('button',{class:'plk',title:'Lock this value so other changes cannot move it'});pin.onclick=()=>{if(S.locks[d.k])delete S.locks[d.k];else S.locks[d.k]=true;autosave();syncParams();};ctl.append(pin);}
+    if(!d.lockable&&!d.to){pin=el('button',{class:'plk',title:'Lock this value so other changes cannot move it'});pin.onclick=()=>{if(S.locks[d.k])delete S.locks[d.k];else S.locks[d.k]=true;autosave();syncParams();};ctl.append(pin);}
     if(d.lockable){lock=el('button',{class:'lockb',title:'Lock or unlock the tolerances'});lock.onclick=()=>{S.meta.tolLocked=!S.meta.tolLocked;autosave();syncParams();};lab.append(lock);}
     if(d.mats){sel=el('select');sel.append(el('option',{value:''},'Custom'));for(const[k,t,v]of MATS)sel.append(el('option',{value:k},`${t} (${v})`));sel.onchange=()=>{const m=MATS.find(q=>q[0]===sel.value);if(m){setParam(d.k,m[2],false);commit();}};mat=el('div',{class:'mat'},'Material',sel);}
    }
@@ -2091,6 +2116,7 @@ function waistBreak(p){if(p.swoopMode!=='one'||p.swAMode!=='radius')return null;
 function lockBreak(p,keep){for(const k in keep)if(Math.abs(+p[k]-+keep[k])>1e-6)return k;return null;}
 function setParam(k,v,tell){
  if(!isFinite(v))return refresh();
+ if(PD[k]&&PD[k].to)return setParam(PD[k].to[0],PD[k].to[1](S.p,v),tell); // a measure worked out from another one sets that one
  if(S.locks[k]){syncParams();if(tell)toast(`“${PD[k].label}” is locked. Unlock it to change it.`);return;}
  const d=PD[k],keep=lockedVals(),base=JSON.parse(JSON.stringify(S.p));
  // the big cup end sets the 'sarado height' figure, so resizing it must not slide the sarado along the ken: keep its axis (and the ken) where they are
@@ -2109,16 +2135,16 @@ function setParam(k,v,tell){
    else{const st=d.step||0.1,n=Math.trunc((lo-b0)/st+(lo>b0?1e-9:-1e-9));const c=tryV(Math.round((b0+n*st)*1e4)/1e4);if(!c.bad)r=c;}
    t=r||best;}
   else t={q:base,f:[],bad:null};
-  const now=Date.now();if(tell||!setParam.lt||now-setParam.lt>1500){setParam.lt=now;toast(blocker==='waist'?`${d.label} held at ${f2(t.q[k])}: going further, no single swoop radius could join both bird ridges at this waist Ø without undercutting one.`:`${d.label} held at ${f2(t.q[k])}: going further would move “${PD[blocker].label}”, which is locked.`);}
+  const now=Date.now();if(tell||!setParam.lt||now-setParam.lt>1500){setParam.lt=now;toast(blocker==='waist'?`${d.label} held at ${fmm(t.q[k])}: going further, no single swoop radius could join both bird ridges at this waist Ø without undercutting one.`:`${d.label} held at ${fmm(t.q[k])}: going further would move “${PD[blocker].label}”, which is locked.`);}
   tell=false;
  }
  Object.assign(S.p,t.q);const fx=t.f;refresh(true);
- if(tell&&fx.length){const hit=fx.find(f=>f.k===k)||fx[0];toast(`${PD[hit.k].label} set to ${f2(hit.to)}: ${hit.why}.`);}
+ if(tell&&fx.length){const hit=fx.find(f=>f.k===k)||fx[0];toast(`${PD[hit.k].label} set to ${fmm(hit.to)}: ${hit.why}.`);}
 }
 function syncParams(){if(wpMulti()&&WP.on==='1'&&!WP.swap)return withPrim(syncParams0);syncParams0();}
 function syncParams0(){
  const G=CUR.G,p=S.p;
- lockNote.innerHTML=`Spike Ø at the bevel and every 25.4 mm below it, down to ${f1(p.taperL)} mm, are <b class="lk">locked together</b> so the sarado always seats on the correct taper: <b class="lk">Ø${G.D.map(f2).join(' / ')}</b>. Change the spike size to move them all.`;
+ lockNote.innerHTML=`Spike Ø at the bevel and every 25.4 mm below it, down to ${f1(p.taperL)} mm, are <b class="lk">locked together</b> so the sarado always seats on the correct taper: <b class="lk">Ø${G.D.map(fmm).join(' / ')}</b>. Change the spike size to move them all.`;
  for(const k in rows){const r=rows[k],d=r.d,v=pv(p,d,G);
   r.row.style.display=d.show&&!d.show(p,G)?'none':'';
   if(r.val)r.val.textContent=fmtV(d,v);
@@ -2137,7 +2163,7 @@ function syncParams0(){
  for(const id in contourRows){contourRows[id].lb.textContent=G.segs[id].label;contourRows[id].t._sync(G);}
  if(holeRow){const h=S.curves.baseHole;holeRow.row.style.display=h?'':'none';
   if(h){const on=h.on!==false,dep=h.pts[h.pts.length-1][0],wid=2*Math.max(...h.pts.filter(q=>q[0]>p.baseDepth).map(q=>q[1]),0);holeRow.on.classList.toggle('act',on);holeRow.off.classList.toggle('act',!on);
-   holeRow.note.textContent=`Imported as drawn: ${f2(dep)} mm deep${wid?`, up to Ø${f2(wid)} below the cup`:''}. It can't be edited here; turn it off to cut the radius cup only.`;}}
+   holeRow.note.textContent=`Imported as drawn: ${fmm(dep)} mm deep${wid?`, up to Ø${fmm(wid)} below the cup`:''}. It can't be edited here; turn it off to cut the radius cup only.`;}}
 }
 
 /* ================= canvas views ================= */
@@ -2204,7 +2230,7 @@ function drawEllipses(c,T,v){
    c.strokeStyle=k;c.globalAlpha=sel?.9:.55;c.lineWidth=sel?1.4:1;c.setLineDash([5,4]);pathW(c,T,pts.map(q=>fsE(G,sg,v,q[0],q[1],sd)));c.stroke();c.setLineDash([]);
    const w=fsE(G,sg,v,e.c[0],e.c[1],sd),X=sx(T,w[0]),Y=sy(T,w[1]);c.globalAlpha=1;c.lineWidth=1.4;c.beginPath();c.moveTo(X-5,Y);c.lineTo(X+5,Y);c.moveTo(X,Y-5);c.lineTo(X,Y+5);c.stroke();
    c.fillStyle=k;c.beginPath();c.arc(X,Y,1.8,0,7);c.fill();
-   if(sd===1){c.fillStyle=k;c.fillText(`${Math.abs(e.rx-e.ry)<0.01?'R'+f2(e.rx):f2(e.rx)+' × '+f2(e.ry)}`,X+7,Y-5);}}}
+   if(sd===1){c.fillStyle=k;c.fillText(`${Math.abs(e.rx-e.ry)<0.01?'R'+fmm(e.rx):fmm(e.rx)+' × '+fmm(e.ry)}`,X+7,Y-5);}}}
  c.restore();
 }
 // with more than one kendama in Drag & draw, the others are drawn first, each in its own place, then the one being worked on
@@ -2385,10 +2411,10 @@ function drawMarks(c,T){
  const mlen=m=>{const a=m.pts[0],b=m.pts[1];return Math.hypot(b[0]-a[0],b[1]-a[1],(b[2]||0)-(a[2]||0));};
  const meas=(pp,d,sel)=>{const[A,B]=pp.map(q=>[sx(T,q[0]),sy(T,q[1])]),L=Math.hypot(B[0]-A[0],B[1]-A[1])||1,nx=-(B[1]-A[1])/L*5,ny=(B[0]-A[0])/L*5;c.strokeStyle=c.fillStyle=MEAS_COL;c.lineWidth=sel?3:1.6;c.lineCap='round';
   c.beginPath();c.moveTo(A[0],A[1]);c.lineTo(B[0],B[1]);for(const P of[A,B]){c.moveTo(P[0]-nx,P[1]-ny);c.lineTo(P[0]+nx,P[1]+ny);}c.stroke();
-  if(sel)for(const P of[A,B]){c.beginPath();c.arc(P[0],P[1],4.5,0,7);c.fill();}if(d!=null)label(c,`${f2(d)} mm`,(A[0]+B[0])/2+8,(A[1]+B[1])/2-6,MEAS_COL);};
+  if(sel)for(const P of[A,B]){c.beginPath();c.arc(P[0],P[1],4.5,0,7);c.fill();}if(d!=null)label(c,`${fmm(d)} mm`,(A[0]+B[0])/2+8,(A[1]+B[1])/2-6,MEAS_COL);};
  c.save();MK.items.forEach((m,i)=>!mkVis(m)?0:m.type==='meas'?meas(mkPts(m),mlen(m),i===MK.sel):draw(mkPts(m),m,i===MK.sel));
  if(MK.mA&&MK.tool==='measure'){const A=[sx(T,MK.mA[0]),sy(T,MK.mA[1])];c.fillStyle=MEAS_COL;c.beginPath();c.arc(A[0],A[1],4.5,0,7);c.fill();
-  const cu=S.mode==='dd'&&DD.cursor&&!MK.cur?mkPick(DD.cursor,T):null;if(cu){c.strokeStyle=MEAS_COL;c.setLineDash([5,4]);c.lineWidth=1.6;c.beginPath();c.moveTo(A[0],A[1]);c.lineTo(sx(T,cu[0]),sy(T,cu[1]));c.stroke();c.setLineDash([]);label(c,`${f2(Math.hypot(cu[0]-MK.mA[0],cu[1]-MK.mA[1]))} mm`,sx(T,cu[0])+12,sy(T,cu[1])-8,MEAS_COL);}}
+  const cu=S.mode==='dd'&&DD.cursor&&!MK.cur?mkPick(DD.cursor,T):null;if(cu){c.strokeStyle=MEAS_COL;c.setLineDash([5,4]);c.lineWidth=1.6;c.beginPath();c.moveTo(A[0],A[1]);c.lineTo(sx(T,cu[0]),sy(T,cu[1]));c.stroke();c.setLineDash([]);label(c,`${fmm(Math.hypot(cu[0]-MK.mA[0],cu[1]-MK.mA[1]))} mm`,sx(T,cu[0])+12,sy(T,cu[1])-8,MEAS_COL);}}
  const u=MK.cur;if(u&&u.type==='meas'){meas([u.a,u.b],Math.hypot(u.b[0]-u.a[0],u.b[1]-u.a[1]),false);}else if(u){const pp=u.type==='pen'?u.path:mkShape(u.type,u.a,u.b);draw(pp,{type:u.type,closed:u.type==='plane'||u.type==='circle'},false);
   if(u.type!=='pen'){const d=Math.hypot(u.b[0]-u.a[0],u.b[1]-u.a[1]);label(c,u.type==='plane'?`${f1(Math.abs(u.b[0]-u.a[0]))} × ${f1(Math.abs(u.b[1]-u.a[1]))} mm`:u.type==='circle'?`Ø${f1(2*d)} mm`:`${f1(d)} mm`,sx(T,u.b[0])+12,sy(T,u.b[1])-8,MK_COL);}}
  c.restore();}
@@ -2438,8 +2464,8 @@ function mkCancel(){ddCancel();MK.spin=null;MK.cur=null;MK.orb=null;MK.down=null
 const DD={rb:null,ctl:null,sar:{on:false,C:null,a:0},ovSel:null,ovDrag:null,ovAdd:false,focus:null,range:false,rA:null,rng:null,lA:null,tool:'point',turn:false,width:16,strength:50,step:0.1,smooth:0,hsmooth:2,snap:true,hover:null,spot:null,selH:null,drag:null,act:null,stroke:null,meas:[],cursor:null,down:null};
 const DD_SEGS=['baseRidge','flare','swoopRing','ringHandle','smRidge','swoopAll','swoopSm','swoopBg','bgRidge','tamaBall','tamaBev'];
 const DD_TOOLS=[['pan','Move view','Drag to move the view; scroll or pinch to zoom. Switch on Turn to spin the view by dragging around the shape.'],['free','Move pieces','Drag the tama or the ken to move it, and drag a round knob to turn it. They can touch but never overlap.'],['point','Points','Drag a dot to move that measure point. Click a dot to fine-tune it here.'],['push','Push / pull','Drag a contour in or out. Click a spot on it to nudge it in small steps. This works on the tama’s outside and its hole bevel too; on the tama hole itself it changes the hole measures.'],['draw','Redraw','Draw over any part of a contour, the tama included, to replace just that part. The ends snap to the edge.'],['line','Straight line','Click two points on a contour of the ken, sarado or tama to make the part between them straight. The ends snap to the measure points.'],['smooth','Smooth','Rub over a contour to even it out.'],['reset','Restore','Click a hand-shaped contour to put it back to its measured shape.'],['hole','Bottom cup hole','Draw one wall of the bottom cup hole, from the cup up into the ken; the other side mirrors it. Or use the hole from another shape.'],['mark','Mark-up','Sketch lines, planes, circles and freehand notes over the shape, or measure between points. Its tools open above the bar.'],['sarado','Sarado apart','Take the sarado off the ken to work on it on its own, cut open so the cups and the ken hole show. Click again to put it back; it keeps its place for next time.'],['cmp','Compare','Lay other shapes over this one: library shapes, saved iterations and designs from project files. Each one gets a button to show, hide, move, turn or remove it.']];
-const SAR_H=['smEdge','smRidge','waist','bgRidge','bgEdge','smCup','bgCup','sarPos'];
-const DD_STEPS=[0.01,0.02,0.05,0.1,0.25,0.5,1];
+const SAR_H=['smEdge','smRidge','waist','bgRidge','bgEdge','sarW','smCup','bgCup','sarPos'];
+const DD_STEPS=[0.05,0.1,0.25,0.5,1];
 // the tama outside is laid out round the tama centre: s/R is the angle from the hole axis, v the distance from the centre
 const ddTF=()=>{const P=tamaPose();return P?{C:P.C,u:P.u,v:[-P.u[1],P.u[0]]}:null;};
 // Sarado apart: the sarado's own frame has the ken hole centre at the origin and the sarado axis along x; on the ken that origin sits at (0, yA)
@@ -2457,24 +2483,26 @@ const ddFrom=(G,sg,s,v,sd)=>{if(sg.part==='tbev'){const f=ddTF();return f?[f.C.x
 const ddTo=(G,sg,X,Y)=>{if(sg.part==='tbev'){const f=ddTF();if(!f)return[sg.s0,sg.v0];const dx=X-f.C.x,dy=Y-f.C.y;return[dx*f.u[0]+dy*f.u[1],Math.abs(dx*f.v[0]+dy*f.v[1])];}if(sg.part==='tama'){const f=ddTF();if(!f)return[sg.s0,sg.v0];const dx=X-f.C.x,dy=Y-f.C.y,al=dx*f.u[0]+dy*f.u[1],r=Math.abs(dx*f.v[0]+dy*f.v[1]);return[Math.atan2(r,al)*sg.R,Math.hypot(dx,dy)];}if(sg.part==='ken')return[Y,Math.abs(X)];const l=sarL(X,Y);return[l[0]+G.xw,Math.abs(l[1])];};
 const ddSegs=G=>DD_SEGS.filter(id=>{const sg=G.segs[id];return sg&&(sg.part==='ken'||sg.part==='sar'||(sg.part==='tama'||sg.part==='tbev')&&S.mode==='dd'&&!!tamaPose());});
 function ddHandles(){
- const G=CUR.G,p=G.p,yA=G.yA,xw=G.xw,H=[],h=(id,label,X,Y,ax,ay)=>H.push({id,label,X,Y,ax,ay});
- h('base','Base cup Ø',p.baseD/2,0,['baseD',2],null);
- h('stall','Handle stall',p.baseBandD/2,p.baseBandL,['baseBandD',2],['baseBandL',1]);
- h('step','Ken Ø above the handle stall step',-(p.baseBandD/2-p.hsStepH),p.baseBandL+p.hsStepL,['hsStepH',1],['hsStepL',1]); // on the other side of the ken so it never sits under the handle stall's own point
- h('swoop','Handle swoop',p.swoopD/2,p.swoopPos,['swoopD',2],['swoopPos',1]);
- h('ring','Ring',p.ringD/2,p.ringPos,['ringD',2],['ringPos',1]);
- h('ringW','Slip stall height',-p.ringD/2,p.ringPos+p.ringW/2,null,['ringW',2]); // on the other side of the ken so it never sits under the ring's own point
- h('bevel','Spike bevel',G.D[0]/2,G.yB,['spikeD',2],['baseToBevel',1]);
- h('tip','Spike tip',0,p.kenH,null,['bevelL',1]);
- h('bcup','Base cup depth',0,p.baseDepth,null,['baseDepth',1]);
- h('smEdge','Small cup edge',G.xS-xw,yA+p.smD/2,null,['smD',2]);
- h('smRidge','Small cup bird ridge',G.xS+p.smBandL-xw,yA+p.smBandD/2,['smBandL',1],['smBandD',2]);
- h('waist','Sarado waist',0,yA+G.rS(xw),null,['waistD',2]);
- h('bgRidge','Big cup bird ridge',G.xE-p.bgBandL-xw,yA+p.bgBandD/2,['bgBandL',-1],['bgBandD',2]);
- h('bgEdge','Big cup edge',G.xE-xw,yA+p.bgD/2,['sarL',2],['bgD',2]);
- h('smCup','Small cup depth',G.xS+p.smDepth-xw,yA,['smDepth',1],null);
- h('bgCup','Big cup depth',G.xE-p.bgDepth-xw,yA,['bgDepth',-1],null);
- h('sarPos','Sarado height on the ken',G.xS-xw-7,yA,null,['sarTop',1]);
+ const G=CUR.G,p=G.p,yA=G.yA,xw=G.xw,H=[],h=(id,label,X,Y,ax,ay,n,ks)=>H.push({id,label,X,Y,ax,ay,n,ks});
+ // n: what the Points box calls each measure, in the order shown (blank: the point's own name says it)
+ h('base','Base cup',p.baseD/2,0,['baseD',2],null,['Ø']);
+ h('stall','Handle stall',p.baseBandD/2,p.baseBandL,['baseBandD',2],['baseBandL',1],['Ø','Height']);
+ h('step','Handle stall step',-(p.baseBandD/2-p.hsStepH),p.baseBandL+p.hsStepL,['hsStepH',1],['hsStepL',1],['Ken Ø above step','Height for step end'],['hsKenD','hsStepL']); // on the other side of the ken so it never sits under the handle stall's own point
+ h('swoop','Handle swoop',p.swoopD/2,p.swoopPos,['swoopD',2],['swoopPos',1],['Waist Ø','Waist height']);
+ h('ring','Ring stall',p.ringD/2,p.ringPos,['ringD',2],['ringPos',1],['Ø','Height (base to midpoint)']);
+ h('ringW','Ring stall width',-p.ringD/2,p.ringPos+p.ringW/2,null,['ringW',2],['']); // on the other side of the ken so it never sits under the ring's own point
+ h('bevel','Spike',G.D[0]/2,G.yB,['spikeD',2],['baseToBevel',1],['Ø at bevel','Length; base to bevel']);
+ h('tip','Spike tip',0,p.kenH,null,['bevelL',1],['Length']);
+ h('bcup','Base cup depth',0,p.baseDepth,null,['baseDepth',1],['']);
+ h('smEdge','Small cup',G.xS-xw,yA+p.smD/2,null,['smD',2],['Ø']);
+ h('smRidge','Small cup bird ridge',G.xS+p.smBandL-xw,yA+p.smBandD/2,['smBandL',1],['smBandD',2],['Width','Ø']);
+ h('waist','Sarado waist',0,yA+G.rS(xw),null,['waistD',2],['Ø']);
+ h('bgRidge','Big cup bird ridge',G.xE-p.bgBandL-xw,yA+p.bgBandD/2,['bgBandL',-1],['bgBandD',2],['Width','Ø']);
+ h('bgEdge','Big cup',G.xE-xw,yA+p.bgD/2,null,['bgD',2],['Ø']);
+ h('sarW','Sarado width',G.xE-xw,yA-p.bgD/2,['sarL',2],null,['']); // the far corner of the big cup end, so it never sits under the big cup's own point
+ h('smCup','Small cup depth',G.xS+p.smDepth-xw,yA,['smDepth',1],null,['']);
+ h('bgCup','Big cup depth',G.xE-p.bgDepth-xw,yA,['bgDepth',-1],null,['']);
+ h('sarPos','Sarado position',G.xS-xw-7,yA,null,['sarTop',1],['Height (base to top of big cup)']);
  if(sarApart()){const a=DD.sar.a,ex=[Math.cos(a),Math.sin(a)],ey=[-ex[1],ex[0]];for(let i=H.length-1;i>=0;i--){const q=H[i];if(!SAR_H.includes(q.id))continue;if(q.id==='sarPos'){H.splice(i,1);continue;}const w=sarFix([q.X,q.Y]);q.X=w[0];q.Y=w[1];q.loc={ex,ey};}} // the sarado's points ride with it, and drag in its own frame
  const P=S.mode==='dd'?tamaPose():null; // the tama's own points sit in its frame: along the hole (u) and across it (v)
  if(P){const T=mkTama(p,G),u=P.u,v=[-u[1],u[0]],at=(al,r)=>[P.C.x+u[0]*al+v[0]*r,P.C.y+u[1]*al+v[1]*r],tf={C:P.C,u,v},t=(id,label,q,ax,ay,rad)=>H.push({id,label,X:q[0],Y:q[1],ax,ay,tf,rad});
@@ -2721,7 +2749,7 @@ function drawDD(c,T){
  if(t==='point'){const H=ddHandles();let hov=null,hd=16;if(DD.cursor&&!DD.drag)for(const h of H){const d=Math.hypot(DD.cursor[0]-h.X,DD.cursor[1]-h.Y)*T.z;if(d<=hd){hd=d;hov=h;}}
   for(const h of H){const q=P([h.X,h.Y]),sel=h.id===DD.selH;c.beginPath();c.arc(q[0],q[1],sel?6.5:5,0,7);c.fillStyle=sel?acc:col('--canvas');c.fill();c.strokeStyle=acc;c.lineWidth=2;c.stroke();
    if(h.ax&&h.ay){c.beginPath();c.arc(q[0],q[1],1.6,0,7);c.fillStyle=sel?col('--canvas'):acc;c.fill();}}
-  const sh=H.find(h=>h.id===DD.selH)||hov;if(sh){const q=P([sh.X,sh.Y]);label(c,sh.id==='step'?`${sh.label}: Ø${f2(2*Math.abs(sh.X))} mm`:sh.id==='waist'&&ddWaistDrawn()?`${sh.label}: Ø${f2(2*(sh.Y-G.yA))} mm`:sh.label+': '+[sh.ax,sh.ay].filter(Boolean).map(a=>fmtV(PD[a[0]],S.p[a[0]])).join(' / ')+' mm',q[0]+12,q[1]-10,acc);}}
+  const sh=H.find(h=>h.id===DD.selH)||hov;if(sh){const q=P([sh.X,sh.Y]);label(c,sh.id==='waist'&&ddWaistDrawn()?`${sh.label}: Ø${fmm(2*(sh.Y-G.yA))} mm`:sh.label+': '+(sh.ks||[sh.ax,sh.ay].filter(Boolean).map(a=>a[0])).map(k=>fmtV(PD[k],pv(S.p,PD[k],G))).join(' / ')+' mm',q[0]+12,q[1]-10,acc);}}
  if(t==='push'&&DD.cursor&&!DD.act&&!DD.stroke){const th=DD.drag&&DD.drag.only?{id:DD.drag.h.id,d:0}:ddTamaHit(DD.cursor,T),sh=DD.drag?null:ddHit(DD.cursor,T,18),Pt=tamaPose();
   if(Pt&&th&&th.d<=18&&(!sh||th.d<sh.d*T.z)){c.strokeStyle=col('--draw');c.lineWidth=3;const nb=mkTama(G.p,G).bev.length;for(const sd of tamaOutline(G.p,Pt.C,Pt.u,G)){pathW(c,T,sd.slice(nb-1,nb+2));c.stroke();}}}
  if(DD.stroke&&DD.stroke.length>1){c.strokeStyle=col('--ink');c.lineWidth=1.8;pathW(c,T,DD.stroke);c.stroke();}
@@ -2739,11 +2767,11 @@ function syncDD(){
  const area=()=>{const g=el('span',{class:'seg2'}),a=el('button',{},'Brush'),b=el('button',{},'Two points');a.classList.toggle('act',!DD.range);b.classList.toggle('act',DD.range);
   a.onclick=again(()=>{DD.range=false;DD.rA=null;});b.onclick=again(()=>{DD.range=true;});g.append(a,b);host.append(el('span',{class:'dd-st'},el('span',{class:'dd-l'},'Area'),g));
   if(!DD.range){width();return;}const R=DD.rng,sg=R&&CUR.G&&CUR.G.segs[R.id];
-  if(sg){host.append(el('span',{class:'dd-n'},sg.label),el('b',{},f2(Math.abs(R.b-R.a))+' mm'));btn('Clear points',again(()=>{DD.rng=null;DD.rA=null;DD.ctl=null;DD.rb=null;}));}
+  if(sg){host.append(el('span',{class:'dd-n'},sg.label),el('b',{},fmm(Math.abs(R.b-R.a))+' mm'));btn('Clear points',again(()=>{DD.rng=null;DD.rA=null;DD.ctl=null;DD.rb=null;}));}
   else hint(DD.rA?'Now click the other end of the area on the same contour.':'Click two points on a contour to set the area.');};
  if(t==='point'){const h=CUR.G&&ddHandles().find(q=>q.id===DD.selH);
-  if(h&&h.id==='waist'&&ddWaistDrawn()){host.append(el('span',{class:'dd-n'},h.label));const go=dir=>()=>{ddWaistShift(ddBase(ddWaistDrawn()),dir*0.05);commit();syncDD();};stp('Sarado waist Ø',f2(2*(h.Y-CUR.G.yA))+' mm',go(-1),go(1));}
-  else if(h){host.append(el('span',{class:'dd-n'},h.id==='step'?`${h.label}: Ø${f2(2*Math.abs(h.X))} mm`:h.label));for(const a of[h.ax,h.ay])if(a){const d=PD[a[0]],go=dir=>()=>{setParam(a[0],Math.round((+S.p[a[0]]+dir*d.step)*1e4)/1e4,true);commit();syncDD();};stp(d.label,fmtV(d,S.p[a[0]])+' '+d.unit,go(-1),go(1));}}
+  if(h&&h.id==='waist'&&ddWaistDrawn()){host.append(el('span',{class:'dd-n'},h.label));const go=dir=>()=>{ddWaistShift(ddBase(ddWaistDrawn()),dir*0.05);commit();syncDD();};stp('Ø',fmm(2*(h.Y-CUR.G.yA))+' mm',go(-1),go(1));}
+  else if(h){host.append(el('span',{class:'dd-n'},h.label));const ks=h.ks||[h.ax,h.ay].filter(Boolean).map(a=>a[0]);ks.forEach((k,i)=>{const d=PD[k],v=()=>+pv(S.p,d,CUR.G),go=dir=>()=>{setParam(k,Math.round((v()+dir*d.step)*1e4)/1e4,true);commit();syncDD();};stp(h.n?h.n[i]:d.label,fmtV(d,v())+' '+d.unit,go(-1),go(1));});}
   else hint(def[2]);}
  else if(t==='push'){area();const i=Math.max(0,DD_STEPS.indexOf(DD.step));stp('Nudge step',`${DD.step} mm`,again(()=>DD.step=DD_STEPS[Math.max(0,i-1)]),again(()=>DD.step=DD_STEPS[Math.min(DD_STEPS.length-1,i+1)]));
   btn('Pull in',()=>ddNudge(-1),!ddAt());btn('Push out',()=>ddNudge(1),!ddAt());}
@@ -2761,7 +2789,7 @@ function syncDD(){
  else if(t==='mark'){const vb=$('#vtools .vt-body');if(vb)for(const b0 of vb.children){if(b0.tagName==='HR'){host.append(el('span',{class:'dd-sep'}));continue;}const b=b0.cloneNode(true);b.classList.add('dd-ic');b.removeAttribute('id');
    if(b.dataset.t){b.classList.toggle('act',b.dataset.t===MK.tool);b.onclick=()=>setTool(b.dataset.t);}else b.onclick=()=>{mkAct(b.dataset.a);syncDD();};host.append(b);}
   if(MK.tool==='measure'){const b=btn('Snap',again(()=>DD.snap=!DD.snap));b.classList.toggle('act',DD.snap);b.append(' ',el('b',{},DD.snap?'On':'Off'));}
-  const sm=MK.items[MK.sel];if(sm&&sm.type==='meas'){const[a,b2]=sm.pts.map(mkLoc);host.append(el('span',{class:'dd-n'},`${f2(Math.hypot(b2[0]-a[0],b2[1]-a[1],(b2[2]||0)-(a[2]||0)))} mm`),el('span',{class:'dd-h'},`across ${f2(Math.abs(b2[0]-a[0]))} mm · along ${f2(Math.abs(b2[1]-a[1]))} mm`));}}
+  const sm=MK.items[MK.sel];if(sm&&sm.type==='meas'){const[a,b2]=sm.pts.map(mkLoc);host.append(el('span',{class:'dd-n'},`${fmm(Math.hypot(b2[0]-a[0],b2[1]-a[1],(b2[2]||0)-(a[2]||0)))} mm`),el('span',{class:'dd-h'},`across ${fmm(Math.abs(b2[0]-a[0]))} mm · along ${fmm(Math.abs(b2[1]-a[1]))} mm`));}}
  else if(t==='cmp'){const ab=btn(DD.ovAdd?'Close the list':'Add a shape',again(()=>DD.ovAdd=!DD.ovAdd));ab.classList.toggle('act',!!DD.ovAdd);
   if(DD.ovAdd){const box=el('div',{class:'dd-list'});for(const[name,arr,mk]of ovSources()){if(!arr.length)continue;box.append(el('div',{class:'dd-lh'},name));for(const e of arr){const b=el('button',{translate:'no'},e.name);b.onclick=()=>{DD.ovAdd=false;ovAdd(mk(e));syncDD();};box.append(b);}}host.append(box);}
   ovPanel(host,again,ib);if(!S.ovl.length&&!DD.ovAdd)hint(def[2]);}
@@ -2892,35 +2920,28 @@ function dimLineV(D,x,y1,y2,t,o={}){const a=Math.min(y1,y2),b=Math.max(y1,y2),le
 function dimV(D,y1,y2,xa1,xa2,xl,t,o){D.style('#000',.4);const g=(xa,y)=>{const s=Math.sign(xl-xa)||1;D.line(xa+s*2,y,xl+s*3,y);};g(xa1,y1);g(xa2,y2);dimLineV(D,xl,y1,y2,t,o);}
 function leader(D,px,py,tx,ty,t,o={}){D.style('#000',.4);const ax=o.align==='right'?tx+1:tx-1;D.line(px,py,ax,ty-2);const n=Math.hypot(px-ax,py-ty+2)||1;arrow(D,px,py,(px-ax)/n,(py-ty+2)/n);D.text(t,o.align==='right'?tx:tx+1,ty,{align:o.align,bg:true});}
 const specScale=G=>{const p=G.p,mk=Math.max(...G.kenPts.map(q=>q[1]))*2,mc=Math.max(p.smD,p.bgD,p.smBandD,p.bgBandD);return Math.min(338/p.kenH,95/mk,180/p.sarL,112/mc,122/p.tamaD,2.6);};
-const ellLabel=(s,rx,ry)=>{if(s.drawn)return s.imp?'IMPORTED':'HAND-DRAWN';const e=s.ellAct,sh=e&&(Math.abs(e.dx)>0.005||Math.abs(e.dy)>0.005);if(sh){rx=e.rx;ry=e.ry;}const t=Math.abs(rx-ry)<0.005?'R'+f2(rx):`ELLIPSE ${f2(rx)} × ${f2(ry)}`;return sh?`${t}, CENTRE SHIFT ${f2(e.dx)} / ${f2(e.dy)}`:t;};
-const ridgeLabel=(G,pre)=>{const p=G.p,s=G.segs[pre+'Ridge'],m=p[pre+'RidgeMode'],n=pre==='base'?'HANDLE STALL':'RIDGE';return s.drawn?n+(s.imp?' IMPORTED':' HAND-DRAWN'):m==='radius'?n+' R'+f2(p[pre+'RidgeR']):m==='ellipse'?n+' '+ellLabel(s,p[pre+'RidgeRx'],p[pre+'RidgeRy']):'';};
+const ellLabel=(s,rx,ry)=>{if(s.drawn)return s.imp?'IMPORTED':'HAND-DRAWN';const e=s.ellAct,sh=e&&(Math.abs(e.dx)>0.005||Math.abs(e.dy)>0.005);if(sh){rx=e.rx;ry=e.ry;}const t=Math.abs(rx-ry)<0.005?'R'+fmm(rx):`ELLIPSE ${fmm(rx)} × ${fmm(ry)}`;return sh?`${t}, CENTRE SHIFT ${fmm(e.dx)} / ${fmm(e.dy)}`:t;};
+const ridgeLabel=(G,pre)=>{const p=G.p,s=G.segs[pre+'Ridge'],m=p[pre+'RidgeMode'],n=pre==='base'?'HANDLE STALL':'RIDGE';return s.drawn?n+(s.imp?' IMPORTED':' HAND-DRAWN'):m==='radius'?n+' R'+fmm(p[pre+'RidgeR']):m==='ellipse'?n+' '+ellLabel(s,p[pre+'RidgeRx'],p[pre+'RidgeRy']):'';};
 const circle=(cx,cy,r)=>{const o=[];for(let i=0;i<24;i++){const a=i/24*2*Math.PI;o.push([cx+r*Math.cos(a),cy+r*Math.sin(a)]);}return o;};
 
 function specSarado(D,G,s,cx,cy){
  const p=G.p,X=x=>cx+x*s,Y=y=>cy-y*s,poly=sarSection(G).map(([x,y])=>[X(x),Y(y)]),xs=G.xS+p.smBandL,xb=G.xE-p.bgBandL,m=Math.max(p.smD,p.bgD,p.smBandD,p.bgBandD)/2,top=Y(m),bot=Y(-m);
  D.hatch([poly]);D.style('#000',.9);D.poly(poly,true);
  D.style('#000',.4,[3,2]);D.line(X(xs),Y(G.rS(xs)),X(xs),Y(-G.rS(xs)));D.line(X(xb),Y(G.rS(xb)),X(xb),Y(-G.rS(xb)));
- dimH(D,X(G.xS),X(G.xE),Y(p.smD/2),Y(p.bgD/2),top-24,f2(p.sarL));
- dimH(D,X(G.xS),X(xs),Y(-p.smD/2),Y(-p.smBandD/2),bot+14,f2(p.smBandL),{left:1});
- dimH(D,X(xs),X(xb),Y(-p.smBandD/2),Y(-p.bgBandD/2),bot+14,f2(p.sarL-p.smBandL-p.bgBandL));
- dimH(D,X(xb),X(G.xE),Y(-p.bgBandD/2),Y(-p.bgD/2),bot+14,f2(p.bgBandL));
- if(p.smStepH>0.01)dimLineV(D,X(xs+p.smStepL)+3,Y(p.smBandD/2),Y(p.smBandD/2-p.smStepH),f2(p.smStepH));
- if(p.bgStepH>0.01)dimLineV(D,X(xb-p.bgStepL)-3,Y(p.bgBandD/2),Y(p.bgBandD/2-p.bgStepH),f2(p.bgStepH));
- dimH(D,X(G.xS),X(G.xS+p.smDepth),bot+14,bot+14,bot+30,`CUP DEPTH ${f2(p.smDepth)}, R${f2(sphR(p.smD/2-p.rim,p.smDepth))}`,{left:1});
- dimH(D,X(G.xE-p.bgDepth),X(G.xE),bot+14,bot+14,bot+30,`CUP DEPTH ${f2(p.bgDepth)}, R${f2(sphR(p.bgD/2-p.rim,p.bgDepth))}`);
- dimV(D,Y(p.smD/2),Y(-p.smD/2),X(G.xS),X(G.xS),X(G.xS)-32,f2(p.smD));
- dimV(D,Y(p.smBandD/2),Y(-p.smBandD/2),X(xs),X(xs),X(G.xS)-18,f2(p.smBandD));
- dimV(D,Y(p.bgBandD/2),Y(-p.bgBandD/2),X(xb),X(xb),X(G.xE)+18,f2(p.bgBandD),{right:1});
- dimV(D,Y(p.bgD/2),Y(-p.bgD/2),X(G.xE),X(G.xE),X(G.xE)+32,f2(p.bgD),{right:1});
- dimLineV(D,X(G.xw),Y(p.waistD/2),Y(-p.waistD/2),f2(p.waistD),{right:1,bg:1});
- leader(D,X(G.xS),Y(p.smD/2-p.rim/2),X(G.xS)-4,top-8,'RIM '+f2(p.rim),{align:'right'});
- leader(D,X(G.xE),Y(p.bgD/2-p.rim/2),X(G.xE)+4,top-8,'RIM '+f2(p.rim));
+ dimH(D,X(G.xS),X(G.xE),Y(p.smD/2),Y(p.bgD/2),top-24,fmm(p.sarL));
+ dimH(D,X(G.xS),X(xs),Y(-p.smD/2),Y(-p.smBandD/2),bot+14,fmm(p.smBandL),{left:1});
+ dimH(D,X(xs),X(xb),Y(-p.smBandD/2),Y(-p.bgBandD/2),bot+14,fmm(p.sarL-p.smBandL-p.bgBandL));
+ dimH(D,X(xb),X(G.xE),Y(-p.bgBandD/2),Y(-p.bgD/2),bot+14,fmm(p.bgBandL));
+ if(p.smStepH>0.01)dimLineV(D,X(xs+p.smStepL)+3,Y(p.smBandD/2),Y(p.smBandD/2-p.smStepH),fmm(p.smStepH));
+ if(p.bgStepH>0.01)dimLineV(D,X(xb-p.bgStepL)-3,Y(p.bgBandD/2),Y(p.bgBandD/2-p.bgStepH),fmm(p.bgStepH));
+ {const a=`SMALL CUP DEPTH ${fmm(p.smDepth)}`,b=`BIG CUP DEPTH ${fmm(p.bgDepth)}`,xa=X(G.xS)-30,xb=X(G.xE)+30,two=xa+D.tw(a,TS)+12>xb-D.tw(b,TS);
+  D.text(a,xa,bot+32);D.text(b,xb,bot+(two?42:32),{align:'right'});}
+ {const o=p.smD>=p.smBandD;dimV(D,Y(p.smD/2),Y(-p.smD/2),X(G.xS),X(G.xS),X(G.xS)-(o?32:18),fmm(p.smD));
+  dimV(D,Y(p.smBandD/2),Y(-p.smBandD/2),X(xs),X(xs),X(G.xS)-(o?18:32),fmm(p.smBandD));}
+ {const o=p.bgD>=p.bgBandD;dimV(D,Y(p.bgBandD/2),Y(-p.bgBandD/2),X(xb),X(xb),X(G.xE)+(o?18:32),fmm(p.bgBandD),{right:1});
+  dimV(D,Y(p.bgD/2),Y(-p.bgD/2),X(G.xE),X(G.xE),X(G.xE)+(o?32:18),fmm(p.bgD),{right:1});}
+ dimLineV(D,X(G.xw),Y(p.waistD/2),Y(-p.waistD/2),fmm(p.waistD),{right:1,bg:1});
  D.text('BIG CUP',X(xb)+TS+3,cy,{align:'center',rot:1,bg:1,size:7});
- D.text(`SWOOP Ø${f1(G.swoopDia)} · `+G.sarStep.map(c=>c.step?`STEP R${f2(c.r[0])}/R${f2(c.r[1])}`:`EDGE R${f2(c.r[0])}`).join(' | '),X(G.xw),Y(-p.waistD/2)+12,{align:'center',size:5.6,bg:1});
- {const sl=id=>{const sg=G.segs[id];return sg.drawn||!sg.ellAct?ellLabel(sg,0,0):ellLabel(sg,sg.ellAct.rx,sg.ellAct.ry);};
-  D.text(G.segs.swoopAll?`ONE SWOOP SURFACE: ${G.oneSw&&p.swAMode==='mirror'&&!G.segs.swoopAll.drawn?`MIRRORED ELLIPSES ${f2(p.swARx)} × ${f2(p.swARy)}`+(G.oneSw.flat>0.05?`, FLAT ${f2(G.oneSw.flat)}`:''):sl('swoopAll')}, WAIST Ø${f2(p.waistD)}`:`SWOOPS: SMALL ${sl('swoopSm')} / BIG ${sl('swoopBg')}`,X(G.xw),Y(-p.waistD/2)+19,{align:'center',size:5.6,bg:1});}
- for(const[pre,xm,sgn]of[['sm',(G.xS+xs)/2,-1],['bg',(G.xE+xb)/2,1]]){const t=ridgeLabel(G,pre);if(t)leader(D,X(xm),Y(G.rS(xm)),X(xm)+sgn*6,top-15,t,{align:sgn<0?'right':'left'});}
- for(const sg of G.order.map(k=>G.segs[k]).filter(q=>q.part==='sar'&&q.drawn&&q.id.startsWith('swoop'))){const q=sg.out[sg.out.length>>1];D.text(sg.imp?'IMPORTED':'HAND-DRAWN',X(q[0]),Y(q[1])-3,{align:'center',size:5,bg:1});}
 }
 function specTama(D,G,s,cx,cy){
  const p=G.p,X=x=>cx+x*s,Y=y=>cy-y*s,R=p.tamaD/2,hr=p.tamaHoleD/2,cr=p.tamaCsD/2,sr=TAMA_STR_D/2;
@@ -2929,11 +2950,11 @@ function specTama(D,G,s,cx,cy){
  half.push([hr,yc],[hr,ye],[sr,ytip]);
  const A=half.map(([x,y])=>[X(x),Y(y)]),B=half.map(([x,y])=>[X(-x),Y(y)]);
  D.hatch([A,B]);D.style('#000',.9);D.poly(A,true);D.poly(B,true);
- dimH(D,X(-R),X(R),cy,cy,Y(R)-14,f2(p.tamaD));if(M.rho)D.text('HAND-SHAPED (Ø IS THE MEASURED BALL)',cx,Y(M.Rmax)-26,{align:'center',size:5,bg:1});
- dimH(D,X(-hr),X(hr),Y(yc),Y(yc),Y(-R)+13,f2(p.tamaHoleD));
- dimH(D,X(-cr),X(cr),Y(yb),Y(yb),Y(-R)+27,f2(p.tamaCsD));
- dimV(D,Y(yc),Y(yb),X(hr),X(cr),X(cr)+22,f2(p.tamaCsDepth),{right:1,bg:1});
- dimV(D,Y(-R+p.tamaHoleDepth),Y(-R),X(-hr),X(0),X(-R)-10,f2(p.tamaHoleDepth));
+ dimH(D,X(-R),X(R),cy,cy,Y(R)-14,fmm(p.tamaD));if(M.rho)D.text('HAND-SHAPED (Ø IS THE MEASURED BALL)',cx,Y(M.Rmax)-26,{align:'center',size:5,bg:1});
+ dimH(D,X(-hr),X(hr),Y(yc),Y(yc),Y(-R)+13,fmm(p.tamaHoleD));
+ dimH(D,X(-cr),X(cr),Y(yb),Y(yb),Y(-R)+27,fmm(p.tamaCsD));
+ dimV(D,Y(yc),Y(yb),X(hr),X(cr),X(cr)+22,fmm(p.tamaCsDepth),{right:1,bg:1});
+ dimV(D,Y(-R+p.tamaHoleDepth),Y(-R),X(-hr),X(0),X(-R)-10,fmm(p.tamaHoleDepth));
 }
 function specKen(D,G,s,X0,YC){
  const p=G.p,X=y=>X0+y*s,Yt=r=>YC-r*s,Yb=r=>YC+r*s,poly=kenSection(G).map(([y,r])=>[X(y),YC-r*s]);
@@ -2941,32 +2962,23 @@ function specKen(D,G,s,X0,YC){
  D.hatch([poly]);D.style('#000',.9);D.poly(poly,true);
  D.style('#000',.3,[7,2,1.5,2]);D.line(X(-4),YC,X(p.kenH+4),YC);
  const ys=G.yB-p.kenStr;D.style('#000',.6);D.fill(circle(X(ys),YC,2.2),'#fff');D.poly(circle(X(ys),YC,2.2),true);
- dimH(D,X(0),X(p.baseBandL),Yt(p.baseD/2),Yt(p.baseBandD/2),top-14,f2(p.baseBandL),{left:1});
- if(p.hsStepH>0.01)dimLineV(D,X(p.baseBandL+p.hsStepL)+3,Yt(p.baseBandD/2),Yt(p.baseBandD/2-p.hsStepH),f2(p.hsStepH));
- if(p.ringW>0.05)dimH(D,X(p.ringPos-p.ringW/2),X(p.ringPos+p.ringW/2),Yt(p.ringD/2),Yt(p.ringD/2),top-14,f2(p.ringW),{left:1});
- for(let i=G.st.length-1;i>0;i--)dimH(D,X(G.st[i]),X(G.st[i-1]),Yt(G.D[i]/2),Yt(G.D[i-1]/2),top-14,f2(G.st[i-1]-G.st[i]));
- dimH(D,X(0),X(G.yB),top-14,top-14,top-42,f2(G.yB));
- dimH(D,X(0),X(p.kenH),top-42,YC,top-56,f2(p.kenH));
- dimH(D,X(0),X(p.baseDepth),bot+42,YC,bot+56,`CUP DEPTH ${f2(p.baseDepth)}, R${f2(sphR(a,p.baseDepth))}`);
- dimH(D,X(0),X(p.swoopPos),Yb(p.baseD/2),Yb(p.swoopD/2),bot+28,f2(p.swoopPos));
- dimH(D,X(0),X(p.ringPos),bot+28,Yb(p.ringD/2),bot+42,f2(p.ringPos));
- dimH(D,X(ys),X(G.yB),YC+3,Yb(G.D[0]/2),bot+14,f2(p.kenStr));
- dimH(D,X(G.yB),X(p.kenH),Yb(G.D[0]/2),YC,bot+14,f2(p.bevelL));
- dimV(D,Yt(p.baseBandD/2),Yb(p.baseBandD/2),X(p.baseBandL),X(p.baseBandL),X(0)-28,f2(p.baseBandD));
- dimV(D,Yt(p.baseD/2),Yb(p.baseD/2),X(0),X(0),X(0)-43,f2(p.baseD));
- const inside=(y,d)=>dimLineV(D,X(y),Yt(d/2),Yb(d/2),f2(d),{right:1,bg:1});
+ dimH(D,X(0),X(p.baseBandL),Yt(p.baseD/2),Yt(p.baseBandD/2),top-14,fmm(p.baseBandL),{left:1});
+ if(p.ringW>0.05)dimH(D,X(p.ringPos-p.ringW/2),X(p.ringPos+p.ringW/2),Yt(p.ringD/2),Yt(p.ringD/2),top-14,fmm(p.ringW),{left:1});
+ for(let i=G.st.length-1;i>0;i--)dimH(D,X(G.st[i]),X(G.st[i-1]),Yt(G.D[i]/2),Yt(G.D[i-1]/2),top-14,fmm(G.st[i-1]-G.st[i]));
+ dimH(D,X(0),X(G.yB),top-14,top-14,top-42,fmm(G.yB));
+ dimH(D,X(0),X(p.kenH),top-42,YC,top-56,fmm(p.kenH));
+ D.text(`BOTTOM CUP DEPTH ${fmm(p.baseDepth)}`,X(0),bot+58,{});
+ dimH(D,X(0),X(p.swoopPos),Yb(p.baseD/2),Yb(p.swoopD/2),bot+28,fmm(p.swoopPos));
+ dimH(D,X(0),X(p.ringPos),bot+28,Yb(p.ringD/2),bot+42,fmm(p.ringPos));
+ dimH(D,X(ys),X(G.yB),YC+3,Yb(G.D[0]/2),bot+14,fmm(p.kenStr));
+ dimH(D,X(G.yB),X(p.kenH),Yb(G.D[0]/2),YC,bot+14,fmm(p.bevelL));
+ {const o=p.baseD>=p.baseBandD;dimV(D,Yt(p.baseBandD/2),Yb(p.baseBandD/2),X(p.baseBandL),X(p.baseBandL),X(0)-(o?28:43),fmm(p.baseBandD));
+  dimV(D,Yt(p.baseD/2),Yb(p.baseD/2),X(0),X(0),X(0)-(o?43:28),fmm(p.baseD));}
+ const inside=(y,d)=>dimLineV(D,X(y),Yt(d/2),Yb(d/2),fmm(d),{right:1,bg:1});
+ inside(p.baseBandL+(p.hsStepH>0.01?p.hsStepL:0),hsSwoopD(p));
  inside(p.swoopPos,p.swoopD);if(p.ringW>0.05||Math.abs(p.ringD-p.swoopD)>1)inside(p.ringPos,p.ringD);
  for(let i=G.st.length-1;i>=1;i--)inside(G.st[i],G.D[i]);
- dimV(D,Yt(G.D[0]/2),Yb(G.D[0]/2),X(G.yB),X(G.yB),X(p.kenH)+13,f2(G.D[0]),{below:1});
- leader(D,X(0),Yb(p.baseD/2-p.rim/2),X(0)-6,bot+12,'RIM '+f2(p.rim),{align:'right'});
- if(G.hole){const hd=G.hole[G.hole.length-1][0],dq=Math.max(p.baseDepth+1,hd*0.6),rq=interp(G.cav,dq);leader(D,X(dq),Yb(rq),X(dq)+14,bot+70,`BASE CUP HOLE: IMPORTED AS DRAWN, ${f2(hd)} DEEP`);}
- const mid=q=>q.out[q.out.length>>1];
- let q=mid(sg.flare);leader(D,X(q[0]),Yt(q[1]),X(q[0])+4,top-26,ellLabel(sg.flare,p.flareRx,p.flareRy),{align:'right'});
- q=mid(sg.swoopRing);leader(D,X(q[0]),Yt(q[1]),X(q[0])+2,top-26,ellLabel(sg.swoopRing,p.swoopRingRx,p.swoopRingRy));
- q=mid(sg.ringHandle);leader(D,X(q[0]),Yb(q[1]),X(q[0])+12,bot+30,ellLabel(sg.ringHandle,p.ringHandleRx,p.ringHandleRy));
- const rl=ridgeLabel(G,'base');if(rl){q=mid(sg.baseRidge);leader(D,X(q[0]),Yb(q[1]),X(q[0])+10,bot+14,rl);}
- leader(D,X(p.kenH-0.3),Yb(0.3),X(p.kenH)+6,bot+2,p.tipMode==='ellipse'?`TIP ELLIPSE ${f2(p.tipEa)} × ${f2(p.tipEb)}`:`TIP R${f2(p.tipR)}`);
- D.text(`SARADO-FIT TAPER (LOCKED): Ø${G.D.map(f2).join(' / ')} AT ${f2(STEP)} mm STEPS BELOW THE BEVEL, ${f2(p.taperL)} LONG`,X(G.st[G.st.length-1]),bot+58,{size:5.6});
+ dimV(D,Yt(G.D[0]/2),Yb(G.D[0]/2),X(G.yB),X(G.yB),X(p.kenH)+13,fmm(G.D[0]),{below:1});
 }
 function specAssy(D,G,s,xa,yb){
  const p=G.p,X=x=>xa+x*s,Y=y=>yb-y*s,sil=silhouette(G),K=sil.ken.map(([x,y])=>[X(x),Y(y)]),Sp=sil.sar.map(([x,y])=>[X(x),Y(y)]);
@@ -2976,14 +2988,13 @@ function specAssy(D,G,s,xa,yb){
  D.style('#000',.5);for(const x of[G.xS+p.smBandL,G.xE-p.bgBandL]){const r=G.rS(x);D.line(X(x-G.xw),Y(G.yA-r),X(x-G.xw),Y(G.yA+r));}
  D.text('BIG CUP',X(G.xE-G.xw-p.bgBandL/2)+2.5,Y(G.yA),{align:'center',rot:1,size:7});
  const xl=X(G.xS-G.xw)-34;
- dimV(D,Y(p.kenH),Y(0),X(0),X(-p.baseD/2),xl,f2(p.kenH));
- dimV(D,Y(G.yB),Y(0),X(-G.D[0]/2),xl,xl+15,f2(G.yB));
- dimV(D,Y(p.sarTop),Y(0),X(G.xE-G.xw),X(p.baseD/2),X(G.xE-G.xw)+32,`${f2(p.sarTop)} +/- ${f2(p.sarTol)} mm`,{right:1});
+ dimV(D,Y(p.kenH),Y(0),X(0),X(-p.baseD/2),xl,fmm(p.kenH));
+ dimV(D,Y(p.sarTop),Y(0),X(G.xE-G.xw),X(p.baseD/2),X(G.xE-G.xw)+32,`${fmm(p.sarTop)} +/- ${ftol(p.sarTol)} mm`,{right:1});
  const H=stringHoles(p,G);D.style('#000',.6);for(const[x,y]of H){D.fill(circle(X(x),Y(y),Math.max(1,STR_HOLE_D/2*s)),'#ffffff');D.poly(circle(X(x),Y(y),Math.max(1,STR_HOLE_D/2*s)),true);}
  if(H.length){const h=H.reduce((a,b)=>b[0]>a[0]?b:a),ty=Y(G.yA-p.bgD/2)+14,tx=X(G.rK(G.yA-p.bgD/2-6)+4),o={size:5.6,bg:true};
-  leader(D,X(h[0]),Y(h[1]),tx,ty,`STRING HOLE${H.length>1?'S':''} Ø${f2(STR_HOLE_D)}`);
-  D.text(p.sarStrCount>1?`${p.sarStrCount} PER SIDE, SEE PAGE 2`:`${f2(p.sarStrDepth1)} BELOW WAIST TOP`,tx+1,ty+7.5,o);
-  D.text(p.sarStrCount>1?strSidesTxt(p):`${f2(p.sarStrOff1)} OFF AXIS, ${strSidesTxt(p)}`,tx+1,ty+14.5,o);}
+  leader(D,X(h[0]),Y(h[1]),tx,ty,`STRING HOLE${H.length>1?'S':''} Ø${fmm(STR_HOLE_D)}`);
+  D.text(p.sarStrCount>1?`${p.sarStrCount} PER SIDE, SEE PAGE 2`:`${fmm(p.sarStrDepth1)} BELOW WAIST TOP`,tx+1,ty+7.5,o);
+  D.text(p.sarStrCount>1?strSidesTxt(p):`${fmm(p.sarStrOff1)} OFF AXIS, ${strSidesTxt(p)}`,tx+1,ty+14.5,o);}
 }
 function specPage1(D,E){
  const G=E.G,p=G.p,m=S.meta,s=specScale(G);
@@ -2991,39 +3002,48 @@ function specPage1(D,E){
  D.text(`${m.brand||''} ${m.model||''} SHAPE SPECS`.trim().toUpperCase(),30,549,{size:19});
  D.text('ALL DIMENSIONS IN mm',30,566,{size:11});
  D.text(`PREPARED ${today()}${m.designer?' BY '+m.designer.toUpperCase():''}`,30,583,{size:11});
- D.text(`ALL CUP RIMS SHOULD BE ${f2(p.rim)} mm`,762,566,{size:11,align:'right'});
- D.text(`UNLESS SPECIFIED, TOLERANCES ARE +/- ${f2(p.tol)} mm`,762,583,{size:11,align:'right'});
- specSarado(D,G,s,165,132);specTama(D,G,s,425,122);specKen(D,G,s,98,385);specAssy(D,G,s,664,498);
+ D.text(`ALL CUP RIMS SHOULD BE ${fmm(p.rim)} mm`,762,566,{size:11,align:'right'});
+ D.text(`UNLESS SPECIFIED, TOLERANCES ARE +/- ${ftol(p.tol)} mm`,762,583,{size:11,align:'right'});
+ specSarado(D,G,s,165,132);specTama(D,G,s,425,122);specKen(D,G,s,98,385);specAssy(D,G,s,Math.min(664,756-TS-((G.xE-G.xw)*s+32)),498);
 }
+// spec sheet page 2 leaves out contour-defining values (radii, ellipses, roundings), derived spans and densities
+const SPEC_HIDE=/^(ringHandle|swoopRing|flare)(Rx|Ry|Cx|Cy)$|^(sm|bg|base)Ridge(R|Rx|Ry|Cx|Cy)$|^(sm|bg)(StepTopR|StepInR|FilletR|CupR)$|^hsStep(L|TopR|InR)$|^hsKenD$|^baseCupR$|^waistSpan$|^swoopDia$|^swoopMode$|^swAMode$|^swAR[vxy]$|^sw[SB](Mode|R|Rx|Ry|Cx|Cy)$|Rho$/;
+const hsSwoopD=p=>p.baseBandD-2*Math.max(0,p.hsStepH);
 function specPage2(D,E){
  const G=E.G,A=E.A,p=G.p,m=S.meta;
  D.style('#000',1);D.poly([[18,18],[774,18],[774,594],[18,594]],true);
  D.text(`${m.brand||''} ${m.model||''}: DIMENSION SCHEDULE AND BALANCE`.trim().toUpperCase(),30,42,{size:14,bold:1});
  D.text(`PREPARED ${today()}${m.designer?' BY '+m.designer.toUpperCase():''}   |   ALL DIMENSIONS IN mm`,30,56,{size:8});
- let x=30,y=76;const colW=238,lh=9.2;
- const head=t=>{if(y>560){x+=colW+12;y=76;}D.text(t.toUpperCase(),x,y,{size:7.5,bold:1});D.style('#000',.4);D.line(x,y+2.5,x+colW,y+2.5);y+=lh+2;};
- const rowT=(a,b,c)=>{if(y>582){x+=colW+12;y=76;}D.text(a,x,y,{size:6.8});D.text(b,x+colW-40,y,{size:6.8,align:'right'});if(c)D.text(c,x+colW,y,{size:5.5,align:'right',color:'#555555'});y+=lh;};
- for(const g of GROUPS){head(g.title);for(const d of P.filter(q=>q.group===g.id)){if(d.show&&!d.show(p,G))continue;const v=pv(p,d,G);
+ // gather the sections first, then share them out over three columns of about equal height and size the text to fill the page
+ const secs=[];let rows;const head=t=>{rows=[];secs.push({t,rows});},rowT=(a,b)=>rows.push([a,b]);
+ for(const g of GROUPS){head(g.id==='mat'?'Tolerances':g.title);for(const d of P.filter(q=>q.group===g.id)){if(d.show&&!d.show(p,G))continue;const v=pv(p,d,G);
+   if(SPEC_HIDE.test(d.k))continue;
+   if(d.k==='hsStepH'){rowT('Swoop Ø at handle stall step',fmm(hsSwoopD(p)));continue;}
+   if(/RidgeMode$/.test(d.k)){rowT(d.label,G.segs[d.seg].drawn?'Hand drawn':v==='flat'?'Flat':'Curved');continue;}
    if(d.kind==='choice'){const s=d.seg&&G.segs[d.seg].drawn?'Hand-drawn':(d.options.find(o=>o[0]===v)||[0,v])[1];rowT(d.label,s);continue;}
-   rowT(d.label,fmtV(d,v)+(d.unit==='mm'||!d.unit?'':' '+d.unit),d.kind==='added'?'ADDED':d.kind==='locked'?'LOCKED':'');}
-  if(g.id==='base'&&S.curves.baseHole)rowT('Base cup hole (imported)',S.curves.baseHole.on!==false?`on, ${f2(S.curves.baseHole.pts[S.curves.baseHole.pts.length-1][0])} deep`:'off','ADDED');
-  if(g.id==='sarado')rowT('String hole Ø (fixed)',f2(STR_HOLE_D));if(g.id==='tama')rowT('Tama string hole Ø (fixed)',f2(TAMA_STR_D));y+=3;}
- x=30+2*(colW+12);y=76;
+   rowT(d.label,fmtV(d,v)+(d.unit==='mm'||!d.unit?'':' '+d.unit));}
+  if(g.id==='base'&&S.curves.baseHole)rowT('Base cup hole (imported)',S.curves.baseHole.on!==false?`on, ${fmm(S.curves.baseHole.pts[S.curves.baseHole.pts.length-1][0])} deep`:'off');
+  if(g.id==='sarado')rowT('String hole Ø (fixed)',fmm(STR_HOLE_D));if(g.id==='tama')rowT('Tama string hole Ø (fixed)',fmm(TAMA_STR_D));}
  head('Calculated balance');
  rowT('Ken mass',f1(A.kM)+' g');rowT('Sarado mass',f1(A.sM)+' g');rowT('Ken + sarado mass',f1(A.M)+' g');rowT('Tama mass',f1(A.tM)+' g');
- rowT('Centre of gravity above base',f2(A.cog.y));rowT('Centre of gravity below sarado axis',f2(G.yA-A.cog.y));rowT('Centre of gravity toward big cup',f2(A.cog.x));
- for(const[k,n]of[['big','big cup'],['small','small cup']]){const L=A[k];rowT(`Lunar lander, ${n}: spike`,elevTxt(L));rowT(`Lunar lander, ${n}: CoG above tama`,L?f2(L.h):'n/a');}
- y+=4;head('Sarado-fit taper (locked)');
- G.st.forEach((yy,i)=>rowT(`${f1(G.yB-yy)} mm below bevel`,'Ø'+f2(G.D[i])));
- rowT('Ken Ø at top of sarado waist','Ø'+f2(taperD(p,G.yA+p.waistD/2)));rowT('Ken Ø at bottom of sarado waist','Ø'+f2(taperD(p,G.yA-p.waistD/2)));
- y+=4;head('Contours');
- for(const id of G.order){const sg=G.segs[id],c=S.curves[id];if(sg.drawn)rowT(sg.label,c.imp?'imported, exact':c.smooth?`drawn, ${c.strength} mm smooth`:'drawn, exact');}
- rowT('All other contours','parametric');
+ rowT('Centre of gravity above base',fmm(A.cog.y));rowT('Centre of gravity below sarado axis',fmm(G.yA-A.cog.y));rowT('Centre of gravity toward big cup',fmm(A.cog.x));
+ rowT('Lunar lander, big cup: spike',elevTxt(A.big));
+ head('Sarado-fit taper (locked)');
+ G.st.forEach((yy,i)=>rowT(`${f1(G.yB-yy)} mm below bevel`,'Ø'+fmm(G.D[i])));
+ rowT('Ken Ø at top of sarado waist','Ø'+fmm(taperD(p,G.yA+p.waistD/2)));rowT('Ken Ø at bottom of sarado waist','Ø'+fmm(taperD(p,G.yA-p.waistD/2)));
  const legal=[];if(p.kenH>KWC_KEN)legal.push('KEN LENGTH');if(p.tamaCsD>KWC_BEVEL)legal.push('TAMA BEVEL');
- y+=4;head('KWC check');rowT('Ken length / tama bevel',legal.length?'NOT LEGAL: '+legal.join(', '):'OK');
+ head('KWC check');rowT('Ken length / tama bevel',legal.length?'NOT LEGAL: '+legal.join(', '):'OK');
  const on=S.cmpv.filter(o=>o.on);
- if(on.length){y+=4;head('Compared shapes (CoG / lunar big / small)');rowT('Current design',cmpLine(E));for(const e of on.slice(0,6))rowT(e.name.slice(0,34),cmpLine(entryResult(e)));}
- y+=6;D.text('Balance figures assume solid material of uniform density, unpainted.',x,y,{size:5.8,color:'#555555'});
+ if(on.length){head('Compared shapes (CoG / lunar big / small)');rowT('Current design',cmpLine(E));for(const e of on.slice(0,6))rowT(e.name.slice(0,34),cmpLine(entryResult(e)));}
+ // heights in line units: a heading takes 1.4, a row 1, the gap before a heading 0.9
+ const hU=q=>1.4+q.rows.length,col=(a,b)=>secs.slice(a,b).reduce((t,q,k)=>t+hU(q)+(k?0.9:0),0),n=secs.length;
+ let best=null;for(let a=1;a<n-1;a++)for(let b=a+1;b<n;b++){const h=Math.max(col(0,a),col(a,b),col(b,n));if(!best||h<best.h)best={h,cut:[0,a,b,n]};}
+ const top=80,bottom=568,gap=22,colW=(744-24-2*gap)/3,lh=Math.min(16,(bottom-top)/best.h),fs=Math.min(9.5,lh*0.62);
+ for(let c=0;c<3;c++){const x=36+c*(colW+gap);let y=top;
+  secs.slice(best.cut[c],best.cut[c+1]).forEach((q,k)=>{if(k)y+=0.9*lh;
+   D.text(q.t.toUpperCase(),x,y,{size:fs*1.1,bold:1});D.style('#000',.4);D.line(x,y+lh*0.3,x+colW,y+lh*0.3);y+=1.4*lh;
+   for(const[a,b]of q.rows){D.text(a,x,y,{size:fs});D.text(b,x+colW,y,{size:fs,align:'right'});y+=lh;}});}
+ D.text('Balance figures assume solid material of uniform density, unpainted.',36,584,{size:6,color:'#555555'});
 }
 const cmpLine=r=>`${f1(r.A.cog.y)} / ${r.A.big?f1(r.A.big.elev)+'°':'-'} / ${r.A.small?f1(r.A.small.elev)+'°':'-'}`;
 
@@ -3086,7 +3106,7 @@ function gStockDefault(){const G=CUR.G,m=$('#gPart').value==='ken'?Math.max(...G
 function syncStats(){
  const A=CUR.A,G=CUR.G,r=(a,b)=>`<span>${a}</span><b>${b}</b>`;
  $('#stats').innerHTML=r('Ken mass',f1(A.kM)+' g')+r('Sarado mass',f1(A.sM)+' g')+r('Ken + sarado',f1(A.M)+' g')+r('Tama mass',f1(A.tM)+' g')+'<div class="sep"></div>'+
-  r('Centre of gravity above base',f1(A.cog.y)+' mm')+r('CoG below sarado axis',f1(G.yA-A.cog.y)+' mm')+r('CoG toward big cup',f2(A.cog.x)+' mm');
+  r('Centre of gravity above base',f1(A.cog.y)+' mm')+r('CoG below sarado axis',f1(G.yA-A.cog.y)+' mm')+r('CoG toward big cup',fmm(A.cog.x)+' mm');
  drawMini('#lnBig',A.big);drawMini('#lnSmall',A.small);
  const w=$('#warns');w.innerHTML='';if(!G.W.length)w.append(el('div',{class:'okmsg'},'No problems found. The profile is continuous and all walls are thick enough.'));G.W.forEach(t=>w.append(el('div',{class:'warn'},t)));
  const im=S.meta.imported;if(im&&im.file){w.append(el('p',{class:'gnote',style:'margin-top:10px'},el('b',{},'Imported from '),im.file));(im.notes||[]).forEach(t=>w.append(el('p',{class:'impnote'},t)));}
@@ -4011,12 +4031,12 @@ function piRender(){
  if(PI.step==='scale'){
   B.append(el('p',{},'Measure the real kendama and type in one or more of these, in mm. The more you give, the better the scale. Some along the ken and some across it also correct a photo taken slightly at an angle.'));
   const tb=el('table',{class:'pitab'},el('tr',{},el('th',{},'Measure'),el('th',{},'Real kendama'),el('th',{},'Photo'),el('th',{},'Difference')));
-  for(const[k]of PI_SCALE){const inp=el('input',{type:'number',step:'0.01',min:'0',value:PI.meas[k]||'','data-k':k}),ph=el('td',{class:'num'}),df=el('td',{class:'num'});
+  for(const[k]of PI_SCALE){const inp=el('input',{type:'number',step:'0.1',min:'0',value:PI.meas[k]||'','data-k':k}),ph=el('td',{class:'num'}),df=el('td',{class:'num'});
    inp.oninput=()=>{PI.meas[k]=inp.value;piRescale();sync();};tb.append(el('tr',{'data-k':k},el('td',{},PD[k].label),el('td',{},inp),ph,df));}
   B.append(tb,el('p',{class:'gnote',id:'piSc'}));
   const nx=btn('Next',()=>piGo('check'),{pri:1,id:'piNext'});Ac.append(btn('Back',()=>piGo('photo')),nx);
   const sync=()=>{const px=PI.det&&piPx(PI.det);for(const tr of tb.querySelectorAll('tr[data-k]')){const k=tr.dataset.k,c=tr.children,m=+PI.meas[k];
-    c[2].textContent=PI.sc?f2(px[k]*(PI_SCALE.find(q=>q[0]===k)[1]==='v'?PI.sc.sv:PI.sc.sh)):'';const d=m>0&&PI.sc?px[k]*(PI_SCALE.find(q=>q[0]===k)[1]==='v'?PI.sc.sv:PI.sc.sh)-m:null;
+    c[2].textContent=PI.sc?fmm(px[k]*(PI_SCALE.find(q=>q[0]===k)[1]==='v'?PI.sc.sv:PI.sc.sh)):'';const d=m>0&&PI.sc?px[k]*(PI_SCALE.find(q=>q[0]===k)[1]==='v'?PI.sc.sv:PI.sc.sh)-m:null;
     c[3].textContent=piDiff(d);c[3].className='num '+piCls(d);}
    nx.disabled=!PI.sc;$('#piSc').textContent=PI.sc?'':'Type in at least one measurement to set the scale.';};
   sync();return;}
@@ -4027,17 +4047,17 @@ function piRender(){
   R.append(el('p',{style:'margin-top:0'},'Measure the real kendama with calipers and type in any values you can check, in mm. Leave a box empty to accept the photo’s value. Values you type in are used when you import.'));
   if(PI.fixed)R.append(el('p',{class:'piok'},'Redrawn to match your measurements. Check the outline and the numbers again, then import.'));
   const tb=el('table',{class:'pitab'},el('tr',{},el('th',{},'Measure'),el('th',{},'Photo'),el('th',{},'Real kendama'),el('th',{},'Difference')));
-  for(const k of PI_CHECK){const inp=el('input',{type:'number',step:'0.01',min:'0',value:PI.act[k]||''}),ph=el('td',{class:'num'}),df=el('td',{class:'num'});
+  for(const k of PI_CHECK){const inp=el('input',{type:'number',step:'0.1',min:'0',value:PI.act[k]||''}),ph=el('td',{class:'num'}),df=el('td',{class:'num'});
    inp.oninput=()=>{PI.act[k]=inp.value;sync();};tb.append(el('tr',{'data-k':k},el('td',{},PD[k].label),ph,el('td',{},inp),df));}
   const hb=el('table',{class:'pitab'});const base=started?S.p:defaults();
-  for(const k of PI_HID){const inp=el('input',{type:'number',step:'0.01',min:'0',value:PI.hid[k]||f2(base[k])});inp.oninput=()=>PI.hid[k]=inp.value;hb.append(el('tr',{},el('td',{},PD[k].label),el('td',{},inp)));}
+  for(const k of PI_HID){const inp=el('input',{type:'number',step:'0.1',min:'0',value:PI.hid[k]||fmm(base[k])});inp.oninput=()=>PI.hid[k]=inp.value;hb.append(el('tr',{},el('td',{},PD[k].label),el('td',{},inp)));}
   R.append(tb,el('h3',{},'Not visible in the photo'),el('p',{class:'gnote'},'These start from the current design. Type in the real values if you know them.'),hb);
   const fx=btn('Fix it for me',()=>{piFix();piRender();},{id:'piFix'});
   Ac.append(btn('Retake photo',()=>{PI.step='info';piRender();}),fx,btn('Import this shape',piImport,{pri:1}));
-  const sync=()=>{let off=false;for(const tr of tb.querySelectorAll('tr[data-k]')){const k=tr.dataset.k,c=tr.children,d=piOff(k);c[1].textContent=f2(PI.f[k]);c[3].textContent=piDiff(d==null?null:-d);c[3].className='num '+piCls(d);if(d!=null&&Math.abs(d)>0.05)off=true;}
+  const sync=()=>{let off=false;for(const tr of tb.querySelectorAll('tr[data-k]')){const k=tr.dataset.k,c=tr.children,d=piOff(k);c[1].textContent=fmm(PI.f[k]);c[3].textContent=piDiff(d==null?null:-d);c[3].className='num '+piCls(d);if(d!=null&&Math.abs(d)>0.05)off=true;}
    fx.disabled=!off;fx.title=off?'Redraw the shape to match the measurements you typed in':'Type in a real measurement that differs from the photo first';};
   sync();piDraw(cvs);}}
-const piDiff=d=>d==null?'':Math.abs(d)<0.005?'0.00':(d>0?'+':'')+f2(d);
+const piDiff=d=>d==null?'':Math.abs(d)<0.005?'0.00':(d>0?'+':'')+fmm(d);
 const piCls=d=>d==null?'':Math.abs(d)<=0.1?'piok':Math.abs(d)<=0.3?'pimid':'pibad';
 // the set-up screen's example: the current design, seen from above on a sheet of paper inside a phone-shaped frame
 function piExample(cv){ // always the Kocho shape, fitted inside the frame by its own outline, whatever design is open
