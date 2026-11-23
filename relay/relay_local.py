@@ -6,7 +6,7 @@
 Plain Python, nothing to install. The room rules are the same as room.js (used by the Cloudflare worker);
 change both together. Only for local testing: it listens on this computer only and keeps rooms in memory.
 """
-import asyncio, base64, hashlib, json, re, secrets, string, struct, sys
+import asyncio, base64, hashlib, json, re, secrets, string, struct, sys, time
 
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8787
 ALPHA = 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -34,6 +34,8 @@ class Room:
 
     def reset(self):
         self.keys, self.members, self.banned, self.owner_id = None, [], set(), None
+        self.max = 0
+        self.chat = False
         self.gen += 1
 
     def roster(self):
@@ -65,13 +67,19 @@ class Room:
             if self.keys and self.members:
                 return fail('exists')
             self.reset()
-            self.keys = {'owner': rand_key(), 'edit': rand_key(), 'view': rand_key()}
+            self.keys = {'owner': rand_key(), 'edit': rand_key(), 'view': None if o.get('view') is False else rand_key()}
+            try:
+                n = round(float(o.get('max') or 0))
+            except (TypeError, ValueError):
+                n = 0
+            self.max = min(64, n) if n >= 2 else 0
+            self.chat = bool(o.get('chat'))
             role = 'owner'
         else:
             if not self.keys:
                 return fail('gone')
             k = str(o.get('key') or '')
-            role = {self.keys['owner']: 'owner', self.keys['edit']: 'edit', self.keys['view']: 'view'}.get(k)
+            role = {v: r for r, v in self.keys.items() if v}.get(k) if k else None
             if not role:
                 return fail('badkey')
             if dev and dev in self.banned:
@@ -83,6 +91,8 @@ class Room:
         if role == 'owner' and self.owner_id and self.owner_id != id and self.find(self.owner_id):
             role = 'edit'
         others = list(self.members)
+        if self.max and role == 'edit' and len([m for m in others if m.role != 'view']) >= self.max:
+            return fail('full')  # no room for another collaborator (watchers don't count, and the owner always gets back in)
         if not others and role != 'owner':
             return fail('empty')
         me = Member(id, dev, name, role, conn)
@@ -121,6 +131,13 @@ class Room:
                     self.send(to, o)
             elif o.get('kind') == 'op' and edit:
                 self.all(o)
+        elif t == 'chat':
+            text = clean(o.get('text'), 1000)
+            if self.chat and text:
+                self.all({'t': 'chat', 'id': clean(o.get('id'), 40) or rand_key(10), 'from': me.id, 'name': me.name, 'text': text, 'at': int(time.time() * 1000)})
+        elif t == 'chatdel':
+            if boss and o.get('id') is not None:
+                self.all({'t': 'chatdel', 'id': clean(o.get('id'), 40)})
         elif t == 'kick':
             m = self.find(o.get('id'))
             if boss and m and m is not me:

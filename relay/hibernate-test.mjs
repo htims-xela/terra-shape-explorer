@@ -35,4 +35,9 @@ const F=await join();await F.send({t:'hello',id:'f',dev:'df',name:'Fay',create:t
 await F.send({t:'end'});ok(G.last('ended')&&store.size===0,'the owner ends the session: everyone is told and nothing is kept');
 // a big message in pieces passes; a too-long one is dropped
 const H=await join();await H.send({t:'hello',id:'h',dev:'dh',name:'H',create:true});const big='x'.repeat(1200000);const before=H.client.got.length;await obj.webSocketMessage(H.server,JSON.stringify({t:'op',n:1,ch:[['k',big]]}));ok(H.client.got.length===before,'an over-long message is dropped');
+// the chat, the collaborator limit and no watch link outlast the room sleeping
+await H.send({t:'end'});const I=await join();await I.send({t:'hello',id:'i',dev:'di',name:'Ida',create:true,max:2,view:false,chat:true});const KI=I.last('welcome').keys;ok(KI.view===null,'no watch link when watchers are off');
+const J=await join();await J.send({t:'hello',id:'j',dev:'dj',name:'Jo',key:KI.edit});await J.send({t:'chat',id:'m1',text:'hello'});ok(I.last('chat')&&I.last('chat').text==='hello'&&I.last('chat').name==='Jo','a chat message reaches everyone, room asleep in between');
+await I.send({t:'chatdel',id:'m1'});ok(J.last('chatdel')&&J.last('chatdel').id==='m1','the owner takes a chat message away');
+const L=await join();await L.send({t:'hello',id:'l',dev:'dl',name:'Lu',key:KI.edit});ok(L.last('error')&&L.last('error').code==='full','a third collaborator finds the room full');
 console.log(`${checks-fails}/${checks} checks passed, room put to sleep ${sleeps} times`);process.exit(fails?1:0);

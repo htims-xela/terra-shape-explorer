@@ -3,13 +3,15 @@
    The Cloudflare worker (worker.js) and the self tests (tests.html) both use this file; relay_local.py is a copy of the same rules for testing on your own computer.
 
    A connection is anything with send(text) and close(). Messages are JSON:
-     hello {id, dev, name, key, create}   first message. create:true starts a new room (you become the owner); otherwise key is one of the room's keys.
+     hello {id, dev, name, key, create, max, view, chat}   first message. create:true starts a new room (you become the owner; max, 2–64, caps how many collaborators — owner and editors, not watchers — can be in it; view:false makes no watch link; chat:true turns the chat on); otherwise key is one of the room's keys.
      name {name}                          change your display name
      op {...}                             a design change: passed to everyone (the sender too) if you may edit
      chunk {kind:'op'|'state', to?, ...}  one piece of a long message; passed on like the message it is part of
      state {to, data}                     the whole design, sent to someone who just joined
+     chat {id, text}                      a chat message (anyone, watchers too, when the chat is on): passed to everyone with from, name, at
+     chatdel {id}                         owner only: take a chat message away for everyone
      kick {id} · xfer {id} · end · leave  owner only (except leave)
-   The room sends: welcome, roster, need {id}, op, state, chunk, keys, owner, kicked, ended, error {code}. */
+   The room sends: welcome, roster, need {id}, op, state, chunk, chat, chatdel, keys, owner, kicked, ended, error {code}. */
 (function(root){
 'use strict';
 const ROLES={owner:1,edit:1,view:1};
@@ -19,7 +21,7 @@ class Room{
  // o.timer(kind, gen, ms): a host that can sleep between messages (the Cloudflare relay) keeps timers itself and calls fire(kind, gen) when one is due; otherwise o.setTimeout (or setTimeout) is used.
  // o.change(): called after anything the room has to remember changed (not for design changes, which it only passes on), so such a host can save it (dump / restore).
  constructor(o){o=o||{};this.later=o.setTimeout||((f,ms)=>setTimeout(f,ms));this.timer=o.timer||null;this.change=o.change||null;this.rand=o.rand||randomKey;this.ownerWait=o.ownerWait??60000;this.emptyWait=o.emptyWait??600000;this.reset();}
- reset(){this.keys=null;this.members=[];this.banned=new Set();this.ownerId=null;this.gen=(this.gen||0)+1;}
+ reset(){this.keys=null;this.max=0;this.chat=false;this.members=[];this.banned=new Set();this.ownerId=null;this.gen=(this.gen||0)+1;}
  roster(){return this.members.map(m=>({id:m.id,name:m.name,role:m.role}));}
  send(m,o){try{m.conn.send(JSON.stringify(o));}catch(e){}}
  all(o,skip){const s=JSON.stringify(o);for(const m of this.members)if(m!==skip)try{m.conn.send(s);}catch(e){}}
@@ -40,17 +42,18 @@ class Room{
   else if(kind==='empty'){if(!this.members.length)this.reset();}
   this.changed();}
  // what the room has to remember, without the connections; restore puts it back with each member's connection
- dump(){return{keys:this.keys,ownerId:this.ownerId,banned:[...this.banned],gen:this.gen,members:this.members.map(m=>({id:m.id,dev:m.dev,name:m.name,role:m.role}))};}
- restore(d,connOf){this.keys=d.keys||null;this.ownerId=d.ownerId||null;this.banned=new Set(d.banned||[]);this.gen=d.gen||1;this.members=[];for(const m of d.members||[]){const conn=connOf(m);if(conn){conn.said=true;this.members.push({id:m.id,dev:m.dev,name:m.name,role:m.role,conn});}}}
+ dump(){return{keys:this.keys,max:this.max,chat:this.chat,ownerId:this.ownerId,banned:[...this.banned],gen:this.gen,members:this.members.map(m=>({id:m.id,dev:m.dev,name:m.name,role:m.role}))};}
+ restore(d,connOf){this.keys=d.keys||null;this.max=d.max||0;this.chat=!!d.chat;this.ownerId=d.ownerId||null;this.banned=new Set(d.banned||[]);this.gen=d.gen||1;this.members=[];for(const m of d.members||[]){const conn=connOf(m);if(conn){conn.said=true;this.members.push({id:m.id,dev:m.dev,name:m.name,role:m.role,conn});}}}
  hello(conn,o,fail){
   const id=clean(o.id,40),dev=clean(o.dev,40),name=clean(o.name,40)||'Guest';if(!id){fail('bad');return null;}
   let role;
-  if(o.create){if(this.keys&&this.members.length){fail('exists');return null;}this.reset();this.keys={owner:this.rand(),edit:this.rand(),view:this.rand()};role='owner';}
-  else{if(!this.keys){fail('gone');return null;}const k=String(o.key||'');role=k===this.keys.owner?'owner':k===this.keys.edit?'edit':k===this.keys.view?'view':null;
+  if(o.create){if(this.keys&&this.members.length){fail('exists');return null;}this.reset();this.keys={owner:this.rand(),edit:this.rand(),view:o.view===false?null:this.rand()};const n=Math.round(+o.max);this.max=n>=2?Math.min(64,n):0;this.chat=!!o.chat;role='owner';}
+  else{if(!this.keys){fail('gone');return null;}const k=String(o.key||'');role=k&&k===this.keys.owner?'owner':k&&k===this.keys.edit?'edit':k&&k===this.keys.view?'view':null;
    if(!role){fail('badkey');return null;}if(dev&&this.banned.has(dev)){fail('banned');return null;}}
   const old=this.members.find(m=>m.id===id);if(old){this.members.splice(this.members.indexOf(old),1);try{old.conn.close();}catch(e){}}
   if(role==='owner'&&this.ownerId&&this.ownerId!==id&&this.members.some(m=>m.id===this.ownerId))role='edit';
   const others=this.members.slice();
+  if(this.max&&role==='edit'&&others.filter(m=>m.role!=='view').length>=this.max){fail('full');return null;} // no room for another collaborator (watchers don't count, and the owner always gets back in)
   if(!others.length&&role!=='owner'){fail('empty');return null;}
   const me={id,dev,name,role,conn};this.members.push(me);if(role==='owner')this.ownerId=id;
   this.send(me,{t:'welcome',you:id,role,owner:this.ownerId,roster:this.roster(),keys:role==='owner'?this.keys:undefined,alone:!others.length});
@@ -64,6 +67,8 @@ class Room{
    case'op':if(edit){o.from=me.id;this.all(o);}break;
    case'state':if(to)this.send(to,{t:'state',from:me.id,data:o.data});break;
    case'chunk':o.from=me.id;if(o.kind==='state'){if(to)this.send(to,o);}else if(o.kind==='op'&&edit)this.all(o);break;
+   case'chat':{if(!this.chat)break;const text=clean(o.text,1000);if(!text)break;this.all({t:'chat',id:clean(o.id,40)||this.rand(10),from:me.id,name:me.name,text,at:Date.now()});break;}
+   case'chatdel':if(boss&&o.id!=null)this.all({t:'chatdel',id:clean(o.id,40)});break;
    case'kick':{const m=this.members.find(m=>m.id===o.id);if(!boss||!m||m===me)break;if(m.dev)this.banned.add(m.dev);this.send(m,{t:'kicked'});this.members.splice(this.members.indexOf(m),1);try{m.conn.close();}catch(e){}this.tell();break;}
    case'xfer':{const m=this.members.find(m=>m.id===o.id);if(!boss||!m||m===me||m.role!=='edit')break;this.promote(m,me);break;}
    case'end':if(!boss)break;this.all({t:'ended'},me);for(const m of this.members)try{m.conn.close();}catch(e){}this.reset();break;

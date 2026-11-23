@@ -36,7 +36,7 @@ const TESTS=[];const test=(name,fn,opt)=>TESTS.push({name,fn,opt:opt||{}});
 // A pause that lets the app catch up. Browsers slow timers right down in a tab that is not on screen, so there the pause is a few turns of the message queue instead.
 const tick=()=>new Promise(r=>{const c=new MessageChannel();c.port1.onmessage=()=>r();c.port2.postMessage(0);});
 const sleep=async ms=>{if(!document.hidden)return new Promise(r=>setTimeout(r,ms));for(let i=0;i<6;i++)await tick();};
-const LIBS=['Kocho','Aurum','Ditto','GFN','Gyro','Nemus','R26','Prefect','P1','Jon Rogers'];
+const LIBS=['Kocho','Aurum','Ditto','GFN','Gyro','Nemus','R26','Prefect','P1','Jon Rogers','LBB'];
 
 function helpers(w){
  const E=c=>w.eval(c);
@@ -52,7 +52,7 @@ function helpers(w){
 
 /* ---------- start-up ---------- */
 test('App starts in Drag & draw with no errors',async({w,E,ok})=>{
- ok(E('typeof LIB')==='object'&&E('LIB.length')===10,'library has 10 shapes');
+ ok(E('typeof LIB')==='object'&&E('LIB.length')===11,'library has 11 shapes');
  ok(E('S.mode')==='dd','opens in Drag & draw');
  ok(w.document.querySelector('#lView b').textContent==='Drag & draw','View pill reads Drag & draw');
  ok(w.document.querySelector('#lTama b').textContent==='Free','Tama pill reads Free');
@@ -84,6 +84,42 @@ for(const name of LIBS)test(`Library shape loads, draws and exports: ${name}`,as
  for(const part of['ken','sarado']){const n=E(`(()=>{$('#gPart').value='${part}';gStockDefault();const t=gcode();return t?t.length:0;})()`);ok(n>200,'G-code builds for the '+part);}
  for(const m of[['two',''],['one','radius'],['one','mirror']]){E(`S.p.swoopMode='${m[0]}';${m[1]?`S.p.swAMode='${m[1]}';`:''}refresh();`);ok(finite(),'swoop mode '+m.join(' ')+' builds');}
  E(`setLook('3d');render();`);ok(E('M3&&M3.q.length')>500,'3D model builds');E(`setLook('fill');`);
+});
+
+test('LBB (V2 STEP files) matches the CAD measures',async({E,ok})=>{
+ E(`loadLib('LBB')`);await sleep(30);
+ const r=E(`(()=>{const G=CUR.G,p=S.p,K=LIB.find(q=>q.name==='LBB').exact.ken;const dv=(id,t)=>{let m=0;for(const[a,v]of G.segs[id].out)if(a<t)m=Math.max(m,Math.abs(v-interp(K,a)));return m;};const m=dv('swoopRing',99),mh=dv('ringHandle',91);
+  return{kenH:p.kenH,spikeD:p.spikeD,sarL:p.sarL,yA:G.yA,smDepth:p.smDepth,bgDepth:p.bgDepth,baseDepth:p.baseDepth,rim:p.rim,tamaD:p.tamaD,hole:p.tamaHoleD,cs:p.tamaCsD,kenStr:p.kenStr,dev:m,devH:mh};})()`);
+ ok(Math.abs(r.kenH-176.1)<0.01&&Math.abs(r.spikeD-10.92)<0.01,`ken 176.1 long, spike Ø10.92 (got ${r.kenH} / ${r.spikeD})`);
+ ok(Math.abs(r.sarL-77.25)<0.01&&Math.abs(r.yA-118.085)<0.01,`sarado 77.25 long, its axis 118.09 up the ken (got ${r.sarL} / ${r.yA.toFixed(3)})`);
+ ok(r.smDepth===7.55&&r.bgDepth===9.82&&r.baseDepth===6.5&&r.rim===1.1,'cup depths 7.55 / 9.82 / 6.5, rim 1.1');
+ ok(r.tamaD===65.85&&r.hole===14.29&&r.cs===22&&r.kenStr===46,'tama Ø65.85, 9/16" hole, bevel Ø22.0, ken string hole 46 below the bevel');
+ ok(r.dev<0.1,`swoop under the ring within ${r.dev.toFixed(3)} mm of the CAD`);
+ ok(r.devH<0.55,`handle within ${r.devH.toFixed(3)} mm of the CAD (it blends into the locked taper, which is up to 1.09 mm Ø fuller than the CAD spike)`);
+});
+
+test('Compare view: leaf logo outline',async({E,ok,finite})=>{
+ E(`loadLib('Kocho');S.cmpv=[];setView('compare');render();`);await sleep(30);
+ const opt=E(`(()=>{const o=[...$('#tCmpAdd').options].find(x=>x.textContent==='leaf logo');return o?o.value:null;})()`);
+ ok(!!opt,'Add a shape lists "leaf logo"');
+ E(`(()=>{const s=$('#tCmpAdd');s.value=${JSON.stringify(opt||'')};s.onchange({target:s});})()`);await sleep(20);
+ const r=E(`(()=>{const o=S.cmpv[0],P=ovPolys(o),ys=P.loops.flat().map(q=>q[1]);return{n:S.cmpv.length,shape:o.shape,loops:P.loops.length,h:Math.max(...ys)-Math.min(...ys),rows:document.querySelectorAll('#cmpPanel tr').length};})()`);
+ ok(r.n===1&&r.shape==='leaf'&&r.loops===2,'added as an outline: the leaf and the t cutout');
+ ok(Math.abs(r.h-160)<0.01,`160 mm tall (got ${r.h.toFixed(2)})`);
+ ok(r.rows===2,'no balance row for an outline (it has no weight)');
+ ok(finite(),'outline and balance numbers are all finite');
+ const pd=E('JSON.stringify(projectData())');E(`S.cmpv=[];loadProject(JSON.parse(${JSON.stringify(pd)}));setView('compare');render();`);await sleep(20);
+ ok(E(`S.cmpv.length===1&&S.cmpv[0].shape==='leaf'`),'kept when the project is saved and opened');
+ E(`setView('design');setMode('dd');setDDTool('cmp');DD.ovAdd=true;syncDD();`);await sleep(20);
+ const b=E(`(()=>{S.ovl=[];syncDD();const b=[...document.querySelectorAll('#dd .dd-list button')].find(x=>x.textContent==='leaf logo');if(b)b.click();return!!b;})()`);await sleep(20);
+ ok(b,"Drag & draw's Compare tool lists it too");
+ ok(E(`S.ovl.length===1&&S.ovl[0].shape==='leaf'&&S.cmpv.length===1`),'adding it there goes to Drag & draw\'s own list only');
+ const lab=v=>E(`(()=>{const P=CanvasRenderingContext2D.prototype,f=P.fillText,seen=[];P.fillText=function(t,...a){seen.push(String(t));return f.call(this,t,...a);};try{${v};render();}finally{P.fillText=f;}return seen.includes('leaf logo');})()`);
+ ok(!lab(''),'no "leaf logo" label is drawn in Drag & draw');
+ ok(!lab(`setView('compare')`),'no "leaf logo" label is drawn in the Compare view');
+ E(`setView('design')`);
+ ok(finite(),'numbers stay finite with the outline in Drag & draw');
+ E(`DD.ovAdd=false;S.ovl=[];S.cmpv=[];render();`);
 });
 
 test('Bird ridge steps drawn in the CAD are kept in the one-swoop view',async({E,ok})=>{
@@ -800,7 +836,7 @@ test('Compare view: Add shape pill, a panel for the shapes, and the balance tabl
  ok(lb.style.display!=='none'&&lb.previousElementSibling.id==='lView','an Add shape pill sits next to the View pill');
  ok(D.querySelector('#cmpCtl').style.display==='none','no panel until a shape is added');
  const pick=name=>{const o=[...sel.options].find(o=>o.textContent===name);sel.value=o.value;sel.dispatchEvent(new w.Event('change'));};
- ok([...sel.querySelectorAll('optgroup')].map(g=>g.label).join()==='Library','its list offers the library (and iterations and project files once there are some)');
+ ok([...sel.querySelectorAll('optgroup')].map(g=>g.label).join()==='Library,Outlines','its list offers the library and outlines (and iterations and project files once there are some)');
  pick('Aurum');pick('GFN');await sleep(20);
  ok(E('S.cmpv.map(o=>o.name).join()')==='Aurum,GFN'&&E('S.ovl.length')===0,'two shapes added to the Compare view, none to Drag & draw');
  const box=D.querySelector('#cmpCtl');ok(box.style.display!=='none'&&box.querySelectorAll('.dd-chip').length===2,'a panel shows a chip for each');
@@ -894,11 +930,11 @@ async function team(w,room,who){
 const same=(a,b)=>a.eval('JSON.stringify([S.p,S.curves])')===b.eval('JSON.stringify([S.p,S.curves])');
 
 test('Right panel: Collaborate, Balance check, Iterations and Shape checks fold, and stay as you left them',async({w,E,ok})=>{
- E(`loadLib('Kocho')`);await sleep(30);const D=w.document,secs=[...D.querySelectorAll('aside.right>details.top')];
- ok(secs.map(d=>d.id).join()==='rsCol,rsBal,rsIter,rsChk','four sections, Collaborate first');
- ok(secs.map(d=>d.querySelector('summary').textContent).join('|')==='Collaborate|Balance check|Iterations|Shape checks','section names');
- ok(!secs[0].open&&secs.slice(1).every(d=>d.open),'Collaborate starts folded, the rest open');
- secs[1].querySelector('summary').click();await sleep(30);ok(!secs[1].open,'a click folds Balance check');
+ E(`loadLib('Kocho')`);await sleep(30);const D=w.document,secs=[...D.querySelectorAll('aside.right>details.top')],shown=secs.filter(d=>d.style.display!=='none');
+ ok(secs.map(d=>d.id).join()==='rsCol,rsChat,rsBal,rsIter,rsChk'&&shown.map(d=>d.id).join()==='rsCol,rsBal,rsIter,rsChk','four sections, Collaborate first (Chat is there only in a session with a chat)');
+ ok(shown.map(d=>d.querySelector('summary').textContent).join('|')==='Collaborate|Balance check|Iterations|Shape checks','section names');
+ ok(!shown[0].open&&shown.slice(1).every(d=>d.open),'Collaborate starts folded, the rest open');
+ shown[1].querySelector('summary').click();await sleep(30);ok(!shown[1].open,'a click folds Balance check');
  ok(JSON.parse(w.localStorage.getItem('tse.rs')).rsBal===false,'and it is remembered');
  ok(!!D.querySelector('#rsBal #stats')&&!!D.querySelector('#rsIter #snapList')&&!!D.querySelector('#rsChk #warns'),'each section holds what it did before');
 });
@@ -917,6 +953,163 @@ test('Relay rules: keys, roles, removing, handing over',async({ok})=>{
  join('c',{key:K.view});ok(got.c.some(m=>m.code==='banned'),'and they cannot come back with the same link');
  a.message(JSON.stringify({t:'xfer',id:'b'}));const kb=got.b.find(m=>m.t==='keys');ok(kb&&kb.keys.owner!==K.owner,'handing over gives the new owner a fresh owner key');
  ok(room.roster().map(r=>r.role).join()==='edit,owner','and swaps the roles');
+});
+
+test('Collaborate: starting a session asks how it works first; the leave button is red',async({w,E,ok})=>{
+ E(`loadLib('Kocho');colSetName('Ann');syncCol();`);await sleep(30);const D=w.document,q=x=>D.querySelector(x),dlg=q('#colDlg');
+ q('#colGo').click();await sleep(20);
+ ok(dlg.classList.contains('show')&&!E('COL.on'),'Start a shared session opens the options window, nothing starts yet');
+ ok(q('#coSimple').checked&&!q('#coLim')&&!q('#coOwn')&&!q('#coView')&&!q('#coChat'),'Simple mode is on, and no other options show');
+ {const o=[...q('#colOpts').children];ok(!q('#coWarn')&&o[0]===q('#coName').closest('label'),'no warning about the table: the session name comes first');
+  ok(q('#coName').value==='Kendama Design Session'&&o.indexOf(q('#coName').closest('label'))<o.indexOf(q('#coSimple').closest('label')),'the session name is there, above Simple mode, as “Kendama Design Session”');}
+ q('#coSimple').click();await sleep(10);ok(!!q('#coLim')&&!!q('#coOwn')&&!q('#coMax'),'with Simple mode off: the collaborator limit and own kendamas options');
+ ok(q('#coView').checked&&q('#coChat').checked&&!!q('#coName'),'and Allow watchers and Chat, both on; the name stays');
+ ok(/collaborators/.test(q('#coLim').closest('label').textContent)&&/Watchers don’t count/.test(q('#coLim').closest('label').textContent),'the limit counts collaborators, not watchers');
+ q('#coLim').click();await sleep(10);const n=q('#coMax'),r=q('#coMaxR');ok(!!n&&r.min==='2'&&r.max==='64','the limit is picked from 2 to 64');
+ n.value='100';n.onchange();ok(n.value==='64','above 64 is held at 64');n.value='1';n.onchange();ok(n.value==='2','below 2 is held at 2');
+ const bt=[...q('#cdAct').querySelectorAll('button')].map(b=>b.textContent);ok(bt.join()==='Cancel,Start session','Start session and Cancel buttons');
+ q('#cdAct button').click();await sleep(20);ok(!dlg.classList.contains('show')&&!E('COL.on'),'Cancel starts nothing');
+ const room=new TSERoom({});w.COL_SOCKET=fakeNet(room);
+ q('#colGo').click();await sleep(10);[...q('#cdAct').querySelectorAll('button')].pop().click();await sleep(60);
+ ok(E('COL.on')&&E('JSON.stringify(COL.cfg)')==='{"name":"Kendama Design Session","max":0,"own":false,"view":true,"chat":true}'&&room.max===0&&!!room.keys.view&&room.chat,'Start session with Simple mode starts a session as before, under its name, with the chat');
+ ok(!!q('#colInvV')&&q('#rsChat').style.display!=='none'&&!q('#colTools'),'a watch link, the chat, no owner’s kendama tools');
+ const lv=q('#colLeave');ok(lv&&lv.classList.contains('danger')&&w.getComputedStyle(lv).backgroundColor==='rgb(192, 57, 43)','Leave or end the session is a red button');
+ E(`colSend({t:'end'});colReset();`);
+});
+
+test('Collaborate: a people limit, and everyone with their own kendama round a shared one',async({w,E,ok})=>{
+ const room=new TSERoom({});w.COL_SOCKET=fakeNet(room);
+ E(`COL.id=COL.dev='own${Math.random().toString(36).slice(2,6)}';loadLib('Kocho');colSetName('Ann');colStart({max:3,own:true});`);await sleep(40);
+ ok(room.max===3&&E('colOwn()'),'the relay keeps the limit; own kendamas are on');
+ ok(!E('S.snaps.some(e=>/shared session/.test(e.name))'),'no iteration is made: the table is left as it was');
+ const out=[];for(const name of['Bob','Cy']){const x=await loadExtra(`#join=${E('COL.room')}.${E('COL.keys.edit')}`);await sleep(60);
+  x.COL_SOCKET=fakeNet(room);x.eval(`COL.id=COL.dev='${name.toLowerCase()}${Math.random().toString(36).slice(2,6)}'`);x.document.querySelector('#cjName').value=name;x.document.querySelector('#cjGo').click();await sleep(80);out.push(x);}
+ const[b,c]=out,B=x=>b.eval(x);await settle(w,b,c);await settle(w,b,c);
+ const seats=E('JSON.stringify(COL.cfg.seats)'),S0=JSON.parse(seats),ids=[E('COL.id'),B('COL.id'),c.eval('COL.id')];
+ ok(ids.every(id=>S0[id])&&E('wpList().length')===4,'a kendama each for Ann, Bob and Cy, and the shared one');
+ ok(new Set(ids.map(id=>S0[id].cell)).size===3&&ids.every(id=>S0[id].cell>0),'each in a box of their own, round the middle one');
+ const mid=E(`JSON.stringify(wpList().map(w=>{const X=xMul(wpP(),wpX(w)),P=wpWith(w,()=>{const s=wpShapes();return[...s.ken,...s.sar,...(s.tama||[])].map(q=>xAp(X,q));}),xs=P.map(q=>q[0]),ys=P.map(q=>q[1]);return[w.id,(Math.min(...xs)+Math.max(...xs))/2,(Math.min(...ys)+Math.max(...ys))/2,Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys)];}))`);
+ const M=JSON.parse(mid),cell=k=>E(`JSON.stringify(ownCtr(${k}))`),at=id=>M.find(m=>m[0]===id);
+ ok([[E('COL.cfg.common'),0],...ids.map(id=>[S0[id].wp,S0[id].cell])].every(([id,k])=>{const m=at(id),C=JSON.parse(cell(k));return m&&Math.hypot(m[1]-C[0],m[2]-C[1])<0.5&&m[3]<350&&m[4]<350;}),'each kendama sits in the middle of its 35 × 35 cm box');
+ {const C=[0,1,2,3,4].map(k=>JSON.parse(cell(k))),sb=E('JSON.stringify(COL.cfg.lay.sb)'),B0=JSON.parse(sb);
+  ok(Math.abs(C[1][0]-175-B0[2])<0.5&&Math.abs(C[1][1]+175-B0[1])<0.5,'box 1 sits with its top-left corner on the shared box’s bottom-right corner');
+  ok(JSON.stringify(C.slice(1).map(([x,y])=>[Math.round((x-C[1][0])/350),Math.round((C[1][1]-y)/350)]))==='[[0,0],[1,0],[0,1],[1,1]]','the boxes make a square grid: across, then down');}
+ ok(E('S.wpId')===S0[ids[0]].wp&&B('S.wpId')===S0[ids[1]].wp&&c.eval('S.wpId')===S0[ids[2]].wp,'each person starts on their own kendama');
+ ok(B('S.prim.ken')===S0[ids[1]].wp&&E('S.prim.ken')===S0[ids[0]].wp,'each person’s 1° is their own kendama');
+ const v=B('VT.design'),bc=JSON.parse(cell(S0[ids[1]].cell));ok(!v.auto&&Math.abs(B(`sx(VT.design,xAp(xInv(wpP()),${JSON.stringify(bc)})[0])`)-B('CW')/2)<2,'Bob’s view opens on his box');
+ // Bob may change his own and the shared one, not Ann's
+ const annWp=S0[ids[0]].wp,bobWp=S0[ids[1]].wp,com=E('COL.cfg.common');
+ ok(!B(`ownMay('${annWp}')`)&&B(`ownMay('${com}')`)&&B(`ownMay('${bobWp}')`),'Bob may change his own kendama and the shared one only');
+ const sp=[...b.document.querySelectorAll('#wpList .snap span[title]')].find(e=>e.textContent.includes('Ann'));if(sp)sp.click();await sleep(20);
+ ok(!!sp&&B('S.wpId')===bobWp,'clicking Ann’s kendama in the list doesn’t switch to it');
+ ok(![...b.document.querySelectorAll('#wpList .snap button')].length,'no ✕ to take kendamas out');
+ const a0=E(`wpGet('${annWp}').p.baseD`),b0=B('S.p.baseD');
+ B(`setParam('baseD',${b0+1});commit();`);await settle(b,w,c);
+ ok(Math.abs(E(`wpGet('${bobWp}').p.baseD`)-(b0+1))<1e-9&&Math.abs(E(`wpGet('${annWp}').p.baseD`)-a0)<1e-9,'Bob’s change reaches Ann on Bob’s kendama only');
+ B(`wpActivate('${com}');setParam('spikeD',S.p.spikeD+0.5);commit();`);await settle(b,w,c);
+ ok(Math.abs(E(`wpGet('${com}').p.spikeD`)-B('S.p.spikeD'))<1e-9&&Math.abs(c.eval(`wpGet('${com}').p.spikeD`)-B('S.p.spikeD'))<1e-9,'everyone can change the shared kendama');
+ ok(E('S.prim.ken')===annWp,'Ann’s 1° stays hers');
+ for(let i=0;i<6;i++)E('undo(-1)');await settle(w,b,c);ok(E('wpList().length')===4&&B('wpList().length')===4,'undo never takes anyone’s kendama away');
+ w.document.querySelector('#bNew').click();await sleep(10);ok(!w.document.querySelector('#start').classList.contains('show'),'New / Open is off');
+ E('syncCol()');ok(/Up to\s*3\s*collaborators/.test(w.document.querySelector('#colBody').innerText),'the Collaborate section shows the limit');
+ ok(E('(()=>{const P=CanvasRenderingContext2D.prototype,f=P.fillText,seen=[];P.fillText=function(t,...a){seen.push(String(t));return f.call(this,t,...a);};try{render();}finally{P.fillText=f;}return seen.includes("Shared kendama")&&seen.includes("You")&&seen.includes("Bob");})()'),'the boxes are drawn, each with whose it is');
+ // a fourth person: the room is full
+ const d=await loadExtra(`#join=${E('COL.room')}.${E('COL.keys.edit')}`);await sleep(60);d.COL_SOCKET=fakeNet(room);d.eval(`COL.id=COL.dev='dee${Math.random().toString(36).slice(2,6)}'`);d.document.querySelector('#cjName').value='Dee';d.document.querySelector('#cjGo').click();await sleep(80);
+ ok(!d.eval('COL.on')&&/as many collaborators/.test(d.document.querySelector('#colDlg p').textContent),'a fourth person is told the session is full');
+ E(`colSend({t:'end'});colReset();`);await sleep(40);ok(!E('colOwn()'),'after the session, nothing is held back');
+});
+
+test('Collaborate: own kendamas keep the table as it was; the boxes are a square grid clear of it',async({w,E,ok})=>{
+ ok(E('JSON.stringify([1,2,3,4,16,25,30,36].map(ownDims))')==='[[1,1],[2,1],[2,2],[2,2],[4,4],[5,5],[6,5],[6,6]]','the grid stays roughly square: 16 is 4 × 4, 25 is 5 × 5, 30 is 5 rows × 6');
+ let room=new TSERoom({});w.COL_SOCKET=fakeNet(room);
+ E(`COL.id=COL.dev='tk${Math.random().toString(36).slice(2,6)}';loadLib('Kocho');colSetName('Ann');setMode('dd');
+  const o=wpNew('wx1','Other',{p:S.p,curves:S.curves});o.P={a:0,tx:420,ty:0};S.prim={ken:S.wpId,tama:S.wpId};
+  MK.items.push({type:'pen',closed:false,pts:[[60,-260],[700,-260],[700,-300]]});refresh();commit();`);
+ const first=E('S.wpId');E(`colStart({name:'Keep',max:4,own:true});`);await sleep(60);
+ ok(E('COL.cfg.common')===first&&E(`!!wpGet('wx1')&&wpGet('wx1').P.tx===420`)&&E('MK.items.length')===1&&E('wpList().length')===3,'the 1° kendama is the shared one; the other kendama and the mark-up stay where they were; the owner gets a box');
+ ok(E('hpos')===0&&E('hist.length')===1,'the undo history starts again with the session');
+ const lay=JSON.parse(E('JSON.stringify(COL.cfg.lay)'));
+ ok(lay.obs.length>=3&&lay.obs.some(b=>b[0]>400)&&lay.obs.some(b=>b[1]<=-300&&b[3]>=-260),'what was on the table is noted: the other kendama and the mark-up');
+ const cells=JSON.parse(E('JSON.stringify([1,2,3,4].map(ownCtr))')),clear=cells.every(([x,y])=>!lay.obs.some(b=>x-175<b[2]&&x+175>b[0]&&y-175<b[3]&&y+175>b[1]));
+ ok(clear,'none of the four boxes planned for covers anything on the table');
+ const g=lay.g,sb=lay.sb;ok((g[0]>=sb[2]-1e-6&&g[1]<=sb[3]+1e-6)||(g[1]<=sb[1]+1e-6&&g[0]>=sb[0]-1e-6),'the shared box is off the grid’s top-left corner');
+ ok(E(`ownMay('wx1')`)&&E(`ownMay('${first}')`),'the owner may change the kendama that was on the table');
+ const x=await loadExtra(`#join=${E('COL.room')}.${E('COL.keys.edit')}`);await sleep(60);x.COL_SOCKET=fakeNet(room);x.eval(`COL.id=COL.dev='bob${Math.random().toString(36).slice(2,6)}'`);x.document.querySelector('#cjName').value='Bob';x.document.querySelector('#cjGo').click();await sleep(80);await settle(w,x);await settle(w,x);
+ ok(!x.eval(`ownMay('wx1')`)&&x.eval(`ownMay('${first}')`),'Bob may not change it, only the shared one and his own');
+ const S0=JSON.parse(E('JSON.stringify(COL.cfg.seats)'));ok(Object.values(S0).map(q=>q.cell).sort().join()==='1,2','Ann and Bob are in the grid’s first two boxes');
+ E('syncCol()');const it=JSON.parse(E('JSON.stringify(ownItems().map(i=>[i.name,!!i.extra]))'));
+ ok(it.length===4&&it[3][0]==='Other'&&it[3][1]&&/Only you/.test(w.document.querySelector('#colTools').textContent),'the owner’s list has the kendama that was on the table too, marked “Only you”');
+ ok(E('lineupItems().length')===3&&!E('lineupItems().some(i=>i.extra)'),'it is in Save all but not in the lineup');
+ E(`colSend({t:'end'});colReset();`);await sleep(40);x.eval('colReset()');
+ // a 1° kendama put together from two
+ room=new TSERoom({});w.COL_SOCKET=fakeNet(room);
+ E(`loadLib('Kocho');setMode('dd');const o=wpNew('wx2','Tama from here',{p:Object.assign({},S.p,{tamaD:S.p.tamaD+2}),curves:S.curves});o.P={a:0,tx:400,ty:0};S.prim={ken:S.wpId,tama:'wx2'};refresh();commit();`);
+ const k0=E('S.wpId'),td=E(`wpGet('wx2').p.tamaD`);E(`colStart({name:'Mix',max:2,own:true});`);await sleep(60);
+ const com=E('COL.cfg.common'),L2=JSON.parse(E('JSON.stringify(COL.cfg.lay)'));
+ ok(com!==k0&&com!=='wx2'&&E('wpList().length')===4&&Math.abs(E(`wpGet('${com}').p.tamaD`)-td)<1e-9,'a 1° kendama from two: the shared one is a copy put together from both, and both stay');
+ ok(!L2.obs.some(b=>L2.sb[0]<b[2]&&L2.sb[2]>b[0]&&L2.sb[1]<b[3]&&L2.sb[3]>b[1]),'its box is clear of everything on the table');
+ E(`colSend({t:'end'});colReset();`);await sleep(40);
+});
+
+test('Relay rules: the limit counts collaborators, not watchers; no watch link; the chat',async({ok})=>{
+ const room=new TSERoom({}),got={};
+ const join=(id,o)=>{const box=got[id]=[];const h=room.open({send:s=>box.push(JSON.parse(s)),close:()=>box.push({t:'closed'})});h.message(JSON.stringify(Object.assign({t:'hello',id,dev:'d'+id,name:id},o)));return h;};
+ const a=join('a',{create:true,max:2,chat:true}),K=got.a[0].keys;join('b',{key:K.edit});const v1=join('v1',{key:K.view});join('v2',{key:K.view});
+ ok(got.v1[0].t==='welcome'&&got.v2[0].t==='welcome','with two collaborators in, watchers still get in');
+ join('c',{key:K.edit});ok(got.c[0].code==='full','a third collaborator does not');
+ v1.message(JSON.stringify({t:'chat',id:'m1',text:'nice cup'}));const m=got.a.find(x=>x.t==='chat');ok(m&&m.text==='nice cup'&&m.name==='v1'&&got.b.some(x=>x.t==='chat'),'a watcher’s chat message reaches everyone');
+ const b=room.members.find(x=>x.id==='b');room.handle(b,{t:'chatdel',id:'m1'});ok(!got.v1.some(x=>x.t==='chatdel'),'only the owner can delete a message');
+ a.message(JSON.stringify({t:'chatdel',id:'m1'}));ok(got.v1.some(x=>x.t==='chatdel'&&x.id==='m1'),'the owner deletes it for everyone');
+ a.message(JSON.stringify({t:'end'}));
+ const a2=join('a2',{create:true,view:false}),K2=got.a2[0].keys;ok(K2.view===null,'watchers off: no watch key');join('w2',{key:''});ok(got.w2[0].code==='badkey','and an empty key gets nobody in');
+ a2.message(JSON.stringify({t:'chat',id:'m2',text:'hi'}));ok(!got.a2.some(x=>x.t==='chat'),'with the chat off, chat messages go nowhere');
+});
+
+test('Collaborate: session name, no watchers, chat, leaving for good, the owner’s files and the lineup',async({w,E,ok})=>{
+ const room=new TSERoom({});w.COL_SOCKET=fakeNet(room);const D=w.document,q=x=>D.querySelector(x);
+ E(`COL.id=COL.dev='own${Math.random().toString(36).slice(2,6)}';loadLib('Kocho');colSetName('Ann');colStart({name:'Spring Jam',max:2,own:true,view:false,chat:true});`);await sleep(60);
+ ok(q('.col-sess').textContent==='Spring Jam'&&/Up to\s*2\s*collaborators/.test(q('#colBody').innerText)&&/No watchers/.test(q('#colBody').innerText),'the panel shows the session’s name and options');
+ ok(!!q('#colInvE')&&!q('#colInvV')&&room.keys.view===null,'with watchers off there is no watch link');
+ ok(q('#rsChat').style.display===''&&!!q('#chatIn'),'a Chat section under Collaborate');
+ ok([...q('#tView').options].some(o=>o.value==='lineup'),'the view pill has a Lineup view');
+ E(`$('#chatIn').value='Welcome';chatSend();`);await sleep(40);ok(E('COL.chat.length')===1&&E('COL.chat[0].text')==='Welcome','Ann chats');
+ const x=await loadExtra(`#join=${E('COL.room')}.${E('COL.keys.edit')}`);await sleep(60);x.COL_SOCKET=fakeNet(room);x.eval(`COL.id=COL.dev='bob${Math.random().toString(36).slice(2,6)}'`);x.document.querySelector('#cjName').value='Bob';x.document.querySelector('#cjGo').click();await sleep(80);
+ const B=c=>x.eval(c);await settle(w,x);await settle(w,x);
+ ok(B('COL.chat.map(m=>m.text).join()')==='Welcome'&&x.document.querySelector('#chatList').textContent.includes('Welcome'),'Bob gets the chat so far when he joins');
+ B(`$('#chatIn').value='On it';chatSend();`);await sleep(40);ok(E('COL.chat.map(m=>m.name+":"+m.text).join()')==='Ann:Welcome,Bob:On it','Bob’s message reaches Ann');
+ ok(!x.document.querySelector('#chatList .chat-del')&&D.querySelectorAll('#chatList .chat-del').length===2,'only the owner has delete buttons');
+ D.querySelector('#chatList .chat-del').click();await sleep(40);ok(B('COL.chat.map(m=>m.text).join()')==='On it','the owner deletes a message for everyone');
+ ok(!!q('#colTools')&&!x.document.querySelector('#colTools'),'the owner, and only the owner, has the kendama tools');
+ ok(D.querySelectorAll('#colTools li').length===3&&/Shared kendama[\s\S]*Ann[\s\S]*Bob/.test(q('#colTools').textContent),'every kendama on the table is listed with whose it is');
+ // the lineup, for everyone
+ B(`setMode('manual');setView('lineup');`);await sleep(30);
+ const seen=B('(()=>{const P=CanvasRenderingContext2D.prototype,f=P.fillText,o=[];P.fillText=function(t,...a){o.push(String(t));return f.call(this,t,...a);};try{render();}finally{P.fillText=f;}return o;})()');
+ ok(['Shared kendama','Ann','Bob','SPRING JAM · LINEUP'].every(t=>seen.includes(t))&&!seen.some(t=>/\d+\.\d|CoG|Ø/.test(t)),'Bob sees the lineup: every kendama with its person, no measures');
+ const g=B('JSON.stringify(lineupItems().map(it=>{const g=lineupGeo(it),kt=Math.max(...g.ken.map(q=>q[1])),tb=Math.min(...g.tama.map(q=>q[1])),hole=g.holes[0].map(q=>q[1]);return[kt,tb,Math.min(...hole)<(Math.min(...g.tama.map(q=>q[1]))+Math.max(...g.tama.map(q=>q[1])))/2];}))');
+ ok(JSON.parse(g).every(([kt,tb,down])=>tb-kt>5&&tb-kt<12&&down),'each tama sits a little above its spike (a little under 1 cm), hole down');
+ const pdf=E('lineupPdf()');ok(pdf.startsWith('%PDF')&&/\/Count 1 /.test(pdf)&&pdf.includes('(Bob)')&&pdf.includes('(Ann)'),'the lineup PDF: one page with everyone’s name');
+ // saving: one, then all into a new folder each time
+ const dl=[];w.download=(n,d,t)=>dl.push([n,typeof d==='string'?d:'',t]);
+ E(`ownSaveOne(ownItems()[2],'json')`);ok(dl[0]&&dl[0][0]==='Spring Jam-Bob.kendama.json'&&JSON.parse(dl[0][1]).meta.designer==='Bob','one person’s kendama saves as “[session]-[name]”');
+ E(`ownSaveOne(ownItems()[1],'pdf')`);ok(dl[1][0]==='Spring Jam-Ann.pdf'&&dl[1][1].startsWith('%PDF'),'or exports as a spec sheet');
+ w.eval(`(()=>{const mk=n=>{const d={name:n,dirs:{},files:{}};d.getDirectoryHandle=async(k,o)=>{if(d.dirs[k])return d.dirs[k];if(o&&o.create)return d.dirs[k]=mk(k);const e=new Error('none');e.name='NotFoundError';throw e;};d.getFileHandle=async k=>({createWritable:async()=>{let b='';return{write:async x=>{b+=x;},close:async()=>{d.files[k]=b;}};}});return d;};window.__root=mk('root');window.showDirectoryPicker=async()=>window.__root;try{localStorage.removeItem('tse.ownIdx');}catch(e){}})()`);
+ await w.eval(`ownSaveAll('dxf')`);await w.eval(`ownSaveAll('json')`);
+ const day=E('ymd()'),R=E('JSON.stringify(Object.fromEntries(Object.entries(__root.dirs).map(([k,v])=>[k,Object.keys(v.files)])))');const Rd=JSON.parse(R);
+ ok(JSON.stringify(Object.keys(Rd))===JSON.stringify([`Spring Jam-${day}-1`,`Spring Jam-${day}-2`]),'each save of them all makes a new folder, “[session]-[date]-[n]”, n counting up');
+ ok(JSON.stringify(Rd[`Spring Jam-${day}-1`])==='["Spring Jam-Shared kendama.dxf","Spring Jam-Ann.dxf","Spring Jam-Bob.dxf"]','a file for each kendama, named after its person');
+ // Bob leaves for good
+ B(`setMode('dd');colLeave();`);await sleep(20);const bt=()=>[...x.document.querySelectorAll('#cdAct button')].map(b=>b.textContent);
+ ok(bt().join()==='Cancel,Save or export…,Leave the session','leaving asks first: save or export, leave, or cancel');
+ const xd=[];x.download=(n)=>xd.push(n);[...x.document.querySelectorAll('#cdAct button')][1].click();await sleep(20);
+ ok(bt().join()==='Back,Spec sheet PDF,DXF,Project file','Save or export offers the files');
+ [...x.document.querySelectorAll('#cdAct button')].pop().click();await sleep(30);ok(xd[0]==='Spring Jam-Bob.kendama.json'&&bt().join()==='Cancel,Save or export…,Leave the session','his own kendama is saved, then he is asked again');
+ [...x.document.querySelectorAll('#cdAct button')].pop().click();await sleep(80);await settle(w);
+ const bid=B('COL.id');ok(!B('COL.on')&&E(`!!COL.cfg.seats['${bid}'].left`)&&E('wpList().length')===3,'Bob is out; his box and kendama stay on the table, marked as left');
+ ok(E('(()=>{const P=CanvasRenderingContext2D.prototype,f=P.fillText,o=[];P.fillText=function(t,...a){o.push(String(t));return f.call(this,t,...a);};try{setMode("dd");render();}finally{P.fillText=f;}return o.includes("Bob · left");})()'),'his box says he left');
+ const y=await loadExtra(`#join=${E('COL.room')}.${E('COL.keys.edit')}`);await sleep(60);y.COL_SOCKET=fakeNet(room);y.eval(`COL.id=COL.dev='cy${Math.random().toString(36).slice(2,6)}'`);y.document.querySelector('#cjName').value='Cy';y.document.querySelector('#cjGo').click();await sleep(80);await settle(w,y);await settle(w,y);
+ ok(y.eval('COL.on')&&E('wpList().length')===4&&E('Object.keys(COL.cfg.seats).length')===3,'Cy takes the free place and gets a new box: more boxes than people');
+ E(`colSend({t:'end'});colReset();`);await sleep(40);
+ ok(![...q('#tView').options].some(o=>o.value==='lineup')&&q('#rsChat').style.display==='none'&&E('S.view')==='design','after the session, no Lineup view and no chat');
 });
 
 test('Collaborate: an editor joins, changes go both ways, and each undo only steps back through your own changes',async({w,E,ok})=>{
@@ -1002,7 +1195,7 @@ test('Collaborate: the owner removes people, hands over or ends the session; edi
  ok(E('COL.roster.length')===2,'Cy is off the list');
  // Ann leaves: the window offers to end it or hand it to Bob
  E('colLeave()');const dl=w.document.querySelector('#colDlg');ok(dl.classList.contains('show')&&/Bob/.test(dl.querySelector('#cdBody').textContent),'leaving offers to hand over to Bob');
- ok([...dl.querySelectorAll('#cdAct button')].map(x=>x.textContent).join()==='Cancel,End for everyone','or to end it for everyone');
+ ok([...dl.querySelectorAll('#cdAct button')].map(x=>x.textContent).join()==='Cancel,Save or export…,End for everyone','or to save or export first, or end it for everyone');
  [...dl.querySelectorAll('#cdBody button')].find(x=>/Bob/.test(x.textContent)).click();await settle(w,b);
  ok(!E('COL.on')&&E('started'),'Ann has left and keeps her design');
  ok(B('COL.role')==='owner'&&!!B('COL.keys')&&!!b.document.querySelector('#colInvE'),'Bob is the owner now, with the invite links');
@@ -1026,8 +1219,10 @@ test('Collaborate: Japanese for the shared session panel, dialogs and mark-up bo
  const room=new TSERoom({}),[b]=await team(w,room,[['Bob','edit']]);
  b.eval(`MK.items.push({type:'line',closed:false,pts:[[0,20,0],[30,60,0]]});syncTools();`);await settle(b,w);
  E(`setLang('ja');tr.miss&&tr.miss.clear&&tr.miss.clear();setMode('dd');syncCol();syncMkBox();colLeave();`);await sleep(100);
+ E(`colHideDlg();colSaveMine(null);`);await sleep(40);E(`colHideDlg();colSetup.o=null;colSetup();$('#coSimple').click();$('#coLim').click();`);await sleep(60);
+ E(`colHideDlg();COL.cfg=Object.assign({},COL.cfg,{chat:true,own:true,view:false,max:4,seats:{}});COL.chat=[{id:'x',from:'q',name:'Bob',text:'hi',at:Date.now()}];syncCol();setView('lineup');render();`);await sleep(60);E(`COL.chat=[];syncCol();chatSync();`);await sleep(40);E(`COL.cfg=Object.assign({},COL.cfg,{chat:false,own:false,view:true,max:0});delete COL.cfg.seats;setMode('dd');syncCol();`);await sleep(40);
  E(`colHideDlg();colDialog('Leave the shared session','Save a copy of the design before you leave?',null,[['Cancel',null],['Leave',null],['Save a copy and leave',null,'pri']]);`);await sleep(60);
- const miss=E(`[...(tr.miss||[])]`).filter(t=>/[A-Za-z]{3}/.test(t)&&!/^(Ann|Bob|TERRA|KOCHO|Kocho|Terra Shape Explorer|EN)$/.test(t.trim()));
+ const miss=E(`[...(tr.miss||[])]`).filter(t=>/[A-Za-z]{3}/.test(t)&&!/^(Ann|Bob|hi|TERRA|KOCHO|Kocho|Terra Shape Explorer|Kendama Design Session|KENDAMA DESIGN SESSION|EN)$/.test(t.trim()));
  ok(miss.length===0,'untranslated: '+miss.slice(0,6).join(' | '));
  ok(w.document.querySelector('#rsCol>summary').textContent==='共同作業','the section name is in Japanese');
  E(`setLang('en')`);
