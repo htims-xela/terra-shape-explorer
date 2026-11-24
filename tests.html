@@ -86,6 +86,66 @@ for(const name of LIBS)test(`Library shape loads, draws and exports: ${name}`,as
  E(`setLook('3d');render();`);ok(E('M3&&M3.q.length')>500,'3D model builds');E(`setLook('fill');`);
 });
 
+test('Tour: every step points at something, the shape stays editable, nothing is kept, ends on the start screen',async({w,E,ok,cv})=>{
+ const D=w.document,T=D.querySelector('#tour');E(`localStorage.removeItem('ksd.autosave');`);
+ E(`tourStart(false)`);await sleep(80);
+ ok(E('TOUR.on')&&T.classList.contains('wel'),'opens on Welcome');
+ ok(E('TOUR.steps.map(s=>s.id).join()')==='welcome,start,pick,point,shape,move,more,pills,left,right,top,end','the steps, in order, no session step');
+ ok(w.getComputedStyle(T).pointerEvents==='auto','Welcome takes a click');
+ T.dispatchEvent(new w.MouseEvent('click',{bubbles:true}));await sleep(40);
+ ok(E('TOUR.i')===1&&D.querySelector('#start').classList.contains('show'),'click moves on to the start screen step');
+ const o=D.querySelector('#sOpen').getBoundingClientRect(),hit=D.elementFromPoint(o.left+o.width/2,o.top+o.height/2);
+ ok(!D.querySelector('#sOpen').contains(hit),'start screen: only Randomize can be clicked');
+ ok(D.querySelectorAll('#tour .tl').length===1,'start screen: one note');
+ const p0=E('JSON.stringify(S.p)');D.querySelector('#start [data-t=random]').click();await sleep(40);
+ ok(E('TOUR.i')===2&&E('JSON.stringify(S.p)')!==p0&&!D.querySelector('#start').classList.contains('show'),'Randomize makes a shape and moves the tour on');
+ ok(E('TOUR.steps[TOUR.i].id')==='pick',"after Randomize: the dark Points step");E(`setDDTool('pan')`);D.querySelector('#dd button[data-d=point]').click();await sleep(30);
+ ok(E('TOUR.steps[TOUR.i].id')==='point'&&E('DD.tool')==='point','clicking Points moves on to the points step');
+ for(let i=3;i<11;i++){
+  await sleep(40);const id=E('TOUR.steps[TOUR.i].id'),n=D.querySelectorAll('#tour .tl').length,want=E('TOUR.steps[TOUR.i].notes.length');
+  ok(n===want,`${id}: ${n} of ${want} notes shown`);
+  ok(w.getComputedStyle(T).pointerEvents==='none','dark layer lets clicks through on '+id);
+  if(id==='point'){ok(E('DD.tool')==='point'&&E('!!tourPoint()'),'points step picks a point on screen');
+   const r=cv.getBoundingClientRect(),e=D.elementFromPoint(r.left+r.width/2,r.top+r.height/3);ok(e===cv,'the drawing gets the pointer');
+   E(`S.p.bigCupD=S.p.bigCupD+2;sanitize(S.p);refresh();commit();`);}
+  if(id==='pills'){E(`setMode('manual');setView('spec')`);await sleep(30);E('tourLay()');ok(D.querySelector('#tour .tl.warn'),'off Drag & draw: asked to go back');E(`setMode('dd')`);await sleep(30);E('tourLay()');ok(!D.querySelector('#tour .tl.warn'),'back in Drag & draw: no prompt');}
+  if(id==='left')ok(E(`$('#topMan').open&&!document.body.classList.contains('l-shut')`),'left menu open with Manual control open');
+  w.dispatchEvent(new w.KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}));
+ }
+ await sleep(40);ok(E('TOUR.steps[TOUR.i].id')==='end'&&T.classList.contains('fin'),'ends on the End Tutorial screen');
+ ok(D.querySelector('#tour .tlogo path').getAttribute('d').length>100&&D.querySelector('#tour .tlogo').getBoundingClientRect().height>40,'leaf logo shown on the end screen');
+ D.querySelector('#tour .te').click();await sleep(40);
+ ok(!E('TOUR.on')&&!T.classList.contains('show'),'End Tutorial closes the tour');
+ ok(D.querySelector('#start').classList.contains('show'),'back on the start screen');
+ ok(E(`localStorage.getItem('ksd.autosave')`)==null,'nothing autosaved during the tour');
+ ok(E('MK.items.length')===0&&D.body.classList.contains('l-shut'),'mark-up cleared, left menu put back');
+ E(`tourStart(false)`);await sleep(30);w.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await sleep(20);
+ ok(!E('TOUR.on'),'Esc leaves the tour');
+});
+test('Tour from an invite: shared session step, ends back on the join window; all text has Japanese',async({w,E,ok})=>{
+ const D=w.document;E(`COL.invite={room:'abcdefgh12',key:'abcdefgh12'};colShow('#colJoin');`);
+ D.querySelector('#cjTour').click();await sleep(60);
+ ok(E('TOUR.on')&&E('TOUR.guest')&&!D.querySelector('#colJoin').classList.contains('show'),'starts from the join window');
+ ok(E('TOUR.steps.length')===13&&E('TOUR.steps.at(-2).id')==='col','thirteen steps, the session one before the end');
+ E(`setLang('ja');`);
+ for(let i=0;i<11;i++){await sleep(20);E('tourGo(1)');}
+ await sleep(30);ok(E('TOUR.steps[TOUR.i].id')==='col'&&D.querySelectorAll('#tour .tl').length===2,'session step shows both notes');
+ const strs=E(`[...TOUR_STEPS.flatMap(s=>[s.t,...(s.x||[]),...(s.notes||[]).flatMap(n=>n.t.flatMap(x=>x.split(String.fromCharCode(10))))]),'learn how','Next','Back','Skip tour','Click anywhere to start','End Tutorial','Enjoy','Go back to Drag & draw to continue'].filter(Boolean).filter(s=>JA[s]==null)`);
+ ok(strs.length===0,'missing Japanese: '+strs.join(' | '));
+ E(`tourGo(1)`);await sleep(20);E(`tourGo(1)`);await sleep(30);
+ ok(!E('TOUR.on')&&D.querySelector('#colJoin').classList.contains('show')&&!D.querySelector('#start').classList.contains('show'),'ends on the join window');
+ E(`setLang('en')`);
+});
+test('Tour on a phone: panels open from the bottom bar, every note shows, the card stays on screen',async({w,E,ok})=>{
+ const D=w.document;E(`tourStart(false)`);await sleep(60);
+ for(let i=1;i<E('TOUR.steps.length')-1;i++){E('tourGo(1)');await sleep(40);E('tourLay()');
+  const id=E('TOUR.steps[TOUR.i].id'),n=D.querySelectorAll('#tour .tl').length,want=E('TOUR.steps[TOUR.i].notes.length'),c=D.querySelector('#tour .tc').getBoundingClientRect();
+  ok(n===want,`${id}: ${n} of ${want} notes`);ok(c.left>=0&&c.right<=w.innerWidth&&c.top>=0&&c.bottom<=w.innerHeight,id+': card on screen');
+  for(const l of D.querySelectorAll('#tour .tl')){const r=l.getBoundingClientRect();if(r.left<0||r.right>w.innerWidth)ok(false,id+': note off screen');}
+  if(id==='left')ok(D.body.classList.contains('m-params'),'left menu step opens Fine Tune');
+  if(id==='right')ok(D.body.classList.contains('m-bal'),'side panel step opens Side Bar');}
+ E('tourGo(1)');E('tourEnd()');await sleep(30);ok(D.body.classList.contains('m-view'),'back to Design after the tour');
+},{width:375,height:812});
 test('LBB (V2 STEP files) matches the CAD measures',async({E,ok})=>{
  E(`loadLib('LBB')`);await sleep(30);
  const r=E(`(()=>{const G=CUR.G,p=S.p,K=LIB.find(q=>q.name==='LBB').exact.ken;const dv=(id,t)=>{let m=0;for(const[a,v]of G.segs[id].out)if(a<t)m=Math.max(m,Math.abs(v-interp(K,a)));return m;};const m=dv('swoopRing',99),mh=dv('ringHandle',91);

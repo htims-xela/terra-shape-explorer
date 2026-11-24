@@ -324,6 +324,30 @@ body.col-view #rsIter .row,body.col-view #snapList button,body.col-view #mnav [d
 body.col-view .vtools [data-t=line],body.col-view .vtools [data-t=plane],body.col-view .vtools [data-t=circle],body.col-view .vtools [data-t=measure],body.col-view .vtools [data-t=pen],body.col-view .vtools [data-a],body.col-view .vtools hr{display:none!important}
 @media (min-width:761px){body.col-view .wrap{grid-template-columns:1fr 310px}body.col-view.r-shut .wrap{grid-template-columns:1fr}body.col-view aside.left{display:none}}
 @media (min-width:761px) and (max-width:1100px){body.col-view .wrap{grid-template-columns:1fr}}
+/* first-visit tour: a dark layer that never takes clicks (except on the Welcome / End screens and the start screen, where only Randomize works), outlines and arrows to labelled parts of the screen, all in the tour's own yellow */
+.in-tour{pointer-events:auto;margin-top:-22px;background:none;border:0;padding:4px 8px;font:500 11px/1 ui-monospace,"SF Mono",Menlo,monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);text-decoration:underline;text-underline-offset:3px;transition:opacity .35s}
+.in-links{display:flex;gap:14px;align-items:center;margin-top:-22px}.in-links .in-tour{margin:0}.in-tour.in-ja{letter-spacing:.1em}.in-tour:hover{color:var(--accent);border:0}#intro.go .in-tour{opacity:0}.in-links{pointer-events:none}
+.lnk{border:0;background:none;color:var(--accent);text-decoration:underline;text-underline-offset:3px;padding:6px 4px;margin-right:auto}.lnk:hover{border:0}
+#tour{--tour:#ffd23f;--tour-2:#ffe58f;position:fixed;inset:0;z-index:60;pointer-events:none;display:none;color:var(--tour);font:13px/1.35 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif}
+#tour.show{display:block}#tour.full{pointer-events:auto}#tour.wel{cursor:pointer}
+#tour>svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+#tour .tl{position:absolute;max-width:min(210px,calc(100vw - 40px));padding:5px 10px;border-radius:7px;background:rgba(8,8,10,.92);border:1px solid var(--tour);font-size:15px;font-weight:600;line-height:1.3}
+#tour .tl small{display:block;font-size:12.5px;font-weight:400;color:var(--tour-2);margin-top:2px}
+#tour .tl.warn{background:var(--tour);color:#111}
+#tour .tc{position:absolute;max-width:calc(100vw - 16px);box-sizing:border-box;pointer-events:auto;background:rgba(8,8,10,.95);border:1px solid color-mix(in srgb,var(--tour) 55%,transparent);border-radius:10px;padding:9px 11px;box-shadow:0 8px 30px rgba(0,0,0,.5);cursor:grab;touch-action:none;user-select:none}
+#tour.full .tc{left:50%!important;top:50%!important;transform:translate(-50%,-50%);width:min(400px,calc(100vw - 32px));text-align:center;padding:26px 20px 14px;cursor:inherit}
+#tour .tt{display:block;font-size:30px;font-weight:600;margin:0 0 10px}#tour .tt:empty{display:none}
+#tour .tp{margin:0 0 10px;font-size:16px;color:var(--tour-2)}#tour .tp:empty{display:none}
+#tour .th{display:none;margin:0 0 14px;font-size:12px;opacity:.6}#tour.wel .th{display:block}
+#tour .tn{display:flex;align-items:center;gap:8px;margin-right:22px}#tour.full .tn{margin:0}
+#tour .td{flex:1 1 auto;display:flex;flex-wrap:wrap;justify-content:center;gap:5px;min-width:0}#tour .td i{width:6px;height:6px;border-radius:50%;background:color-mix(in srgb,var(--tour) 30%,transparent)}#tour .td i.on{background:var(--tour)}
+#tour button{background:transparent;color:var(--tour);border:1px solid color-mix(in srgb,var(--tour) 50%,transparent);border-radius:7px;padding:4px 10px;font:inherit;cursor:pointer}
+#tour button.tf{background:var(--tour);color:#111;border-color:var(--tour);font-weight:600}
+#tour .te{display:none;margin:4px auto 18px;padding:14px 34px;font-size:18px;font-weight:700;background:var(--tour);color:#111;border-color:var(--tour)}#tour.fin .te{display:block}
+#tour .tlogo,#tour .tj{display:none}#tour.fin .tlogo{display:block;height:96px;width:auto;margin:4px auto 10px;color:var(--tour)}#tour.fin .tj{display:block;font-size:26px;font-weight:600;margin:0 0 18px;letter-spacing:.02em}
+#tour .tx{position:absolute;right:5px;top:5px;border:0;padding:2px 7px;opacity:.75}#tour .tx:hover{opacity:1}
+#tour.wel .tb,#tour.wel .tf,#tour.fin .tf,#tour .tb[hidden]{display:none}#tour.fin .tx{display:none}
+body.tour-start #start .card *{pointer-events:none}body.tour-start #start .card [data-t=random]{pointer-events:auto}
 </style>
 </head>
 <body>
@@ -422,6 +446,7 @@ body.col-view .vtools [data-t=line],body.col-view .vtools [data-t=plane],body.co
     <h1 class="in-t" translate="no"><b>Terra</b> Shape Explorer</h1>
     <div class="in-rule" aria-hidden="true"></div>
     <button id="inGo" class="in-go">Begin</button>
+    <div class="in-links"><button id="inTour" class="in-tour">learn how</button><button id="inTourJa" class="in-tour in-ja" translate="no" lang="ja">日本語</button></div>
   </div>
 </div>
 
@@ -477,7 +502,7 @@ body.col-view .vtools [data-t=line],body.col-view .vtools [data-t=plane],body.co
   <h1>Join a shared session</h1>
   <p>You have been invited to work on a design with others. Your name is shown to everyone in the session.</p>
   <label class="col-name">Your name <input type="text" id="cjName" maxlength="40"></label>
-  <div class="row" style="justify-content:flex-end;margin-top:12px"><button id="cjCancel">Not now</button><button id="cjGo" class="pri">Join</button></div>
+  <div class="row" style="justify-content:flex-end;margin-top:12px"><button id="cjTour" class="lnk">learn how</button><button id="cjCancel">Not now</button><button id="cjGo" class="pri">Join</button></div>
 </div></div>
 <div class="modal" id="colWait"><div class="card" style="width:min(380px,100%)">
   <h1>Joining…</h1>
@@ -494,6 +519,7 @@ body.col-view .vtools [data-t=line],body.col-view .vtools [data-t=plane],body.co
 <input type="file" id="fOpen" accept=".json,application/json" hidden>
 <input type="file" id="fCmp" accept=".json,application/json" hidden>
 <div id="toast"></div>
+<div id="tour" aria-live="polite"><svg aria-hidden="true"></svg><div class="tlabs"></div><div class="tc" role="dialog" aria-label="Tour"><button class="tx" title="Skip tour" aria-label="Skip tour">✕</button><b class="tt"></b><p class="tp"></p><span class="th">Click anywhere to start</span><svg class="tlogo" viewBox="-6 -6 236.7 492.4" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="7" stroke-linejoin="round"/></svg><b class="tj">Enjoy</b><button class="te">End Tutorial</button><div class="tn"><button class="tb">←<span> Back</span></button><span class="td"></span><button class="tf"><span>Next</span> →</button></div></div></div>
 
 <script>
 'use strict';
@@ -1430,7 +1456,38 @@ const JA={
 "Show or hide the 1° marking on the kendamas in the view": "表示中のけん玉の 1° の印を表示 / 非表示",
 "1° kendama set. It fills the spec sheet, is the one compared in the Compare view and is used for the exports.": "1° けん玉を設定しました。仕様書に使われ、比較ビューで比べる対象になり、書き出しにも使われます。",
 "Ken + sarado": "けん＋皿胴",
-"Click one tama and one ken to make them the 1° kendama. The sarado goes with its ken.": "玉とけんを一つずつクリックして 1° けん玉にします。皿胴はけんと一緒に選ばれます。"
+"Click one tama and one ken to make them the 1° kendama. The sarado goes with its ken.": "玉とけんを一つずつクリックして 1° けん玉にします。皿胴はけんと一緒に選ばれます。",
+"learn how": "使い方を見る",
+"Welcome": "ようこそ",
+"Reshape the kendama": "けん玉の形を変えてみよう",
+"you get a fresh start after the tutorial": "チュートリアルの後は新しく始められます",
+"Click anywhere to start": "どこかをクリックして開始",
+"Skip tour": "ツアーを終了",
+"Tour": "ツアー",
+"Get started!": "はじめよう！",
+"Look around. Move stuff.": "見回して、動かしてみよう。",
+"Set points. Define the shape.": "点を置いて、形を決めよう。",
+"Set points,": "点を置いて、",
+"define the shape": "形を決めよう",
+"Move a point around": "点を動かしてみよう",
+"Explore these tools.": "これらのツールを試そう。",
+"Alter the curves between your set points.": "置いた点の間の曲線を変えよう。",
+"Sketch, take notes, use a tape measure": "スケッチ、メモ、メジャーで測る",
+"Take the sarado off": "皿胴を外す",
+"Compare shapes": "形を比べる",
+"Change up the look": "見た目を変えてみよう",
+"Enjoy": "楽しんで",
+"Go back to Drag & draw to continue": "続けるにはドラッグ＆ドローに戻ってください",
+"Fine tune everything like a real nerd": "マニアのように何でも細かく調整",
+"Work together in realtime!": "リアルタイムで共同作業！",
+"Check weights and lunar": "重さとルナーを確認",
+"Iterate, duplicate, & more": "イテレーション、複製など",
+"Undo! Redo!": "元に戻す！やり直す！",
+"Many keyboard shortcuts work like usual": "おなじみのキーボードショートカットが使えます",
+"Save, export, language, etc": "保存、書き出し、言語など",
+"End Tutorial": "チュートリアルを終了",
+"Who is in the session": "セッションの参加者",
+"Talk to everyone in the session": "セッションの全員と話す"
 };
 const MON={JAN:1,FEB:2,MAR:3,APR:4,MAY:5,JUN:6,JUL:7,AUG:8,SEP:9,OCT:10,NOV:11,DEC:12};
 const jDate=d=>{const m=d.match(/^([A-Z]{3}) (\d+), (\d{4})$/);return m?`${m[3]}年${MON[m[1]]}月${m[2]}日`:d;};
@@ -2015,6 +2072,7 @@ const elevTxt=L=>L?`${f1(Math.abs(L.elev))}° ${L.elev>=0?'above':'below'} horiz
 /* ================= state ================= */
 const S={meta:{brand:'TERRA',model:'KOCHO',designer:'',tolLocked:true},p:defaults(),curves:{},locks:{},snaps:[],cmp:[],ovl:[],cmpv:[],cmpOn:{current:true},view:'design',show:{cog:true,tama:'none',ell:false},draw:{on:false,seg:'swoopBg',smooth:true,strength:3},page:1,mode:'manual',wps:[],wpId:'w0',wpName:'Current design',prim:null};
 let CUR={G:null,A:null},hist=[],hpos=-1,started=false;
+var TOUR={on:false,i:0,guest:false,steps:[],pos:null,key:'',iv:0,keep:null}; // the first-visit tour (var: autosave reads it before the tour code runs)
 const snapState=()=>JSON.stringify({p:S.p,curves:S.curves});
 // An undo step holds every kendama in the view, so undo steps back through the whole of the last change: {w:{id: that kendama's measures and contours as text}, prim}.
 // A kendama that did not change keeps the very same text as the step before, so a long history with many kendamas costs little more than with one.
@@ -2025,7 +2083,7 @@ function commit(){const s=histState();if(histSame(hist[hpos],s))return;hist=hist
 function undo(d){if(!colEdit())return;const n=hpos+d;if(n<0||n>=hist.length)return;hpos=n;wpRestore(histRead(hist[n]));refresh();autosave();}
 function updUndo(){$('#bUndo').disabled=hpos<=0;$('#bRedo').disabled=hpos>=hist.length-1;}
 const projectData=()=>({app:'kendama-shape-designer',version:2,saved:new Date().toISOString(),meta:S.meta,p:S.p,curves:S.curves,locks:S.locks,snaps:S.snaps,cmp:S.cmp,ovl:S.ovl,cmpv:S.cmpv,base:S.base,...(wpMulti()?{wps:S.wps.map(w=>({id:w.id,name:w.name,p:w.p,curves:w.curves,base:w.base,P:w.P,free:w.free,sar:w.sar})),wpId:S.wpId,wpName:S.wpName,wpP:wpP(),wpOrder:wpOrderFix(),prim:S.prim}:{})});
-function autosave(){colSoon();if(COL.on&&COL.role!=='owner')return;clearTimeout(autosave.t);autosave.t=setTimeout(()=>{try{localStorage.setItem('ksd.autosave',JSON.stringify(projectData()));}catch(e){}},400);}
+function autosave(){colSoon();if(TOUR&&TOUR.on)return;if(COL.on&&COL.role!=='owner')return;clearTimeout(autosave.t);autosave.t=setTimeout(()=>{try{localStorage.setItem('ksd.autosave',JSON.stringify(projectData()));}catch(e){}},400);}
 function cleanCurves(c){const o={},ren={neckRing:'swoopRing'};if(c&&typeof c==='object')for(const k0 in c){const k=ren[k0]||k0,v=c[k0];if(['waistSm','waistBg','handle','edgeSm','edgeBg'].includes(k0))continue;if((k0==='smCup'||k0==='bgCup')&&v&&v.imp)continue;if(k0==='baseHole'){if(v&&Array.isArray(v.pts)&&v.pts.length>2&&v.pts.every(q=>Array.isArray(q)&&isFinite(q[0])&&isFinite(q[1])))o.baseHole={pts:v.pts.map(q=>[+q[0],+q[1]]),on:v.on!==false};continue;}if(v&&Array.isArray(v.d)&&v.d.length>3&&v.d.every(x=>typeof x==='number'&&isFinite(x)))o[k]={d:v.d,smooth:!!v.smooth,strength:+v.strength||3,bin:+v.bin||0.35,on:v.on!==false};if(v.imp)o[k].imp=true;}return o;}
 function cleanDesign(o){
  const src=Object.assign({},o&&o.p||{});
@@ -3430,6 +3488,130 @@ function introBegin(){
  setTimeout(()=>{box.classList.add('done');const st=$('#start');st.classList.remove('reveal');void st.offsetWidth;st.classList.add('reveal');},still?150:750);
  setTimeout(introClose,still?600:1250);
 }
+/* ================= first-visit tour ================= */
+// "learn how" on the intro (or the join window) loads a sample kendama and walks through the screen. After Welcome the dark layer never takes clicks
+// (the start screen is the exception: only Randomize works there, and it moves the tour on), so the kendama can be reshaped the whole way through;
+// only the tour card, → ← and Esc move the tour. Nothing done in the tour is kept (no autosave); it ends on the start screen (guests: the join window).
+// A target is a selector, a list of selectors (outlined as one box) or a function giving a screen box.
+const TD=d=>'#dd button[data-d='+d+']',TOUR_SIX=['push','draw','line','smooth','reset','hole'].map(TD),TOUR_PILLS=['#lView','#lStyle','#lTama','#tEll'];
+const TOUR_STEPS=[
+ {id:'welcome',full:1,t:'Welcome',x:['Reshape the kendama','you get a fresh start after the tutorial']},
+ {id:'start',hi:['#start .card>h1','#start [data-t=random]'],notes:[{t:['Get started!'],to:['#start [data-t=random]'],side:'right'}],
+  on(){$('#start').classList.add('show');document.body.classList.add('tour-start');},off(){$('#start').classList.remove('show');document.body.classList.remove('tour-start');}},
+ {id:'pick',dark:1,hi:[TD('point')],notes:[{t:['Set points,\ndefine the shape'],to:[TD('point')],side:'above'}],on(){tourTools();}},
+ {id:'point',hi:[TD('point'),()=>tourPoint()],notes:[{t:['Set points. Define the shape.'],to:[TD('point')],side:'above'},{t:['Move a point around'],to:[()=>tourPoint()],side:'right'}],on(){tourTools();if(DD.tool!=='point')setDDTool('point');}},
+ {id:'shape',hi:[TOUR_SIX],notes:[{t:['Explore these tools.\nAlter the curves between your set points.'],to:[TOUR_SIX],side:'above'}],on(){tourTools();}},
+ {id:'move',hi:[[TD('pan'),TD('free')]],notes:[{t:['Look around. Move stuff.'],to:[[TD('pan'),TD('free')]],side:'above'}],on(){tourTools();}},
+ {id:'more',hi:[[TD('mark'),TD('sarado'),TD('cmp')]],notes:[{t:['Sketch, take notes, use a tape measure'],to:[TD('mark')],side:'above'},{t:['Take the sarado off'],to:[TD('sarado')],side:'above'},{t:['Compare shapes'],to:[TD('cmp')],side:'above'}],on(){tourTools();}},
+ {id:'pills',hi:[TOUR_PILLS],notes:[{t:['Change up the look'],to:[TOUR_PILLS],side:'below'}],on(){tourDD();}},
+ {id:'left',hi:['#bLeft','#mnav [data-m=params]','#params'],notes:[{t:['Fine tune everything like a real nerd'],to:[['#topMan details.grp>summary']],side:'right'}],
+  on(){tourDD();if(tourMob())setM('params');else if(document.body.classList.contains('l-shut'))$('#bLeft').click();$('#topMan').open=true;}},
+ {id:'right',hi:['#bRight','#mnav [data-m=bal]','aside.right'],notes:[{t:['Work together in realtime!'],to:['#rsCol>summary'],side:'left'},{t:['Check weights and lunar'],to:['#rsBal>summary'],side:'left'},{t:['Iterate, duplicate, & more'],to:['#rsIter>summary'],side:'left'}],
+  on(){tourDD();if(tourMob())setM('bal');else if(document.body.classList.contains('r-shut'))$('#bRight').click();}},
+ {id:'top',hi:['#bUndo','#bRedo','#bMenu'],notes:[{t:['Undo! Redo!','Many keyboard shortcuts work like usual'],to:['#bUndo','#bRedo'],side:'below'},{t:['Save, export, language, etc'],to:['#bMenu'],side:'below'}],on(){tourDD();}},
+ {id:'col',guest:true,hi:['#rsCol>summary','#rsChat>summary'],notes:[{t:['Who is in the session'],to:['#rsCol>summary'],side:'left'},{t:['Talk to everyone in the session'],to:['#rsChat>summary'],side:'left'}],
+  on(){tourDD();if(tourMob())setM('bal');else if(document.body.classList.contains('r-shut'))$('#bRight').click();$('#rsCol').open=true;$('#rsChat').style.display='';},off(){$('#rsChat').style.display=TOUR.keep.chat;}},
+ {id:'end',full:1,fin:1},
+];
+const tourInDD=()=>S.mode==='dd'&&S.view==='design';
+const tourMob=()=>getComputedStyle($('#mnav')).display!=='none';
+function tourDD(){if(!tourInDD())setMode('dd');if(tourMob()&&!document.body.classList.contains('m-view')&&window.setM)setM('view');}
+function tourTools(){tourDD();if($('#dd').classList.contains('shut'))$('#dd .dd-fold').click();}
+// a ken point that is on screen and clear of the tool bar and the edges, for "Move a point around"
+function tourPoint(){
+ if(!tourInDD()||DD.tool!=='point'||!CUR.G)return null;const cr=$('#cv').getBoundingClientRect(),T=VT.design,B=balView(),dd=$('#dd').getBoundingClientRect(),bot=Math.min(cr.bottom,dd.height?dd.top:cr.bottom);
+ let best=null;for(const h of ddHandles()){let X=sx(T,h.X),Y=sy(T,h.Y);
+  if(B){const cx=sx(T,B.x),cy=sy(T,B.y),c=Math.cos(-B.a),s=Math.sin(-B.a),dx=X-cx,dy=Y-cy;X=cx+dx*c-dy*s;Y=cy+dx*s+dy*c;}
+  X+=cr.left;Y+=cr.top;const m=Math.min(X-cr.left-20,cr.right-X-20,Y-cr.top-50,bot-Y-30);if(!best||m>best.m)best={X,Y,m};}
+ if(!best||best.m<0)return null;return{left:best.X-8,top:best.Y-8,right:best.X+8,bottom:best.Y+8,width:16,height:16};}
+function tourRect(q){
+ if(typeof q==='function')return q();
+ const L=(Array.isArray(q)?q:[q]).flatMap(s=>[...document.querySelectorAll(s)]).map(e=>e.getBoundingClientRect()).filter(r=>r.width>=2&&r.height>=2&&r.bottom>0&&r.top<innerHeight&&r.right>0&&r.left<innerWidth);
+ if(!L.length)return null;const l=Math.max(0,Math.min(...L.map(r=>r.left))),t=Math.max(0,Math.min(...L.map(r=>r.top))),r=Math.min(innerWidth,Math.max(...L.map(r=>r.right))),b=Math.min(innerHeight,Math.max(...L.map(r=>r.bottom)));
+ return{left:l,top:t,right:r,bottom:b,width:r-l,height:b-t};}
+function tourRects(q){
+ if(typeof q==='function'){const r=q();return r?[r]:[];}if(!Array.isArray(q)){const r=tourRect(q);return r?[r]:[];}
+ const L=q.flatMap(s=>[...document.querySelectorAll(s)]).map(e=>e.getBoundingClientRect()).filter(r=>r.width>=2&&r.height>=2&&r.bottom>0&&r.top<innerHeight&&r.right>0&&r.left<innerWidth),rows=[];
+ for(const r of L){const w=rows.find(g=>Math.abs(g[0].top-r.top)<8);w?w.push(r):rows.push([r]);}
+ return rows.map(g=>{const l=Math.min(...g.map(r=>r.left)),t=Math.min(...g.map(r=>r.top)),r=Math.max(...g.map(r=>r.right)),b=Math.max(...g.map(r=>r.bottom));return{left:l,top:t,right:r,bottom:b,width:r-l,height:b-t};});}
+function tourNotes(st){
+ const N=(st.notes||[]).map(n=>Object.assign({},n,{rs:n.to.flatMap(tourRects)})).filter(n=>n.rs.length);
+ if(!st.full&&st.id!=='start'&&!tourInDD())N.push({t:['Go back to Drag & draw to continue'],warn:1,rs:[tourRect('#lView')].filter(Boolean),side:'below'});
+ for(const n of N){const R=n.rs;n.r={left:Math.min(...R.map(r=>r.left)),top:Math.min(...R.map(r=>r.top)),right:Math.max(...R.map(r=>r.right)),bottom:Math.max(...R.map(r=>r.bottom))};n.r.width=n.r.right-n.r.left;n.r.height=n.r.bottom-n.r.top;}
+ return N;}
+function tourStart(guest){
+ if(TOUR.on)return;const b=document.body;
+ TOUR.on=true;TOUR.guest=!!guest;TOUR.i=0;TOUR.pos=null;TOUR.steps=TOUR_STEPS.filter(s=>!s.guest||TOUR.guest);
+ TOUR.keep={l:b.classList.contains('l-shut'),r:b.classList.contains('r-shut'),chat:$('#rsChat').style.display,col:$('#rsCol').open,man:$('#topMan')&&$('#topMan').open};
+ clearTimeout(autosave.t);if(INTRO.on)introClose();$('#start').classList.remove('show');if(guest)colHide('#colJoin');
+ loadLib('Kocho');clearTimeout(toast.t);$('#toast').classList.remove('show');
+ $('#tour').classList.add('show');tourShow();clearInterval(TOUR.iv);TOUR.iv=setInterval(()=>{if(TOUR.on&&tourKey()!==TOUR.key)tourLay();},250);
+}
+function tourShow(){
+ const st=TOUR.steps[TOUR.i],box=$('#tour'),n=TOUR.steps.length;TOUR.pos=null;
+ box.classList.toggle('full',!!st.full);box.classList.toggle('wel',st.id==='welcome');box.classList.toggle('fin',!!st.fin);
+ box.querySelector('.tt').textContent=st.t||'';const p=box.querySelector('.tp');p.innerHTML='';(st.x||[]).forEach((s,i)=>{if(i)p.append(el('br'));p.append(s);});
+ box.querySelector('.tb').hidden=TOUR.i<1;
+ const d=box.querySelector('.td');d.innerHTML='';for(let i=0;i<n;i++)d.append(el('i',{class:i===TOUR.i?'on':''}));
+ if(st.on)try{st.on();}catch(e){}
+ tourLay();requestAnimationFrame(()=>{if(TOUR.on)tourLay();});
+}
+function tourGo(d){if(!TOUR.on)return;const j=TOUR.i+d;if(j<0)return;const st=TOUR.steps[TOUR.i];if(st.off)try{st.off();}catch(e){}if(j>=TOUR.steps.length){tourEnd();return;}TOUR.i=j;tourShow();}
+function tourEnd(){
+ if(!TOUR.on)return;const st=TOUR.steps[TOUR.i],b=document.body,k=TOUR.keep;if(st&&st.off)try{st.off();}catch(e){}
+ TOUR.on=false;clearInterval(TOUR.iv);clearTimeout(autosave.t);$('#tour').classList.remove('show','full','wel','fin');$('#tour .tlabs').innerHTML='';$('#tour svg').innerHTML='';b.classList.remove('tour-start');
+ if(b.classList.contains('l-shut')!==k.l)$('#bLeft').click();if(b.classList.contains('r-shut')!==k.r)$('#bRight').click();$('#rsChat').style.display=k.chat;$('#rsCol').open=k.col;if($('#topMan'))$('#topMan').open=k.man;
+ if(tourMob()&&window.setM)setM('view');b.classList.remove('m-menu');MK.items=[];MK.undo=[];MK.redo=[];MK.sel=-1;MK.cur=null;MK.mA=null;tourDD();render();
+ if(TOUR.guest&&COL.invite&&!COL.on)colShow('#colJoin');else if(!TOUR.guest)showStart(false);
+}
+function tourKey(){const st=TOUR.steps[TOUR.i];if(!st)return'';const R=r=>r?[r.left,r.top,r.width,r.height].map(Math.round).join(','):'-',sf=$('#stage');
+ return[TOUR.i,innerWidth,innerHeight,S.mode,S.view,DD.tool,R(sf.getBoundingClientRect()),...(st.hi||[]).map(q=>R(tourRect(q))),...(st.notes||[]).flatMap(n=>n.to.map(q=>R(tourRect(q))))].join('|');}
+function tourLay(){
+ const st=TOUR.steps[TOUR.i];if(!st)return;const box=$('#tour'),W=innerWidth,H=innerHeight,its=st.full?[]:tourNotes(st),labs=box.querySelector('.tlabs');TOUR.key=tourKey();
+ labs.innerHTML='';for(const o of its){o.d=el('div',{class:'tl'+(o.warn?' warn':'')});o.t[0].split('\n').forEach((x,i)=>{if(i)o.d.append(el('br'));o.d.append(x);});for(const s of o.t.slice(1))o.d.append(el('small',{},s));labs.append(o.d);}
+ for(const o of its){o.w=o.d.offsetWidth;o.h=o.d.offsetHeight;}
+ const groups={};for(const o of its)(groups[o.side]=groups[o.side]||[]).push(o);
+ for(const side in groups){const g=groups[side],U={t:Math.min(...g.map(o=>o.r.top)),b:Math.max(...g.map(o=>o.r.bottom)),l:Math.min(...g.map(o=>o.r.left)),r:Math.max(...g.map(o=>o.r.right))};
+  if(side==='above'||side==='below'){ // labels over / under their targets, stepped back in rows where they would overlap
+   g.sort((a,b)=>a.r.left-b.r.left);const tiers=[];
+   for(const o of g){const x=Math.max(8,Math.min(W-8-o.w,o.r.left+o.r.width/2-o.w/2));let k=0;while((tiers[k]=tiers[k]||[]).some(q=>x<q.x+q.w+8&&q.x<x+o.w+8))k++;tiers[k].push(o);o.x=x;o.k=k;}
+   const th=Math.max(...g.map(o=>o.h))+10;let up=side==='above';if(up&&U.t-40-tiers.length*th<8&&U.b+40+tiers.length*th<H)up=false;else if(!up&&U.b+40+tiers.length*th>H-8&&U.t-40-tiers.length*th>8)up=true;
+   for(const o of g)o.y=Math.max(8,Math.min(H-8-o.h,up?U.t-36-o.k*th-o.h:U.b+36+o.k*th));
+  }else{ // a column beside the targets
+   g.sort((a,b)=>a.r.top-b.r.top);const mw=Math.max(...g.map(o=>o.w));let right=side==='right';
+   if(right&&U.r+50+mw>W-8&&U.l-50-mw>=8)right=false;else if(!right&&U.l-50-mw<8&&U.r+50+mw<=W-8)right=true;
+   const none=U.r+50+mw>W-8&&U.l-50-mw<8;
+   let y=-1e9;for(const o of g){o.y=Math.max(y,none?o.r.bottom+10:o.r.top+Math.min(o.r.height/2,18)-o.h/2);y=o.y+o.h+10;o.x=Math.max(8,Math.min(W-8-o.w,none?W-8-o.w-12:right?o.r.right+50:o.r.left-50-o.w));}
+   const over=y-10-(H-8);if(over>0)for(const o of g)o.y-=over;for(const o of g)o.y=Math.max(8,o.y);
+  }}
+ for(const o of its){o.d.style.left=o.x+'px';o.d.style.top=o.y+'px';}
+ // dark layer with holes; the drawing is left clear so the kendama stays easy to see and work on
+ const P=4,pad=r=>({x:r.left-P,y:r.top-P,w:r.width+2*P,h:r.height+2*P}),rect=(q,a)=>`<rect x="${q.x}" y="${q.y}" width="${q.w}" height="${q.h}" rx="7" ${a}/>`,cl=(v,a,b)=>Math.max(a,Math.min(b,v));
+ let m='<rect width="100%" height="100%" fill="#fff"/>',fg='';const his=st.full?[]:(st.hi||[]).flatMap(tourRects).map(pad);
+ if(!st.full&&!st.dark&&st.id!=='start'){const r=$('#stage').getBoundingClientRect();if(r.width>2)m+=`<rect x="${r.left}" y="${r.top}" width="${r.width}" height="${r.height}" fill="#000"/>`;}
+ for(const q of his){m+=rect(q,'fill="#000"');fg+=rect(q,'fill="none" stroke="#ffd23f" stroke-width="2.5"');}
+ for(const o of its)for(const r of o.rs){const q=pad(r),lc=[o.x+o.w/2,o.y+o.h/2],T=[cl(lc[0],q.x,q.x+q.w),cl(lc[1],q.y,q.y+q.h)],L=[cl(T[0],o.x,o.x+o.w),cl(T[1],o.y,o.y+o.h)];
+  if(Math.hypot(T[0]-L[0],T[1]-L[1])>6)fg+=`<line x1="${L[0]}" y1="${L[1]}" x2="${T[0]}" y2="${T[1]}" stroke="#ffd23f" stroke-width="2" marker-end="url(#tourA)"/>`;}
+ box.querySelector('svg').innerHTML=`<defs><mask id="tourM">${m}</mask><marker id="tourA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#ffd23f"/></marker></defs><rect width="100%" height="100%" fill="rgba(0,0,0,.8)" mask="url(#tourM)"/>${fg}`;
+ // the card goes where it covers the least of what is being pointed at, unless it was dragged
+ const c=box.querySelector('.tc');if(st.full){c.style.left=c.style.top='';return;}
+ const cw=c.offsetWidth,ch=c.offsetHeight;let at=TOUR.pos;
+ if(!at){const boxes=[...his.filter(q=>q.w*q.h<W*H*.4),...its.flatMap(o=>o.rs.map(pad)),...its.map(o=>({x:o.x,y:o.y,w:o.w,h:o.h}))],ov=(x,y)=>boxes.reduce((s,q)=>s+Math.max(0,Math.min(x+cw,q.x+q.w)-Math.max(x,q.x))*Math.max(0,Math.min(y+ch,q.y+q.h)-Math.max(y,q.y)),0);
+  const C=[[W-cw-16,H-ch-16],[16,H-ch-16],[(W-cw)/2,H-ch-16],[W-cw-16,64],[16,64],[(W-cw)/2,64],[(W-cw)/2,(H-ch)/2]];let best=1e18;for(const[x,y]of C){const v=ov(x,y);if(v<best-1){best=v;at=[x,y];}}}
+ c.style.left=cl(at[0],4,W-cw-4)+'px';c.style.top=cl(at[1],4,H-ch-4)+'px';
+}
+{const box=document.getElementById('tour'),c=box.querySelector('.tc'),lp=document.querySelector('.in-logo path');if(lp)box.querySelector('.tlogo path').setAttribute('d',lp.getAttribute('d'));
+ box.querySelector('.tx').onclick=e=>{e.stopPropagation();tourEnd();};box.querySelector('.tb').onclick=e=>{e.stopPropagation();tourGo(-1);};box.querySelector('.tf').onclick=e=>{e.stopPropagation();tourGo(1);};
+ box.querySelector('.te').onclick=e=>{e.stopPropagation();tourEnd();};
+ box.addEventListener('click',e=>{if(TOUR.on&&box.classList.contains('wel')&&!e.target.closest('button'))tourGo(1);});
+ // Randomize on the start screen step makes the shape and moves the tour on (the button's own click runs first)
+ document.getElementById('dd').addEventListener('click',e=>{if(TOUR.on&&TOUR.steps[TOUR.i].id==='pick'&&e.target.closest('[data-d=point]'))setTimeout(()=>tourGo(1),0);});
+ document.getElementById('start').addEventListener('click',e=>{if(TOUR.on&&TOUR.steps[TOUR.i].id==='start'&&e.target.closest('[data-t=random]'))setTimeout(()=>tourGo(1),0);});
+ let dr=null;c.addEventListener('pointerdown',e=>{if(box.classList.contains('full')||e.target.closest('button'))return;const r=c.getBoundingClientRect();dr=[e.clientX-r.left,e.clientY-r.top];c.setPointerCapture(e.pointerId);c.style.cursor='grabbing';});
+ c.addEventListener('pointermove',e=>{if(!dr)return;TOUR.pos=[e.clientX-dr[0],e.clientY-dr[1]];c.style.left=Math.max(4,Math.min(innerWidth-c.offsetWidth-4,TOUR.pos[0]))+'px';c.style.top=Math.max(4,Math.min(innerHeight-c.offsetHeight-4,TOUR.pos[1]))+'px';});
+ const up=()=>{dr=null;c.style.cursor='';};c.addEventListener('pointerup',up);c.addEventListener('pointercancel',up);
+ window.addEventListener('keydown',e=>{if(!TOUR.on)return;const a=document.activeElement;if(a&&(/INPUT|TEXTAREA|SELECT/.test(a.tagName)||a.isContentEditable))return;
+  const f={ArrowRight:()=>tourGo(1),ArrowLeft:()=>tourGo(-1),Escape:tourEnd}[e.key];if(f){e.preventDefault();e.stopImmediatePropagation();f();}},true);}
 function introClose(){INTRO.on=false;cancelAnimationFrame(INTRO.raf);if(INTRO.fit)removeEventListener('resize',INTRO.fit);INTRO.objs=[];const b=$('#intro');b.classList.remove('show','go','done');}
 function readFile(input,cb){input.onchange=()=>{const f=input.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{cb(JSON.parse(r.result),f.name);}catch(e){toast('Could not open that file: '+e.message);}input.value='';};r.readAsText(f);};input.click();}
 function wire(){
@@ -3974,6 +4156,7 @@ function colWire(){
  document.querySelectorAll('aside.right>details.top').forEach(d=>{if(o&&d.id in o)d.open=!!o[d.id];d.addEventListener('toggle',rsSave);});
  const n=$('#colName');n.value=colName();n.onchange=()=>colSetName(n.value);n.onkeydown=e=>{if(e.key==='Enter')n.blur();};
  $('#cjGo').onclick=colJoinGo;$('#cjName').onkeydown=e=>{if(e.key==='Enter')colJoinGo();};
+ $('#cjTour').onclick=()=>tourStart(true);$('#inTour').onclick=()=>tourStart(false);$('#inTourJa').onclick=()=>{setLang('ja');tourStart(false);};
  $('#cjCancel').onclick=()=>{COL.invite=null;colHide('#colJoin');};
  $('#cwCancel').onclick=()=>{colSend({t:'leave'});colReset();colClearDesign();};
  $('#chatGo').onclick=chatSend;$('#chatIn').onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();chatSend();}};$('#rsChat').addEventListener('toggle',()=>{if($('#rsChat').open)chatSync.end=true;chatSync();});
