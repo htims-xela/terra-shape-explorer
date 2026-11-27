@@ -1269,6 +1269,160 @@ test('Collaborate: the owner removes people, hands over or ends the session; edi
  [...dd.querySelectorAll('#cdAct button')].find(x=>x.textContent==='Close without saving').click();await sleep(20);ok(d.document.querySelector('#start').classList.contains('show'),'then it closes to the start screen');
 });
 
+/* ---------- the design game ---------- */
+// some library shapes as a game's entries, made by u0, u1…, and a stage run to its end with each voter answering by vote(S,C,who)
+const GM_FAKE=`(n=>{const L=LIB.slice(0,n);GM.ent=L.map((e,i)=>{const d=libDesign(e);return{id:gmLab(i),by:'u'+i,nm:e.name,p:d.p,curves:d.curves};});GM.W.clear();return GM.ent.map(e=>e.id);})`;
+const GM_RUN=`((m,o,voters,vote,first)=>{const ids=GM.ent.map(e=>e.id);COL.roster=voters.map(id=>({id,role:'edit',name:id}));
+ GM.st={ph:'stage',i:0,flow:[{m,keep:0,o}],f:first||ids.slice(),vo:voters,R:[],aw:[],desc:{},dd:{}};const S={k:1};GM.st.S=S;const C=gmCtx();let ms=ENG[m].init(S,C),steps=0,need=[];
+ while(ms>0&&steps<300){for(const u of voters){const v=vote(S,C,u);if(v)ENG[m].vote(S,C,u,v);}need.push(ENG[m].need(S,C));ms=ENG[m].step(S,C);S.k++;steps++;}
+ const R=ENG[m].rank(S,C);return{steps,r:R.r.join(''),sc:R.sc,S,need};})`;
+test('Design game: the stages play out, and each ranks the shapes',async({w,E,ok})=>{
+ E(`loadLib('Kocho');window.FAKE=${GM_FAKE};window.RUN=${GM_RUN};FAKE(8);window.pref=id=>'ABCDEFGH'.indexOf(id);window.pick=m=>m?(pref(m.a)<pref(m.b)?{c:'a'}:{c:'b'}):null;window.V=['u0','u1','u2','u3','x9'];`);
+ const R=(m,o,vote)=>JSON.parse(E(`JSON.stringify(RUN('${m}',${JSON.stringify(o)},V,${vote}))`));
+ const s=JSON.parse(E(`JSON.stringify(gmStat('A'))`));ok(s.kM>20&&s.sM>20&&s.tM>50&&s.kenH>150&&s.bgD>40&&s.smD>40&&s.baseD>30&&s.lun!=null&&Array.isArray(s.kwc),'the stats: weights in maple, the cups, the ken length, the spike in lunar, KWC warnings');
+ ok(Math.abs(s.kM-E(`(()=>{const p=wpClone(GM.ent[0].p);p.kenRho=0.705;p.sarRho=0.705;p.tamaRho=0.705;sanitize(p);return analyze(build(p,GM.ent[0].curves)).kM;})()`))<1e-6,'weights are worked out in hard maple, whatever wood the design says');
+ // swipe: someone who ran out of time counts only for what they saw
+ const sw=R('swipe',{sec:15},`(S,C,u)=>({b:u==='x9'?{A:0}:gmMap(gmOwn(C,u),id=>pref(id)<4?1:0)})`);
+ ok(sw.steps===1&&sw.r==='BCDAEFGH'&&sw.sc.A==='3 / 4 · 75%'&&sw.sc.B==='3 / 3 · 100%'&&sw.sc.E==='0 / 4 · 0%','swipe: the share of likes from those who saw each shape; nobody likes their own; a half-done voter counts where they voted');
+ const sw2=R('swipe',{sec:15},`(S,C,u)=>({b:gmMap(gmOwn(C,u),id=>id==='C'?1:0)})`);ok(sw2.r[0]==='C','the most liked shape comes first');
+ // brackets
+ const b1=R('bracket',{elim:1,third:true,sec:30},`(S,C,u)=>pick(S.B.m)`),b1n=R('bracket',{elim:1,third:false,sec:30},`(S,C,u)=>pick(S.B.m)`);
+ ok(b1.steps===8&&b1n.steps===7&&b1.r[0]==='A'&&b1n.r[0]==='A','single elimination: 7 matches for 8 shapes, 8 with the match for 3rd place; the favourite wins');
+ const b2=R('bracket',{elim:2,sec:30},`(S,C,u)=>pick(S.B.m)`),b3=R('bracket',{elim:3,sec:30},`(S,C,u)=>pick(S.B.m)`);
+ ok(b2.steps===14&&b2.r.slice(0,2)==='AB'&&b3.steps===21&&b3.r.slice(0,2)==='AB','double and triple elimination: two and three losses to go out');
+ ok(E(`(()=>{const B={};bkInit(B,['A','B','C','D'],2,false);let n=0,d=0;while(B.m&&n<30){const m=B.m;let w;if(m.a==='D'||m.b==='D')w=d++===0?(m.a==='D'?m.b:m.a):'D';else w=pref(m.a)<pref(m.b)?m.a:m.b;bkRes(B,w===m.a?1:0,w===m.b?1:0);bkNext(B);n++;}return bkAlive(B).join('')+n;})()`)==='D7','double elimination: the favourite of the losers’ side beats the unbeaten one twice (a deciding final)');
+ const tie=JSON.parse(E(`JSON.stringify((()=>{const B={},S={v:{u1:'a',u2:'b'}};bkInit(B,['A','B'],1,false);const ms=bkStep(B,S,30);const re=!!B.m&&B.m.re;S.v={u1:'a',u2:'b'};const ms2=bkStep(B,S,30);return[ms,re,ms2,B.log[0].w,B.log[0].tb];})())`));
+ ok(tie[0]===15000&&tie[1]&&tie[2]===0&&tie[3]==='A'&&tie[4]===1,'a tie is voted on once more, then goes to the better seed');
+ // round robin, with pools and a playoff
+ const rv=`(S,C,u)=>S.po?pick(S.po.m):({m:Object.fromEntries(S.cur.map((m,i)=>[i,pref(m.a)<pref(m.b)?'a':'b']))})`;
+ const r1=R('rr',{pools:1,sec:12},rv),r2=R('rr',{pools:2,adv:2,playoff:true,sec:12,seed:'rank'},rv),r2n=R('rr',{pools:2,adv:1,playoff:false,sec:12,seed:'rank'},rv);
+ ok(r1.steps===7&&r1.r==='ABCDEFGH'&&r1.sc.A==='7–0–0'&&r1.sc.H==='0–0–7','round robin: 7 rounds, everyone meets everyone once');
+ ok(r2.steps===6&&r2.r.slice(0,2)==='AB'&&new Set(r2.r.slice(0,4)).size===4,'pools of 4 (3 rounds), then a playoff bracket for the top 2 of each pool (3 matches)');
+ ok(r2n.steps===3&&/^AB/.test(r2n.r),'without a playoff: the pool winners come first');
+ ok(E(`(()=>{const P=rrSched(['A','B','C','D','E']),seen=new Set();for(const rd of P)for(const[a,b]of rd)seen.add([a,b].sort().join(''));return P.length===5&&seen.size===10;})()`),'an odd pool: each sits one round out, and every pair meets once');
+ ok(E(`(()=>{const S={pl:[['A','B']],res:[{a:'A',b:'B',p:0,va:2,vb:2,w:null,r:0}]};const t=rrTab(S,{sd:id=>0},0);return t[0].pts===.5&&t[0].d===1;})()`),'an even vote in a round robin is a draw, half a point each');
+ // king of the hill: the king keeps an even vote
+ const kh=R('koth',{sec:15,laps:1},`(S,C,u)=>pick(S.m)`);ok(kh.steps===7&&kh.r[0]==='A'&&kh.sc.A==='7','King of the Hill: seven challenges, the favourite holds the hill');
+ const ke=R('koth',{sec:15,laps:2},`(S,C,u)=>null`);ok(ke.steps===14&&ke.r[0]==='A','two rounds of challenges; with no votes the king keeps the hill');
+ // line them up, lunar, auction, Olympics, awards
+ const rk=R('rank',{per:12},`(S,C,u)=>({ord:gmOwn(C,u).sort((a,b)=>pref(a)-pref(b)),d:1})`);ok(rk.r==='ABCDEFGH'&&rk.sc.A==='100'&&rk.sc.H==='0','line them up: everyone’s order added up');
+ const lu=R('lunar',{t:0,sec:60,rounds:2},`(S,C,u)=>S.ph==='adj'?(u==='u0'?{ord:S.base.slice().reverse(),d:1}:null):{ok:0}`);
+ const auto=E(`(()=>{const C=gmCtx();return gmSort(C,C.f,id=>[-Math.abs(gmStat(id).lun)]).join('');})()`);
+ ok(lu.steps===4&&lu.S.rd===2,'lunar: more disagree than agree, so a second round; then the order stands');
+ const lu2=R('lunar',{t:0,sec:60,rounds:3},`(S,C,u)=>S.ph==='adj'?null:{ok:1}`);ok(lu2.steps===2&&lu2.r===auto,'lunar: the shapes start in order of how near level their spike is, and stand when everyone agrees');
+ const au=R('auction',{tok:10,cap:3},`(S,C,u)=>({b:{E:3,F:3,G:3,H:3},d:1})`),au2=R('auction',{tok:10,cap:3},`(S,C,u)=>({b:{F:5},d:1})`);ok(au.sc.E==='0'&&au2.sc.F==='15'&&au2.r[0]==='F','auction: more than the tokens you have is turned away; more than the most on one shape is cut down to it');
+ const aw=R('auction',{tok:10,cap:3,worst:true},`(S,C,u)=>({b:Object.fromEntries(gmOwn(C,u).filter(id=>pref(id)>=5).map(id=>[id,3])),d:1})`);
+ ok(aw.r.slice(0,5)==='ABCDE'&&aw.r.slice(-3).split('').every(x=>'FGH'.includes(x))&&aw.sc.F==='15','knock-out tokens: the shapes with the most go to the bottom');
+ const ol=R('olympics',{ev:[{k:'kenH',how:'high'},{k:'kwc'}],sec:6},`()=>null`);
+ const hi=E(`GM.ent.map(e=>e.id).sort((a,b)=>gmStat(b).kenH-gmStat(a).kenH)[0]`);ok(ol.steps===2&&ol.r[0]===hi,'Spec Olympics: one step an event, nobody votes; the longest ken wins “highest wins”');
+ ok(E(`ENG.olympics.need()`)===null,'Spec Olympics runs on time only');
+ const ad=R('awards',{cats:['Best tama','Most original'],sec:0},`(S,C,u)=>({a:{0:'B',1:u==='u2'?'D':'C'},d:1})`);
+ ok(ad.r==='BCDAEFGH'&&E(`JSON.stringify(ENG.awards.rank(GM.st.S,gmCtx()).aw.map(a=>[a.c,a.w.join(''),a.n]))`)==='[["Best tama","B",4],["Most original","C",4]]','awards: each award goes to the most votes (not your own); as the only stage, the shapes with awards come first');
+ // the playing-time estimates and the cleaned-up settings
+ ok(['swipe','bracket','rr','koth','rank','lunar','auction','olympics','awards'].every(m=>E(`gmEst('${m}',null,8)`)>0),'every stage has a playing time');
+ const cl=JSON.parse(E(`JSON.stringify(gmClean({on:1,design:-4,flow:[{m:'nope'},{m:'koth',keep:999}],verb:'x'}))`));
+ ok(cl.on===true&&cl.design===0&&cl.flow.length===1&&cl.flow[0].keep===64&&cl.flow[0].o.sec===15&&cl.verb==='std','settings are kept within bounds');
+});
+
+test('Design game: set up in the start window, with a chain of stages',async({w,E,ok})=>{
+ E(`loadLib('Kocho');colSetName('Ann');colSetup.o=null;colSetup();`);await sleep(30);const q=s=>w.document.querySelector(s);
+ q('#coSimple').click();await sleep(10);ok(!q('#coGame'),'no game without own kendamas');
+ q('#coOwn').click();await sleep(10);ok(!!q('#coGame')&&!q('#coGame').checked&&!q('#coGameOpts'),'with own kendamas: the Design game option, off');
+ q('#coGame').click();await sleep(10);ok(!!q('#coGTime')&&q('#coGTime').value==='30'&&q('#coGDesc').value==='90'&&q('#coGMine').checked&&q('#coGSame').checked&&q('#coGReveal').checked&&!!q('#coGWatch'),'its options: design time, time to describe, who plays, watchers, showing who made what');
+ q('#coView').click();await sleep(10);ok(!q('#coGWatch'),'no watchers: no “watchers can vote”');q('#coView').click();await sleep(10);
+ ok(/Swipe.*Elimination bracket/.test(q('#coGameOpts').textContent)&&/top\s*8/.test(q('#coGameOpts').textContent),'the stages so far: swipe, top 8, then a bracket');
+ q('#coGStages').click();await sleep(20);const set=q('#gmSet');ok(set.classList.contains('show')&&set.querySelectorAll('.gs-st').length===2,'the stages window, with two stages');
+ q('#gsAdd').click();await sleep(10);ok(set.querySelectorAll('.gs-st').length===3,'add a stage');
+ const third=set.querySelectorAll('.gs-st')[2],ms=third.querySelector('.gs-m');ms.value='auction';ms.onchange();await sleep(10);
+ ok(/Knock-out tokens/.test(set.querySelectorAll('.gs-st')[2].textContent),'a token auction, with knock-out tokens as an option');
+ set.querySelectorAll('.gs-st')[2].querySelectorAll('.gs-hd button')[0].click();await sleep(10);ok(set.querySelectorAll('.gs-st')[1].querySelector('.gs-m').value==='auction','move a stage up');
+ set.querySelectorAll('.gs-st')[1].querySelectorAll('.gs-hd button')[2].click();await sleep(10);ok(set.querySelectorAll('.gs-st').length===2,'take one out');
+ const b=set.querySelectorAll('.gs-st')[1],bs=b.querySelector('.gs-m');bs.value='rr';bs.onchange();await sleep(10);
+ const pools=[...set.querySelectorAll('.gs-st')[1].querySelectorAll('label')].find(l=>/Pools/.test(l.textContent)).querySelector('input');pools.value='3';pools.onchange();await sleep(10);
+ ok(/Through from each pool/.test(set.textContent)&&/playoff/.test(set.textContent),'round robin with pools: how many go through, and a playoff');
+ const pre=q('#gsPre');pre.value='3';pre.onchange();await sleep(10);ok(set.querySelectorAll('.gs-st').length===4&&/Add an event/.test(set.textContent)&&/Add an award/.test(set.textContent),'a ready-made game: Olympics (events), auction, King of the Hill, awards');
+ ok(/About\s*\d+\s*min of play in all/.test(set.textContent),'and how long it takes');
+ q('#gsVerb').value='full';q('#gsVerb').onchange();q('#gsDone').click();await sleep(10);ok(!set.classList.contains('show')&&/Spec Olympics/.test(q('#coGameOpts').textContent),'Done: back in the start window with the new stages');
+ const room=new TSERoom({});w.COL_SOCKET=fakeNet(room);E(`COL.id=COL.dev='gs${Math.random().toString(36).slice(2,6)}'`);[...q('#cdAct').querySelectorAll('button')].pop().click();await sleep(60);
+ const g=JSON.parse(E('JSON.stringify(COL.cfg.game)'));ok(E('colOwn()')&&g.on&&g.flow.length===4&&g.flow[0].m==='olympics'&&g.verb==='full'&&g.design===30,'the session starts with the game in its settings');
+ ok(E('GM.st.ph')==='design'&&E('gmLeft()')>29*60000&&q('#gmPill').style.display!=='none'&&/Design time/.test(q('#gmPill').textContent),'the design time is running, shown at the top for everyone');
+ E('syncCol()');ok(/Design game/.test(q('#colBody').textContent)&&!!q('#gmStart')&&!!q('#gmStages')&&!!q('#gmDraft'),'the owner’s game controls under Collaborate, and a box to describe your shape');
+ E(`GM.end=Date.now()+299000;gmClock();`);ok(/5 minutes/.test(q('#toast').textContent),'a warning at 5 minutes to go');
+ E(`colSend({t:'end'});colReset();`);await sleep(20);ok(!E('GM.st')&&q('#gmPill').style.display==='none','after the session, no game');
+});
+
+test('Design game: a whole game between three people, an owner dropping out, someone coming in late, and the results file',async({w,E,ok})=>{
+ const room=new TSERoom({setTimeout:(f,ms)=>ms<100000?queueMicrotask(f):0});w.COL_SOCKET=fakeNet(room);
+ E(`COL.id=COL.dev='ann${Math.random().toString(36).slice(2,6)}';loadLib('Kocho');colSetName('Ann');colStart({max:6,own:true,game:{on:true,design:0,desc:60,reveal:true,specs:true,verb:'full',top:3,flow:[{m:'swipe',keep:2,o:{sec:15}},{m:'bracket',keep:0,o:{elim:1,third:false,sec:30}}]}});`);await sleep(40);
+ const join=async name=>{const x=await loadExtra(`#join=${E('COL.room')}.${E('COL.keys.edit')}`);await sleep(60);x.COL_SOCKET=fakeNet(room);x.eval(`COL.id=COL.dev='${name.toLowerCase()}${Math.random().toString(36).slice(2,6)}'`);x.document.querySelector('#cjName').value=name;x.document.querySelector('#cjGo').click();await sleep(80);return x;};
+ const b=await join('Bob'),c=await join('Cy'),B=x=>b.eval(x),C=x=>c.eval(x);await settle(w,b,c);await settle(w,b,c);
+ ok(B('GM.st&&GM.st.ph')==='design'&&B('gmLeft()')===null&&b.document.querySelector('#gmPill').style.display!=='none','Bob sees the design time (no clock: the owner starts the game)');
+ // everyone changes their own kendama; Bob writes a few words while designing
+ E(`setParam('bgD',S.p.bgD+1.5);commit();`);B(`setParam('smD',S.p.smD-1);commit();`);C(`setParam('baseD',S.p.baseD+1);commit();`);await settle(w,b,c);
+ B(`syncCol()`);const dr=b.document.querySelector('#gmDraft');ok(!!dr,'Bob has a box for his words');dr.value='Deep cups for spacewalk';dr.oninput();
+ const adv=async()=>{E('GM.end=Date.now();gmTick();');await settle(w,b,c);};
+ E('gmStartNow()');[...w.document.querySelectorAll('#cdAct button')].find(x=>x.textContent==='Start the game').click();await settle(w,b,c);
+ ok(B('GM.st.ph')==='lock'&&b.document.querySelector('#gm').classList.contains('show')&&/Pencils down/.test(b.document.querySelector('#gmBody').textContent),'pencils down: the game window opens for everyone');
+ await adv();
+ ok(E('GM.ent.length')===3&&B('GM.ent.length')===3&&C('GM.st.ph')==='desc','each kendama is in the game; time to describe them');
+ const ents=JSON.parse(E('JSON.stringify(GM.ent.map(e=>[e.id,e.by,e.nm]))')),bobE=ents.find(e=>e[2]==='Bob')[0],cyE=ents.find(e=>e[2]==='Cy')[0],annE=ents.find(e=>e[2]==='Ann')[0];
+ ok(Math.abs(E(`GM.ent.find(e=>e.id==='${cyE}').p.baseD`)-C(`S.p.baseD`))<1e-9,'the copies are each kendama as it was at pencils down');
+ ok(E(`GM.st.desc['${bobE}']`)==='Deep cups for spacewalk','Bob’s words from the design time went in by themselves');
+ const cta=c.document.querySelector('#gmDesc');ok(!!cta,'Cy is asked to describe their shape');cta.value='Long ken, light tama';cta.oninput();c.document.querySelector('#gmDescGo').click();E(`GM.draft='Classic, a touch wider';gmDescSend(1);`);await settle(w,b,c);
+ ok(E(`GM.st.desc['${cyE}']`)==='Long ken, light tama'&&E(`GM.st.dd['${cyE}']`)===1,'Cy’s words are in, marked done');
+ // newcomer during the game: Dee watches this stage
+ await adv();ok(E('GM.st.ph')==='stage'&&B('GM.st.ph')==='stage'&&E('gmStg().m')==='swipe','stage 1: swipe');
+ const sh=b.document.querySelector('#gmBody .gm-sc .gm-lab b').textContent;ok(sh!==bobE,'Bob never gets his own shape to swipe');
+ ok(!/Bob|Cy|Ann/.test(b.document.querySelector('#gmBody').textContent),'no names on the shapes');
+ ok(/Deep cups|Classic/.test(c.document.querySelector('#gmBody').textContent)&&/Long ken|Classic/.test(b.document.querySelector('#gmBody').textContent),'the words are shown with the shapes');
+ const st=b.document.querySelector('#gmBody .gm-st');ok(/Ken/.test(st.textContent)&&/Sarado/.test(st.textContent)&&/Tama/.test(st.textContent)&&/Big cup Ø/.test(st.textContent)&&/Ken length/.test(st.textContent)&&/lunar/.test(st.textContent),'the stats card');
+ b.document.querySelector('#gmBody .gm-chip').click();await sleep(10);ok(!!b.document.querySelector('#gmBody canvas.gm-cv[data-ov]'),'a compare outline on the card');
+ b.document.querySelector('#gmYes').click();B('gmRe()');b.document.querySelector('#gmNo').click();B('gmRe()');await settle(w,b,c);
+ ok(Object.keys(E(`GM.st.S.v['${B('COL.id')}']`)||{}).length===2&&/every shape/.test(b.document.querySelector('#gmBody').textContent),'Bob swipes both: his answers reach the owner');
+ C(`gmVote({b:{'${bobE}':1}})`);E(`gmVote({b:gmMap(gmOwn(gmCtx(),COL.id),id=>id==='${bobE}'?1:0)})`);await settle(w,b,c);
+ const d=await join('Dee'),D=x=>d.eval(x);await settle(w,b,c,d);await settle(w,b,c,d);
+ ok(D('GM.st&&GM.st.ph')==='stage'&&!D('gmCanV()')&&d.document.querySelector('#gm').classList.contains('show')&&/vote from the next one/.test(d.document.querySelector('#gmBody').textContent),'Dee comes in during the stage: sees it, votes from the next');
+ E('clearInterval(GM.tick);GM.tick=0;GM.end=Date.now()-1;');C('GM.st.left=0;GM.rt=Date.now();GM.nudge=0;gmClock();');await settle(w,b,c,d);
+ ok(E('GM.st.ph')==='gap'&&E('GM.st.f.length')===2&&E(`GM.st.f[0]`)===bobE,'time is up (the owner’s clock was late, and Cy’s app nudged it): Cy’s one answer counts; the top 2 go through, Bob’s first');
+ ok(/top\s*2\s*go through/.test(c.document.querySelector('#gmBody').textContent),'the results between stages, with the cut');
+ await adv();ok(E('gmStg().m')==='bracket'&&E('GM.st.vo.length')===4&&D('gmCanV()'),'stage 2, a bracket: Dee votes now');
+ const m=JSON.parse(E('JSON.stringify(GM.st.S.B.m)')),fin=[m.a,m.b];
+ // the owner drops out mid-match: Bob takes over the game where it was
+ const voter=[[b,bobE],[c,cyE],[d,null]].filter(([x,e])=>!fin.includes(e)).map(([x])=>x);
+ for(const x of voter){x.eval(`gmVote({c:'a'})`);}await settle(w,b,c,d);
+ E('COL.bye=true;colDrop();clearInterval(GM.tick);GM.tick=0;');await sleep(60);await settle(b,c,d);await settle(b,c,d);
+ ok(B('COL.role')==='owner'&&B('gmHost()')&&B('GM.st.ph')==='stage'&&B('GM.st.S.B.m.a')===m.a,'Ann is gone: Bob is the owner and carries the game on from the same match');
+ await settle(b,c,d);ok(B(`Object.keys(GM.st.S.v).length`)===voter.length,'everyone’s vote for the match came to Bob again');
+ B('GM.end=Date.now();gmTick();');await settle(b,c,d);
+ ok(B('GM.st.ph')==='done'&&C('GM.st.ph')==='done'&&D('GM.st.ph')==='done'&&B('GM.st.fin[0]')===m.a,'the match is played, the game is over: the winner on top');
+ const tx=c.document.querySelector('#gmBody').textContent;ok(/The results/.test(tx)&&/Made by/.test(tx)&&/Ann/.test(tx)&&/Bob/.test(tx)&&/Cy/.test(tx),'the results, with who made each shape');
+ ok(!!b.document.querySelector('#gmPdf')&&!!b.document.querySelector('#gmTopN'),'the owner gets the results file and its options');
+ const pdf=B('gmPdf()'),pages=(pdf.match(/\/Type \/Page /g)||[]).length;ok(pdf.startsWith('%PDF')&&pages>=2+6,'the results PDF: the winners, the results, and the 3 winners’ spec sheets ('+pages+' pages)');
+ ok(/FINAL RANKING/.test(pdf)&&/STAGE 1/.test(pdf)&&/LIKES/.test(pdf)&&/MATCH/.test(pdf)&&/SHAPE/.test(pdf),'full detail: the ranking, each stage, the likes and every match');
+ B('colSaveMine(null)');ok([...b.document.querySelectorAll('#cdAct button')].some(x=>x.textContent==='Game results PDF'),'on the way out, the results file is among what can be saved');B('colHideDlg()');
+ B(`GM.st.R=[];gmCfg().verb='sum';gmCfg().specs=false;`);const p2=B('gmPdf()');ok((p2.match(/\/Type \/Page /g)||[]).length===2&&!/STAGE 1/.test(p2),'a summary: the winners and the final ranking only');
+ B(`colSend({t:'end'});colReset();`);await sleep(40);
+});
+
+test('Design game: every view in Japanese',async({w,E,ok})=>{
+ E(`loadLib('Kocho');colSetName('Ann');window.FAKE=${GM_FAKE};FAKE(5);COL.on=true;COL.role='owner';COL.id='u0';COL.owner='u0';COL.cfg={own:true,seats:{},game:gmClean({on:true,flow:[{m:'swipe'}]})};COL.roster=['u0','u1','u2','u3'].map(id=>({id,role:'edit',name:id}));GM.open=true;setLang('ja');tr.miss&&tr.miss.clear&&tr.miss.clear();`);
+ E(`GM.st={v:1,ph:'lock',i:0,run:true,left:30000,R:[],aw:[],desc:{A:'short words'},dd:{},f:['A','B','C','D','E'],vo:['u0','u1','u2','u3'],flow:${JSON.stringify(GM_ORDER_T)}.map(m=>({m,keep:3,o:gmOpt(m)}))};`);
+ const errs=[];const show=async st=>{try{E(`Object.assign(GM.st,${JSON.stringify(st)});gmRe();`);}catch(e){errs.push(e.message);}await sleep(20);};
+ await show({ph:'lock'});await show({ph:'desc'});E(`COL.id='zz'`);await show({ph:'desc'});E(`COL.id='u0'`);
+ for(let i=0;i<GM_ORDER_T.length;i++){E(`Object.assign(GM.st,{ph:'stage',i:${i}});GM.st.S={k:1};ENG[gmStg().m].init(GM.st.S,gmCtx());`);await show({});
+  if(GM_ORDER_T[i]==='lunar'){E(`GM.st.S.comb=GM.st.S.base.slice();GM.st.S.ph='agr';`);await show({});}
+  if(GM_ORDER_T[i]==='bracket'){E(`GM.st.S.B.log.push({a:'A',b:'B',va:2,vb:2,w:'A',t:0,r:1,tb:1});`);await show({});}}
+ for(let i=0;i<GM_ORDER_T.length-1;i++){E(`GM.st.i=${i};GM.st.S={k:1};ENG[gmStg().m].init(GM.st.S,gmCtx());GM.st.R[${i}]=Object.assign({m:gmStg().m,n:5,keep:3,f:GM.st.f.slice()},ENG[gmStg().m].rank(GM.st.S,gmCtx()));`);await show({ph:'gap'});}
+ E(`GM.st.aw=[{c:'Best tama',w:['A'],n:2}];GM.st.fin=['A','B','C','D','E'];`);await show({ph:'done'});
+ E(`GM.st.ph='design';syncCol();gmPill();colSetup.o=null;colSetup();$('#coSimple').click();$('#coOwn').click();$('#coGame').click();gsOpen(gmClean({on:true,flow:${JSON.stringify(GM_ORDER_T)}.map(m=>({m,keep:3,o:gmOpt(m)}))}),null,8);`);await sleep(40);
+ const miss=E(`[...(tr.miss||[])]`).filter(t=>/[A-Za-z]{3}/.test(t)&&!/^(Kocho|Aurum|Ditto|GFN|Gyro|Nemus|R26|Prefect|P1|Jon Rogers|LBB|TERRA|KOCHO|Terra Shape Explorer|Kendama Design Session|EN|KWC|short words)$/.test(t.trim()));
+ ok(!errs.length,'every view draws: '+errs.join(' | '));
+ ok(miss.length===0,'untranslated: '+miss.slice(0,8).join(' | '));
+ ok(/デザインゲーム/.test(w.document.querySelector('#colOpts').textContent),'the start window’s game option is in Japanese');
+ E(`setLang('en');colHide('#gmSet');colHideDlg();COL.on=false;GM.st=null;gmRender();`);
+});
+const GM_ORDER_T=['swipe','bracket','rr','koth','rank','lunar','auction','olympics','awards'];
+
 test('Collaborate: an owner who drops out is replaced by an editor after a while',async({w,E,ok})=>{
  const room=new TSERoom({setTimeout:f=>queueMicrotask(f)}),[b]=await team(w,room,[['Bob','edit']]);
  E('COL.bye=true;colDrop();');await sleep(60);await settle(b);
