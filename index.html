@@ -182,6 +182,27 @@ body.wp-pick #cv{cursor:crosshair}
 .row input[type=text]{flex:1;min-width:0}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:20;padding:16px}
 .modal.show{display:flex}
+/* CNC lathe simulator: a small window that floats over the app; drag it by its title bar, resize it from the corner */
+.simwin{position:fixed;top:64px;right:322px;width:min(640px,calc(100vw - 12px));height:min(560px,calc(100dvh - 76px));min-width:340px;min-height:360px;z-index:19;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.3);resize:both;overflow:hidden}
+.sim-hd{display:flex;align-items:center;gap:6px;padding:6px 8px;border-bottom:1px solid var(--line);cursor:grab;touch-action:none;user-select:none}.sim-hd:active{cursor:grabbing}
+.sim-hd b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sim-hd button,.sim-hd select{cursor:pointer}
+.sim-stale{display:flex;align-items:center;gap:8px;padding:5px 8px;background:var(--warn-bg);color:var(--warn-ink);font-size:12px}.sim-stale span{flex:1}
+.sim-st{position:relative;flex:1;min-height:120px;background:var(--canvas)}
+#simCv{position:absolute;inset:0;width:100%;height:100%;display:block}
+.sim-ban{position:absolute;left:50%;top:10px;transform:translateX(-50%);background:var(--accent);color:var(--accent-ink);border-radius:7px;padding:5px 10px;font-size:12px;font-weight:600;opacity:0;transition:opacity .25s;pointer-events:none;max-width:92%;text-align:center}.sim-ban.show{opacity:1}
+.sim-bar{display:flex;align-items:center;gap:6px;padding:6px 8px;border-top:1px solid var(--line)}
+.sim-bar button{padding:4px 8px;display:flex;align-items:center}.sim-bar svg{width:14px;height:14px;fill:currentColor}
+#simPlay .ic-pause{display:none}#simPlay.on .ic-pause{display:block}#simPlay.on .ic-play{display:none}#simPlay.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+#simT{flex:1;min-width:60px;accent-color:var(--accent)}
+.sim-ro{display:flex;flex-wrap:wrap;gap:2px 12px;padding:0 8px 6px;font-size:11px;color:var(--muted)}.sim-ro b{color:var(--ink);font-variant-numeric:tabular-nums;margin-left:3px}
+.sim-low{display:flex;gap:8px;padding:0 8px 8px;height:136px;flex:none}
+.sim-code{flex:1.3;min-width:0;font:11px/15px ui-monospace,"SF Mono",Menlo,monospace;background:var(--soft);border:1px solid var(--line);border-radius:6px;overflow:hidden;padding:3px 0}
+.sim-code div{white-space:pre;overflow:hidden;text-overflow:ellipsis;padding:0 6px;cursor:pointer}.sim-code div.on{background:var(--accent);color:var(--accent-ink)}
+.sim-code i{font-style:normal;display:inline-block;min-width:34px;color:var(--muted)}.sim-code div.on i{color:inherit;opacity:.8}
+.sim-side{flex:1;min-width:0;overflow-y:auto;font-size:12px}.sim-side label{display:flex;align-items:center;gap:5px;color:var(--muted)}
+.sim-side .warn,.sim-side .okmsg{margin:4px 0}.sim-side .okmsg b,.sim-side .warn b{margin-left:4px}
+@media (max-width:760px){.simwin{top:52px;left:6px;right:6px;width:auto;height:calc(100dvh - 120px);min-width:0;resize:none}.sim-low{height:116px}}
+body.col-view #rsSim,body.col-view #simWin,body.col-view #gSim{display:none!important}
 /* intro: floating wireframes of the library shapes, the name and Begin */
 #intro{position:fixed;inset:0;z-index:40;background:var(--bg);display:none;overflow:hidden;transition:opacity .45s ease}
 #intro.show{display:block}#intro.done{opacity:0;pointer-events:none}
@@ -434,6 +455,10 @@ body.tour-start #start .card *{pointer-events:none}body.tour-start #start .card 
     <details class="top" id="rsChk" open><summary>Shape checks</summary>
     <div id="warns"></div>
     </details>
+    <details class="top" id="rsSim" open><summary>CNC lathe simulator</summary>
+    <p class="pnote">Runs the lathe G-code this app writes and shows the cut, move by move, before it goes to a machine.</p>
+    <div class="row"><button id="bSimKen">Simulate the ken</button><button id="bSimSar">Simulate the sarado</button></div>
+    </details>
   </aside>
 </div>
 
@@ -477,8 +502,20 @@ body.tour-start #start .card *{pointer-events:none}body.tour-start #start .card 
     <label>Max spindle speed (rpm) <input type="number" id="gRpm" value="3000" step="100"></label>
   </div>
   <textarea id="gOut" readonly></textarea>
-  <div class="row" style="justify-content:flex-end;margin-top:10px"><button id="gClose">Close</button><button id="gGen">Preview</button><button id="gSave" class="pri">Download .nc</button></div>
+  <div class="row" style="justify-content:flex-end;margin-top:10px"><button id="gClose">Close</button><button id="gGen">Preview</button><button id="gSim" title="Play this program in the CNC lathe simulator">Simulate</button><button id="gSave" class="pri">Download .nc</button></div>
 </div></div>
+<div id="simWin" class="simwin" style="display:none" role="dialog" aria-label="CNC lathe simulator">
+  <div class="sim-hd" title="Drag to move the simulator"><b>CNC lathe simulator</b><select id="simPart" title="Which part to cut"><option value="ken">Ken</option><option value="sarado">Sarado</option></select><span class="spacer"></span><button id="simSet" title="Change the stock, cuts and feeds in the G-code window">G-code settings…</button><button id="simX" title="Close the simulator" aria-label="Close">✕</button></div>
+  <div class="sim-stale" id="simStale" style="display:none"><span>The design has changed since this G-code was made.</span><button id="simReload">Reload</button></div>
+  <div class="sim-st"><canvas id="simCv"></canvas><div class="sim-ban" id="simBan"></div></div>
+  <div class="sim-bar">
+   <button id="simRst" title="Back to the start"><svg viewBox="0 0 16 16"><path d="M3 3h2v10H3zM13 3v10L6 8z"/></svg></button><button id="simPlay" class="pri" title="Play or pause"><svg viewBox="0 0 16 16" class="ic-play"><path d="M4 2.5v11L13.5 8z"/></svg><svg viewBox="0 0 16 16" class="ic-pause"><path d="M4 3h3v10H4zM9 3h3v10H9z"/></svg></button><button id="simEnd" title="Jump to the end"><svg viewBox="0 0 16 16"><path d="M3 3v10L10 8zM11 3h2v10h-2z"/></svg></button>
+   <input type="range" id="simT" min="0" max="1000" value="0" step="1" aria-label="Position in the program">
+   <select id="simSpd" title="Playback speed (times machine speed)"></select>
+  </div>
+  <div class="sim-ro" id="simRo"></div>
+  <div class="sim-low"><div class="sim-code" id="simCode" translate="no"></div><div class="sim-side"><label><input type="checkbox" id="simPath" checked> Tool path</label><label><input type="checkbox" id="simRef" checked> Design outline</label><div id="simRes"></div></div></div>
+</div>
 <div class="modal" id="pimp"><div class="card pimp">
   <h1>Import from a photo</h1>
   <div class="pisteps" id="piSteps"></div>
@@ -1487,7 +1524,43 @@ const JA={
 "Save, export, language, etc": "保存、書き出し、言語など",
 "End Tutorial": "チュートリアルを終了",
 "Who is in the session": "セッションの参加者",
-"Talk to everyone in the session": "セッションの全員と話す"
+"Talk to everyone in the session": "セッションの全員と話す",
+"CNC lathe simulator": "CNC旋盤シミュレーター",
+"Runs the lathe G-code this app writes and shows the cut, move by move, before it goes to a machine.": "このアプリが書き出す旋盤用Gコードを実行し、機械に送る前に切削の様子を一手ずつ表示します。",
+"Simulate the ken": "けんをシミュレート",
+"Simulate the sarado": "皿胴をシミュレート",
+"Play this program in the CNC lathe simulator": "このプログラムをCNC旋盤シミュレーターで再生",
+"Simulate": "シミュレート",
+"Drag to move the simulator": "ドラッグしてシミュレーターを移動",
+"Which part to cut": "削る部品",
+"Change the stock, cuts and feeds in the G-code window": "Gコードの画面で材料、切込み、送りを変更",
+"G-code settings…": "Gコードの設定…",
+"Close the simulator": "シミュレーターを閉じる",
+"The design has changed since this G-code was made.": "このGコードを作った後にデザインが変更されました。",
+"Reload": "再読み込み",
+"Back to the start": "最初に戻る",
+"Play or pause": "再生／一時停止",
+"Jump to the end": "最後まで進む",
+"Playback speed (times machine speed)": "再生速度（機械の速度の何倍か）",
+"Tool path": "工具経路",
+"Design outline": "デザインの輪郭",
+"Rapid moves that cut into the stock:": "材料に食い込む早送り：",
+"First at line": "最初の行",
+"No rapid moves cut into the stock.": "材料に食い込む早送りはありません。",
+"Cuts with the spindle stopped, first at line": "主軸停止中の切削、最初の行",
+"Largest difference from the design": "デザインとの最大の差",
+"Cycle time (rapids at 10 m/min, setups not counted)": "加工時間（早送り 10 m/分、段取りは含まない）",
+"A simple check: the tool is a point, so the insert shape and the holder are not checked against the part.": "簡易チェックです。工具は点として扱うため、チップの形やホルダーと部品の干渉は確認しません。",
+"Setup": "段取り",
+"Line": "行",
+"Tool": "工具",
+"X Ø": "X Ø",
+"Feed (mm/rev)": "送り（mm/回転）",
+"Spindle (rpm)": "主軸（rpm）",
+"Time": "時間",
+"rapid": "早送り",
+"Part turned around (parting off is not in the program)": "部品を反転（突切りはプログラムに含まれません）",
+"New setup": "新しい段取り"
 };
 const MON={JAN:1,FEB:2,MAR:3,APR:4,MAY:5,JUN:6,JUL:7,AUG:8,SEP:9,OCT:10,NOV:11,DEC:12};
 const jDate=d=>{const m=d.match(/^([A-Z]{3}) (\d+), (\d{4})$/);return m?`${m[3]}年${MON[m[1]]}月${m[2]}日`:d;};
@@ -3240,7 +3313,7 @@ function gcode(){
  if(part==='ken'){
   L.push('(OP 1 - OUTER PROFILE. Z0 = SPIKE TIP, BASE TOWARD THE CHUCK, TAILSTOCK SUPPORT ADVISED)');
   profile(G.kenPts.slice().reverse().map(([y,r])=>[y-p.kenH,Math.max(0,2*r)]));
-  cup('BASE CUP',[...G.bcP,[0,G.bcP[G.bcP.length-1][1]]]);
+  cup('BASE CUP - FLIP PART',[...G.bcP,[0,G.bcP[G.bcP.length-1][1]]]);
   L.push(`(NOT INCLUDED: PARTING OFF AND STRING HOLE - ${f(p.kenStr)} BELOW THE BEVEL)`);
  }else{
   L.push('(OP 1 - OUTER PROFILE. Z0 = BIG CUP FACE, SMALL CUP TOWARD THE CHUCK)');
@@ -3251,6 +3324,230 @@ function gcode(){
  L.push('M30','%');return L.join('\n')+'\n';
 }
 function gStockDefault(){const G=CUR.G,m=$('#gPart').value==='ken'?Math.max(...G.kenPts.map(q=>q[1])):Math.max(...G.sarPts.map(q=>q[1]));$('#gStock').value=(Math.ceil(m*2+3)).toFixed(1);}
+/* ================= CNC lathe simulator =================
+   Plays the lathe G-code that gcode() writes and draws a simple picture of the cut.
+   simParse(text) reads the program: G0 / G1 moves (X is a diameter), F (mm/rev), G50 S (max rpm), G96 / G97 S, M03 / M05, tools (T, with "FACING" or "CUP" in the
+   comment meaning a face tool) and setups (M00; "FLIP" in its comment means the part is turned around, so its Z0 is then the other end).
+   The stock is a grid of cells in the part's own frame: u along the axis (0 = op 1's Z0, the part toward -u, the chuck grip past the part's end), r = radius.
+   A turning tool clears everything outside its tip at that u; a face tool clears everything between its tip and the face. A rapid move that clears anything is a crash.
+   The tool is a point: insert shape and holder clearance are not checked. simSeek(t) plays to machine time t; going back replays from the start. */
+const SIM={open:false,h:0.1,ds:0.05,rapid:10000,grip:25,speeds:[1,2,5,10,20,50,100,200,500],spd:20,t:0,play:false,hold:0,chips:[],P:null};
+function simParse(text){
+ const lines=text.replace(/\r/g,'').split('\n'),mv=[],setups=[{li:0,flip:false}],tools={};
+ let g=0,x=null,z=null,F=0,S=0,css=false,maxS=1e9,tool='',stock=0,on=false,done=false;
+ lines.forEach((raw,li)=>{
+  if(done)return;
+  const cm=(raw.match(/\(([^)]*)\)/)||['',''])[1],s=raw.replace(/\([^)]*\)/g,'').replace(/;.*/,'').toUpperCase();
+  const sd=cm.match(/STOCK DIA\s*([\d.]+)/i);if(sd)stock=+sd[1];
+  const W={};for(const m of s.matchAll(/([A-Z])\s*([-+]?\d*\.?\d+)/g))(W[m[1]]=W[m[1]]||[]).push(m[2]);
+  let g50=false;
+  for(const v of(W.G||[]).map(Number)){if(v===0||v===1)g=v;else if(v===50)g50=true;else if(v===96)css=true;else if(v===97)css=false;}
+  if(W.S){if(g50)maxS=+W.S[0];else S=+W.S[0];}
+  if(W.F)F=+W.F[0];
+  if(W.T){tool='T'+W.T[0];if(cm||!(tool in tools))tools[tool]=/FACING|CUP|BORING/i.test(cm);}
+  let end=false;
+  for(const v of(W.M||[]).map(Number)){if(v===3||v===4)on=true;else if(v===5)on=false;else if(v===0||v===1)setups.push({li,flip:/FLIP/i.test(cm)});else if(v===30||v===2)end=true;}
+  if((W.X||W.Z)&&!g50){const x1=W.X?+W.X[0]:x,z1=W.Z?+W.Z[0]:z;
+   if(x1!=null&&z1!=null)mv.push({li,g,x0:x??x1,z0:z??z1,x1,z1,F,S,css,maxS,tool,face:!!tools[tool],on,su:setups.length-1});x=x1;z=z1;}
+  if(end)done=true;
+ });
+ // machine time of each move: rapids at SIM.rapid mm/min, feeds from mm/rev and the spindle speed (constant surface speed, capped by G50)
+ let t=0;const R=SIM.rapid/60;
+ for(const m of mv){const len=Math.hypot(m.z1-m.z0,(m.x1-m.x0)/2);let dt;
+  if(m.g===0||!(m.F>0))dt=len/R;
+  else{dt=0;const n=Math.max(1,Math.min(16,Math.ceil(len)));for(let i=0;i<n;i++)dt+=len/n/(m.F*Math.max(1,simRpm(m,m.x0+(m.x1-m.x0)*(i+0.5)/n))/60);}
+  m.len=len;m.t0=t;t+=dt;m.t1=t;}
+ // setups: which way round the part is (o = 1: turned around) and when each starts
+ let o=0;setups.forEach((q,i)=>{if(q.flip)o^=1;q.o=o;const m=mv.find(m=>m.su===i);q.t0=m?m.t0:t;q.mi=m?mv.indexOf(m):mv.length;});
+ return{lines,mv,setups,stock,T:t};
+}
+const simRpm=(m,x)=>m.css?Math.min(m.maxS,m.S*1000/(Math.PI*Math.max(Math.abs(x),0.1))):m.S;
+// the stock grid for a parsed program
+function simStock(P){
+ const h=SIM.h,f0=P.mv.filter(m=>m.su===0&&m.g===1);
+ let R=P.stock/2;if(!(R>0))R=Math.max(1,...P.mv.filter(m=>m.g===1).map(m=>Math.abs(m.x1)/2));
+ let uF=Math.min(0,...f0.map(m=>Math.min(m.z0,m.z1)));if(uF>-1)uF=-50;
+ const u0=uF-SIM.grip,W=Math.ceil(-u0/h),H=Math.ceil(R/h)+1,M=new Uint8Array(W*H);
+ let k1=0;for(let k=0;k<H;k++)if((k+0.5)*h<R){M.fill(1,k*W,(k+1)*W);k1=k+1;}
+ Object.assign(P,{R,uF,u0,W,H,M0:M,top0:new Int16Array(W).fill(k1),k1,cF:Math.round((uF-u0)/h)});
+}
+function simReset(){const P=SIM.P;SIM.M=P.M0.slice();SIM.top=P.top0.slice();SIM.at={i:0,j:0};SIM.parted=false;SIM.jawR=P.R;SIM.hits=[];SIM.t=0;SIM.dirty=[0,P.W-1];SIM.lastHit=-1;}
+// parting off (not in the program): when the part is first turned around, the chuck end past the part goes
+function simPartOff(){const P=SIM.P,h=SIM.h;for(let c=0;c<P.cF;c++){for(let k=0;k<P.H;k++)SIM.M[k*P.W+c]=0;SIM.top[c]=0;}SIM.parted=true;
+ let r=0;for(let c=Math.max(P.cF,P.W-Math.round(14/h));c<P.W;c++)r=Math.max(r,SIM.top[c]*h);SIM.jawR=r||P.R;simDirty(0,P.W-1);}
+function simDirty(a,b){const d=SIM.dirty;if(!d)SIM.dirty=[a,b];else{d[0]=Math.min(d[0],a);d[1]=Math.max(d[1],b);}}
+// one point of the tool tip at machine Z z, X (diameter) x: returns the cells it cleared
+function simCut(m,z,x){
+ const P=SIM.P,h=SIM.h,W=P.W,H=P.H,M=SIM.M,top=SIM.top,o=P.setups[m.su].o,u=o?P.uF-z:z,r=Math.abs(x)/2;let n=0;
+ const fix=c=>{let t=top[c];while(t>0&&!M[(t-1)*W+c])t--;top[c]=t;};
+ if(!m.face){const c=Math.floor((u-P.u0)/h);if(c<0||c>=W)return 0;const k0=Math.max(0,Math.floor(r/h-0.5)+1);if(top[c]<=k0)return 0;
+  for(let k=k0;k<top[c];k++){const i=k*W+c;if(M[i]){M[i]=0;n++;}}top[c]=k0;fix(c);if(n)simDirty(c,c);return n;}
+ const k=Math.floor(r/h);if(k>=H)return 0;const cu=(u-P.u0)/h-0.5,row=k*W;
+ let a,b;if(o){a=SIM.parted?P.cF:0;b=Math.min(W-1,Math.ceil(cu)-1);}else{a=Math.max(0,Math.floor(cu)+1);b=W-1;}
+ for(let c=a;c<=b;c++)if(M[row+c]){M[row+c]=0;n++;if(k===top[c]-1)fix(c);}
+ if(n)simDirty(a,b);return n;
+}
+function simHit(i,kind){if(SIM.lastHit===i+kind)return;SIM.lastHit=i+kind;SIM.hits.push({li:SIM.P.mv[i].li,kind});}
+// play forward to machine time t
+function simAdvance(t){
+ const P=SIM.P,a=SIM.at,ds=SIM.ds;let cut=0;
+ while(a.i<P.mv.length){const m=P.mv[a.i];
+  if(P.setups[m.su].o&&!SIM.parted)simPartOff();
+  const tg=t>=m.t1?m.len:t<=m.t0?-1:m.len*(t-m.t0)/(m.t1-m.t0),N=Math.ceil(m.len/ds)+1;
+  while(a.j<N){const s=Math.min(a.j*ds,m.len);if(s>tg+1e-9)break;const f=m.len?s/m.len:1,n=simCut(m,m.z0+(m.z1-m.z0)*f,m.x0+(m.x1-m.x0)*f);
+   if(n){if(m.g===0)simHit(a.i,'rapid');else if(!m.on)simHit(a.i,'spin');cut+=n;}a.j++;}
+  if(a.j<N)break;a.i++;a.j=0;}
+ // a program with no turn-around ends with the part cut off too
+ if(a.i>=P.mv.length&&!SIM.parted)simPartOff();
+ return cut;
+}
+function simSeek(t){const P=SIM.P;t=Math.max(0,Math.min(P.T,t));if(t<SIM.t-1e-9)simReset();const n=simAdvance(t);SIM.t=t;return n;}
+// where the tool tip is at machine time t, and the move it is on
+function simAt(t){const P=SIM.P,mv=P.mv;if(!mv.length)return null;let lo=0,hi=mv.length-1;while(lo<hi){const mi=(lo+hi)>>1;if(mv[mi].t1<t)lo=mi+1;else hi=mi;}
+ const m=mv[lo],f=m.t1>m.t0?Math.max(0,Math.min(1,(t-m.t0)/(m.t1-m.t0))):1;return{i:lo,m,z:m.z0+(m.z1-m.z0)*f,x:m.x0+(m.x1-m.x0)*f};}
+// the design the program was made from, in the simulator's part frame (u, r), to draw over the cut and measure against
+function simRef(part){
+ const G=CUR.G,p=G.p,cupPts=(rd,fn)=>{const q=rd.map(([r,d])=>fn(r,d));if(rd[rd.length-1][0]>0)q.push(fn(0,rd[rd.length-1][1]));return q;};
+ if(part==='ken'){const uF=-p.kenH;return{outer:G.kenPts.map(([y,r])=>[y-p.kenH,r]),cups:[{pts:cupPts(G.bcP,(r,d)=>[uF+d,r]),rim:G.bcP[0][0],o:1}]};}
+ const uF=G.xS-G.xE;return{outer:G.sarPts.map(([x,r])=>[x-G.xE,r]),cups:[{pts:cupPts(G.bgC,(r,d)=>[-d,r]),rim:G.bgC[0][0],o:0},{pts:cupPts(G.smC,(r,d)=>[uF+d,r]),rim:G.smC[0][0],o:1}]};
+}
+// after a full run: the largest distance between the cut surface and the design outline (outside and cups)
+function simCheck(ref){
+ const P=SIM.P,h=SIM.h,M=SIM.M,W=P.W;if(!ref)return null;
+ const dist=(pts,u,r)=>{let b=1e9;for(let i=1;i<pts.length;i++){const[a0,a1]=pts[i-1],[b0,b1]=pts[i],dx=b0-a0,dy=b1-a1,L=dx*dx+dy*dy,f=L?Math.max(0,Math.min(1,((u-a0)*dx+(r-a1)*dy)/L)):0;b=Math.min(b,Math.hypot(a0+f*dx-u,a1+f*dy-r));}return b;};
+ let out=0,cup=0;
+ for(let c=0;c<W;c++){const u=P.u0+(c+0.5)*h;if(u<P.uF+0.3||u>-0.3)continue;const rs=SIM.top[c]*h;if(rs<0.3)continue;out=Math.max(out,dist(ref.outer,u,rs));}
+ for(const q of ref.cups){const uf=q.o?P.uF:0;
+  for(let k=0;(k+0.5)*h<q.rim-0.3;k++){const row=k*W;let c=Math.round((uf-P.u0)/h)+(q.o?0:-1),step=q.o?1:-1,n=0;
+   while(c>=0&&c<W&&!M[row+c]&&n<3000){c+=step;n++;}if(c<0||c>=W)continue;
+   cup=Math.max(cup,dist(q.pts,P.u0+(c+(q.o?0:1))*h,(k+0.5)*h));}}
+ return{out,cup,max:Math.max(out,cup)};
+}
+// load a program (the app's own G-code for the part) and run it once to the end for the checks, then rewind
+function simLoad(part,keep){
+ part=part==='sarado'?'sarado':'ken';
+ withPrim(()=>{if(!keep||$('#gPart').value!==part||!(+$('#gStock').value>0)){$('#gPart').value=part;gStockDefault();}SIM.code=gcode();SIM.ref=simRef(part);});
+ SIM.part=part;SIM.P=simParse(SIM.code);simStock(SIM.P);simReset();simAdvance(Infinity);
+ SIM.rep={hits:SIM.hits.slice(),chk:simCheck(SIM.ref),T:SIM.P.T};
+ simReset();SIM.play=false;SIM.hold=0;SIM.chips=[];SIM.img=null;
+ SIM.spd=SIM.speeds.find(v=>v>=SIM.P.T/40)||SIM.speeds[SIM.speeds.length-1];
+ if($('#simPart')){$('#simPart').value=part;$('#simSpd').value=SIM.spd;$('#simStale').style.display='none';simResults();simUI(true);simDraw();}
+}
+function simOpen(part,keep){
+ if(colViewOnly())return;
+ const w=$('#simWin');SIM.open=true;w.style.display='';simLoad(part,keep);
+}
+function simClose(){SIM.open=false;SIM.play=false;$('#simWin').style.display='none';}
+const simClock=s=>{s=Math.max(0,Math.round(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
+function simResults(){
+ const R=SIM.rep,host=$('#simRes'),row=(cls,txt,...v)=>host.append(el('div',{class:cls},txt,...v.map(x=>el('b',{},x))));host.innerHTML='';
+ const rp=R.hits.filter(q=>q.kind==='rapid'),sp=R.hits.filter(q=>q.kind==='spin');
+ if(rp.length){row('warn','Rapid moves that cut into the stock:',String(rp.length));row('warn','First at line',String(rp[0].li+1));}else row('okmsg','No rapid moves cut into the stock.');
+ if(sp.length)row('warn','Cuts with the spindle stopped, first at line',String(sp[0].li+1));
+ if(R.chk)row(R.chk.max>0.3?'warn':'okmsg','Largest difference from the design',fmm(R.chk.max)+' mm');
+ row('okmsg','Cycle time (rapids at 10 m/min, setups not counted)',simClock(R.T));
+ host.append(el('p',{class:'pnote'},'A simple check: the tool is a point, so the insert shape and the holder are not checked against the part.'));
+}
+// the readout, the slider and the program listing
+function simUI(force){
+ const P=SIM.P,q=simAt(SIM.t);if(!P)return;
+ const sl=$('#simT');if(document.activeElement!==sl||force)sl.value=P.T?Math.round(SIM.t/P.T*1000):0;
+ $('#simPlay').classList.toggle('on',SIM.play);
+ const ro=$('#simRo'),su=q?q.m.su:0,v=(lab,val,t)=>el('span',{},lab,el('b',t?{}:{translate:'no'},val));
+ const li=q?(SIM.t<=0&&q.i===0?0:q.m.li):0;
+ if(force||ro.dataset.k!==[li,Math.round(SIM.t*10),su].join()){ro.dataset.k=[li,Math.round(SIM.t*10),su].join();ro.innerHTML='';
+  ro.append(v('Setup',(su+1)+' / '+P.setups.length),v('Line',String(li+1)),v('Tool',q?q.m.tool||'-':'-'),v('X Ø',q?fmm(q.x):'-'),v('Z',q?fmm(q.z):'-'),
+   v('Feed (mm/rev)',q&&q.m.g===1?String(q.m.F):'rapid',!(q&&q.m.g===1)),v('Spindle (rpm)',q&&q.m.on?String(Math.round(simRpm(q.m,q.x))):'0'),v('Time',simClock(SIM.t)+' / '+simClock(P.T)));}
+ const box=$('#simCode');if(force||box.dataset.li!==String(li)){box.dataset.li=li;box.innerHTML='';const n=Math.max(3,Math.floor((box.clientHeight||120)/15)),a=Math.max(0,Math.min(P.lines.length-n,li-Math.floor(n/2)));
+  for(let i=a;i<Math.min(P.lines.length,a+n);i++)box.append(el('div',{class:i===li?'on':'',onclick:()=>simGoLine(i)},el('i',{},String(i+1)),P.lines[i]));}
+}
+function simGoLine(li){const m=SIM.P.mv.find(m=>m.li>=li);simSeek(m?m.t0+1e-6:SIM.P.T);simUI(true);simDraw();}
+function simBanner(q){const b=$('#simBan'),i=SIM.P.setups.indexOf(q);b.innerHTML='';b.append(el('span',{},'Setup'),' ',el('b',{translate:'no'},(i+1)+' / '+SIM.P.setups.length),' · ',el('span',{},q.flip?'Part turned around (parting off is not in the program)':'New setup'));
+ b.classList.add('show');clearTimeout(simBanner.t);simBanner.t=setTimeout(()=>b.classList.remove('show'),1800);}
+function simPlay(on){const P=SIM.P;if(!P)return;if(on&&SIM.t>=P.T-1e-9){simSeek(0);}SIM.play=on;SIM.last=0;simUI(true);if(on&&!SIM.raf)SIM.raf=requestAnimationFrame(simTick);}
+function simTick(now){
+ SIM.raf=0;if(!SIM.play||!SIM.open)return;const P=SIM.P,dt=SIM.last?Math.min(0.25,(now-SIM.last)/1000):0;SIM.last=now;
+ if(SIM.hold<now){let t=SIM.t+dt*SIM.spd;
+  const nx=P.setups.find((q,i)=>i>0&&q.t0>SIM.t+1e-9&&q.t0<=t);if(nx){t=nx.t0+1e-9;SIM.hold=now+1500;simBanner(nx);}
+  if(t>=P.T){t=P.T;SIM.play=false;}
+  const n=simSeek(t),q=simAt(SIM.t);
+  if(n&&q&&q.m.g===1)for(let k=0;k<Math.min(3,1+n/40);k++)SIM.chips.push({z:q.z,r:q.x/2,vz:(Math.random()-0.2)*60,vr:20+Math.random()*50,life:0.7});}
+ for(const c of SIM.chips){c.z+=c.vz*dt;c.r+=c.vr*dt;c.vr-=140*dt;c.life-=dt;}SIM.chips=SIM.chips.filter(c=>c.life>0).slice(-80);
+ simUI();simDraw();if(SIM.play)SIM.raf=requestAnimationFrame(simTick);else simUI(true);
+}
+// colours for the picture, from the page's own palette
+function simPal(){const cs=getComputedStyle(document.body),hx=v=>{const s=(cs.getPropertyValue(v)||'').trim(),m=s.match(/^#([0-9a-f]{6})$/i);return m?[0,2,4].map(i=>parseInt(m[1].slice(i,i+2),16)):[236,217,182];};
+ const w=hx('--wood');return{wood:w,raw:w.map(v=>v*0.8),sec:w.map(v=>v*0.9),bg:cs.getPropertyValue('--canvas').trim()||'#fbfaf7',ink:cs.getPropertyValue('--ink').trim()||'#222',muted:cs.getPropertyValue('--muted').trim()||'#777',accent:cs.getPropertyValue('--accent').trim()||'#2f6f5e',ref:cs.getPropertyValue('--tama').trim()||'#2c6fbb',bad:cs.getPropertyValue('--cog').trim()||'#b3261e'};}
+// the grid as a picture: the top half is the section (the wood as cut through the middle), the bottom half the outside, shaded like a turned part
+function simPaint(){
+ const P=SIM.P,W=P.W,H=P.H;
+ if(!SIM.img){const c=document.createElement('canvas');c.width=W;c.height=2*H;SIM.img=c;SIM.imgD=c.getContext('2d').createImageData(W,2*H);SIM.pal=simPal();SIM.dirty=[0,W-1];}
+ const d=SIM.dirty;if(!d)return;SIM.dirty=null;
+ const D=SIM.imgD.data,M=SIM.M,top=SIM.top,pal=SIM.pal,h=SIM.h;
+ for(let c=d[0];c<=d[1];c++){const t=top[c],base=t<P.k1?pal.wood:pal.raw,gr=Math.sin(c*h*0.15)*1.5;
+  for(let k=0;k<H;k++){let i=((H-1-k)*W+c)*4;
+   if(M[k*W+c]){const l=0.9+0.07*Math.sin(k*h*2.2+gr);D[i]=pal.sec[0]*l;D[i+1]=pal.sec[1]*l;D[i+2]=pal.sec[2]*l;D[i+3]=255;}else D[i+3]=0;
+   i=((H+k)*W+c)*4;
+   if(k<t){const q=(k+0.5)/t,l=0.5+0.5*Math.sqrt(Math.max(0,1-q*q));D[i]=base[0]*l;D[i+1]=base[1]*l;D[i+2]=base[2]*l;D[i+3]=255;}else D[i+3]=0;}}
+ SIM.img.getContext('2d').putImageData(SIM.imgD,0,0,d[0],0,d[1]-d[0]+1,2*H);
+}
+function simDraw(){
+ const cv=$('#simCv'),P=SIM.P;if(!P||!SIM.open||!cv)return;
+ const dpr=window.devicePixelRatio||1,w=cv.clientWidth,hh=cv.clientHeight;if(!w||!hh)return;
+ if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(hh*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(hh*dpr);}
+ simPaint();const pal=SIM.pal,x=cv.getContext('2d'),h=SIM.h;
+ x.setTransform(dpr,0,0,dpr,0,0);x.fillStyle=pal.bg;x.fillRect(0,0,w,hh);
+ // fit: the stock, the chuck and some room for the tool in front of the face
+ const z0=P.u0-26,z1=16,rm=P.R+18,sc=Math.min((w-16)/(z1-z0),(hh-16)/(2*rm)),ox=w/2-sc*(z0+z1)/2,oy=hh/2,X=z=>ox+z*sc,Y=r=>oy-r*sc;
+ const q=simAt(SIM.t),su=q?q.m.su:0,o=P.setups[su].o;
+ // the wood
+ x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';
+ x.setTransform(dpr*sc*h*(o?-1:1),0,0,dpr*sc*h,dpr*(ox+sc*(o?P.uF-P.u0:P.u0)),dpr*(oy-sc*P.H*h));x.drawImage(SIM.img,0,0);x.setTransform(dpr,0,0,dpr,0,0);
+ // the chuck holds the left end: the grip past the part, or once turned around the part's far end
+ const zL=o?P.uF:P.u0,jr=o?SIM.jawR:P.R;
+ x.fillStyle='#7d828a';x.fillRect(X(zL-24),Y(jr+16),24*sc,(2*jr+32)*sc);
+ x.fillStyle='#5b6068';for(const s of[1,-1]){const a=Y(s>0?jr+7:-jr),b=Y(s>0?jr:-jr-7);x.fillRect(X(zL-2),Math.min(a,b),14*sc,Math.abs(b-a));}
+ // centre line
+ x.strokeStyle=pal.muted;x.lineWidth=1;x.setLineDash([10,3,2,3]);x.beginPath();x.moveTo(X(z0),Y(0));x.lineTo(X(z1),Y(0));x.stroke();x.setLineDash([]);
+ // the design outline, top half only (that half shows the section)
+ if(SIM.ref&&$('#simRef').checked){const mz=u=>o?P.uF-u:u;x.strokeStyle=pal.ref;x.lineWidth=1;x.setLineDash([4,3]);
+  for(const pts of[SIM.ref.outer,...SIM.ref.cups.map(c=>c.pts)]){x.beginPath();pts.forEach(([u,r],i)=>i?x.lineTo(X(mz(u)),Y(r)):x.moveTo(X(mz(u)),Y(r)));x.stroke();}x.setLineDash([]);}
+ // the tool path so far in this setup: feeds solid, rapids dashed
+ if(q&&$('#simPath').checked){const a=P.setups[su].mi,pf=new Path2D(),pr=new Path2D();
+  for(let i=a;i<=q.i;i++){const m=P.mv[i],e=i===q.i?q:{z:m.z1,x:m.x1},pp=m.g?pf:pr;pp.moveTo(X(m.z0),Y(m.x0/2));pp.lineTo(X(e.z),Y(e.x/2));}
+  x.lineWidth=1;x.strokeStyle=pal.accent;x.globalAlpha=0.75;x.stroke(pf);x.strokeStyle=pal.bad;x.globalAlpha=0.5;x.setLineDash([3,3]);x.stroke(pr);x.setLineDash([]);x.globalAlpha=1;}
+ // chips
+ x.fillStyle=`rgb(${pal.wood.map(Math.round).join(',')})`;for(const c of SIM.chips){x.globalAlpha=Math.min(1,c.life*2);x.fillRect(X(c.z)-1.5,Y(c.r)-1.5,3,3);}x.globalAlpha=1;
+ // the tool: a 35° diamond insert in its holder; the turning tools come down from above, the cup tool from the right
+ if(q){const tx=X(q.z),ty=Y(q.x/2),s=Math.max(9,Math.min(16,sc*5)),L=2*s*Math.cos(0.305),Wd=2*s*Math.sin(0.305);
+  x.save();x.translate(tx,ty);if(q.m.face)x.rotate(Math.PI/2);
+  x.fillStyle='#5b6068';x.fillRect(-Wd*0.9,-L*0.55-s*4,Wd*1.8+s*0.6,s*4);
+  x.fillStyle='#c9a227';x.strokeStyle='#6b5410';x.lineWidth=1;x.beginPath();x.moveTo(0,0);x.lineTo(-Wd/2,-L/2);x.lineTo(0,-L);x.lineTo(Wd/2,-L/2);x.closePath();x.fill();x.stroke();
+  x.restore();}
+}
+function simStale(){clearTimeout(simStale.t);if(!SIM.open)return;simStale.t=setTimeout(()=>{if(!SIM.open)return;
+ const c=withPrim(()=>{const k=$('#gPart').value;$('#gPart').value=SIM.part;const t=gcode();$('#gPart').value=k;return t;});
+ $('#simStale').style.display=c!==SIM.code?'':'none';},500);}
+function simInit(){
+ $('#bSimKen').onclick=()=>simOpen('ken');$('#bSimSar').onclick=()=>simOpen('sarado');
+ $('#gSim').onclick=()=>{$('#gmodal').classList.remove('show');simOpen($('#gPart').value,true);};
+ $('#simX').onclick=simClose;$('#simPart').onchange=e=>simLoad(e.target.value);$('#simReload').onclick=()=>simLoad(SIM.part,true);
+ $('#simSet').onclick=()=>{simPlay(false);$('#gPart').value=SIM.part;$('#gOut').value=withPrim(gcode);$('#gmodal').classList.add('show');};
+ $('#simPlay').onclick=()=>simPlay(!SIM.play);
+ $('#simRst').onclick=()=>{SIM.play=false;simSeek(0);simUI(true);simDraw();};
+ $('#simEnd').onclick=()=>{SIM.play=false;simSeek(SIM.P.T);simUI(true);simDraw();};
+ $('#simT').oninput=e=>{SIM.hold=0;simSeek(e.target.value/1000*SIM.P.T);simUI();simDraw();};
+ const sp=$('#simSpd');for(const v of SIM.speeds)sp.append(el('option',{value:v},'×'+v));sp.onchange=()=>{SIM.spd=+sp.value;};
+ $('#simPath').onchange=$('#simRef').onchange=()=>simDraw();
+ // drag the window by its title bar
+ const win=$('#simWin'),hd=win.querySelector('.sim-hd');let d=null;
+ hd.addEventListener('pointerdown',e=>{if(e.target.closest('button,select'))return;const r=win.getBoundingClientRect();d={x:e.clientX-r.left,y:e.clientY-r.top};hd.setPointerCapture(e.pointerId);});
+ hd.addEventListener('pointermove',e=>{if(!d)return;const W=window.innerWidth,H=window.innerHeight,r=win.getBoundingClientRect();
+  win.style.left=Math.max(0,Math.min(W-80,e.clientX-d.x))+'px';win.style.top=Math.max(0,Math.min(H-40,e.clientY-d.y))+'px';win.style.right='auto';win.style.width=r.width+'px';});
+ hd.addEventListener('pointerup',()=>d=null);hd.addEventListener('pointercancel',()=>d=null);
+ if(window.ResizeObserver)new ResizeObserver(()=>{if(SIM.open){simUI(true);simDraw();}}).observe(win);
+ window.addEventListener('keydown',e=>{if(SIM.open&&e.key==='Escape'&&!document.querySelector('.modal.show'))simClose();});
+}
 
 /* ================= right panel ================= */
 function syncStats(){
@@ -3258,7 +3555,7 @@ function syncStats(){
  $('#stats').innerHTML=r('Ken mass',f1(A.kM)+' g')+r('Sarado mass',f1(A.sM)+' g')+r('Ken + sarado',f1(A.M)+' g')+r('Tama mass',f1(A.tM)+' g')+'<div class="sep"></div>'+
   r('Centre of gravity above base',f1(A.cog.y)+' mm')+r('CoG below sarado axis',f1(G.yA-A.cog.y)+' mm')+r('CoG toward big cup',fmm(A.cog.x)+' mm');
  drawMini('#lnBig',A.big);drawMini('#lnSmall',A.small);
- const w=$('#warns');w.innerHTML='';if(!G.W.length)w.append(el('div',{class:'okmsg'},'No problems found. The profile is continuous and all walls are thick enough.'));G.W.forEach(t=>w.append(el('div',{class:'warn'},t)));
+ const w=$('#warns');w.innerHTML='';if(!G.W.length)w.append(el('div',{class:'okmsg'},'No problems found. The profile is continuous and all walls are thick enough.'));G.W.forEach(t=>w.append(el('div',{class:'warn'},t)));simStale();
  const im=S.meta.imported;if(im&&im.file){w.append(el('p',{class:'gnote',style:'margin-top:10px'},el('b',{},'Imported from '),im.file));(im.notes||[]).forEach(t=>w.append(el('p',{class:'impnote'},t)));}
 }
 function syncSnaps(){
@@ -3639,7 +3936,7 @@ function wire(){
  $('#bGcode').onclick=()=>{withPrim(gStockDefault);$('#gOut').value=withPrim(gcode);$('#gmodal').classList.add('show');};
  $('#gPart').onchange=()=>{withPrim(gStockDefault);$('#gOut').value=withPrim(gcode);};$('#gGen').onclick=()=>$('#gOut').value=withPrim(gcode);
  $('#gClose').onclick=()=>$('#gmodal').classList.remove('show');
- $('#gSave').onclick=()=>download(`${slug(S.meta.model)}_${$('#gPart').value}.nc`,withPrim(gcode),'text/plain');
+ $('#gSave').onclick=()=>download(`${slug(S.meta.model)}_${$('#gPart').value}.nc`,withPrim(gcode),'text/plain');simInit();
  for(const[id,k]of[['#mBrand','brand'],['#mModel','model'],['#mDesigner','designer']])$(id).oninput=e=>{S.meta[k]=e.target.value;autosave();if(S.view==='spec')render();};
  $('#tCog').onchange=e=>{S.show.cog=e.target.checked;render();};
  $('#tStyle').onchange=e=>setLook(e.target.value);lookPill();

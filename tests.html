@@ -989,14 +989,14 @@ async function team(w,room,who){
  await settle(w,...out);return out;}
 const same=(a,b)=>a.eval('JSON.stringify([S.p,S.curves])')===b.eval('JSON.stringify([S.p,S.curves])');
 
-test('Right panel: Collaborate, Balance check, Iterations and Shape checks fold, and stay as you left them',async({w,E,ok})=>{
+test('Right panel: Collaborate, Balance check, Iterations, Shape checks and the CNC simulator fold, and stay as you left them',async({w,E,ok})=>{
  E(`loadLib('Kocho')`);await sleep(30);const D=w.document,secs=[...D.querySelectorAll('aside.right>details.top')],shown=secs.filter(d=>d.style.display!=='none');
- ok(secs.map(d=>d.id).join()==='rsCol,rsChat,rsBal,rsIter,rsChk'&&shown.map(d=>d.id).join()==='rsCol,rsBal,rsIter,rsChk','four sections, Collaborate first (Chat is there only in a session with a chat)');
- ok(shown.map(d=>d.querySelector('summary').textContent).join('|')==='Collaborate|Balance check|Iterations|Shape checks','section names');
+ ok(secs.map(d=>d.id).join()==='rsCol,rsChat,rsBal,rsIter,rsChk,rsSim'&&shown.map(d=>d.id).join()==='rsCol,rsBal,rsIter,rsChk,rsSim','five sections, Collaborate first (Chat is there only in a session with a chat)');
+ ok(shown.map(d=>d.querySelector('summary').textContent).join('|')==='Collaborate|Balance check|Iterations|Shape checks|CNC lathe simulator','section names');
  ok(!shown[0].open&&shown.slice(1).every(d=>d.open),'Collaborate starts folded, the rest open');
  shown[1].querySelector('summary').click();await sleep(30);ok(!shown[1].open,'a click folds Balance check');
  ok(JSON.parse(w.localStorage.getItem('tse.rs')).rsBal===false,'and it is remembered');
- ok(!!D.querySelector('#rsBal #stats')&&!!D.querySelector('#rsIter #snapList')&&!!D.querySelector('#rsChk #warns'),'each section holds what it did before');
+ ok(!!D.querySelector('#rsBal #stats')&&!!D.querySelector('#rsIter #snapList')&&!!D.querySelector('#rsChk #warns')&&!!D.querySelector('#rsSim #bSimKen'),'each section holds what it did before');
 });
 
 test('Relay rules: keys, roles, removing, handing over',async({ok})=>{
@@ -1437,6 +1437,74 @@ test('Workpieces: Japanese text for the new controls',async({w,E,ok})=>{
  const miss=E(`[...(tr.miss||[])]`).filter(t=>/[A-Za-z]{3}/.test(t)&&!/^(Iteration 1|Current design|KOCHO|Kocho|TERRA)$/.test(t.trim()));
  ok(!miss.length,'no English left: '+miss.slice(0,4).join(' | '));
  E(`setLang('en')`);
+});
+
+/* ---------- CNC lathe simulator ---------- */
+test('CNC simulator: plays the app’s G-code for the ken and the sarado and matches the design',async({w,E,ok})=>{
+ const D=w.document;E(`loadLib('Kocho');`);await sleep(40);
+ ok(D.querySelector('#rsChk').nextElementSibling.id==='rsSim','the simulator section sits under Shape checks');
+ D.querySelector('#bSimKen').click();await sleep(40);
+ ok(E('SIM.open')&&D.querySelector('#simWin').style.display!=='none','Simulate the ken opens the window');
+ ok(E('SIM.part')==='ken'&&E('SIM.code')===E(`withPrim(gcode)`),'it runs exactly the G-code the export gives');
+ ok(/BASE CUP - FLIP PART/.test(E('SIM.code')),'the base-cup setup says the part is turned around');
+ ok(E('SIM.P.mv.length')>500,'reads the moves ('+E('SIM.P.mv.length')+')');
+ ok(E('JSON.stringify(SIM.P.setups.map(q=>q.o))')==='[0,1]','ken: op 1, then the base cup with the part turned around');
+ ok(E('SIM.P.stock')===+E(`$('#gStock').value`),'stock diameter from the program');
+ ok(E('SIM.rep.hits.length')===0,'no rapid moves cut into the stock');
+ ok(E('SIM.rep.chk.max')<0.25,'the cut matches the design ('+E('SIM.rep.chk.max').toFixed(3)+' mm)');
+ ok(E('SIM.P.T')>30&&E('SIM.P.T')<7200,'cycle time is believable ('+Math.round(E('SIM.P.T'))+' s)');
+ ok(D.querySelector('#simCode').children.length>=3&&D.querySelector('#simCode .on'),'the program listing shows the current line');
+ ok(/No rapid moves/.test(D.querySelector('#simRes').textContent),'the results say nothing crashed');
+ // the picture has wood in it
+ const px=E(`(()=>{simSeek(SIM.P.T*0.5);simUI(true);simDraw();const c=$('#simCv'),d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let n=0;for(let i=0;i<d.length;i+=16)if(d[i]>150&&d[i+1]>120&&d[i+2]<150)n++;return n;})()`);
+ ok(px>200,'the canvas shows the wood ('+px+')');
+ // going back replays the same cut
+ const sum=`(()=>{let n=0;for(const v of SIM.M)n+=v;return n;})()`;
+ E('simSeek(SIM.P.T*0.3)');const a=E(sum);E('simSeek(SIM.P.T)');const b=E(sum);E('simSeek(SIM.P.T*0.3)');
+ ok(E(sum)===a&&b<a,'scrubbing back gives the same stock as playing forward');
+ E('simSeek(SIM.P.T)');ok(E('SIM.parted'),'the part is cut off at the end');
+ // the sarado
+ E(`$('#simPart').value='sarado';$('#simPart').dispatchEvent(new Event('change'));`);await sleep(30);
+ ok(E('SIM.part')==='sarado'&&E(`$('#gPart').value`)==='sarado','the part picker switches to the sarado');
+ ok(E('JSON.stringify(SIM.P.setups.map(q=>q.o))')==='[0,0,1]','sarado: op 1, big cup, small cup turned around');
+ ok(E('SIM.rep.hits.length')===0&&E('SIM.rep.chk.max')<0.25,'sarado: no crashes, matches the design ('+E('SIM.rep.chk.max').toFixed(3)+' mm)');
+ D.querySelector('#simX').click();ok(!E('SIM.open')&&D.querySelector('#simWin').style.display==='none','✕ closes the window');
+});
+test('CNC simulator: every library shape cuts cleanly',async({E,ok})=>{
+ for(const n of LIBS){E(`loadLib('${n}')`);for(const part of['ken','sarado']){const r=E(`(()=>{simOpen('${part}');return [SIM.rep.hits.length,SIM.rep.chk.max];})()`);
+  ok(r[0]===0,n+' '+part+': no rapid moves into the stock');ok(r[1]<0.25,n+' '+part+': matches the design ('+r[1].toFixed(3)+' mm)');}}
+ E('simClose()');
+});
+test('CNC simulator: finds rapid moves into the stock and cuts with the spindle stopped',async({E,ok})=>{
+ E(`loadLib('Kocho');simOpen('ken');`);
+ const prog=['%','(STOCK DIA 40.000)','G50 S3000','G96 S200 M03','G0 X44.000 Z2.000','G1 X30.000 Z0.000 F0.2','G1 Z-50.000','G0 X20.000 Z-20.000','G0 X44.000','M05','G1 X24.000 Z-10.000 F0.2','G0 X44.000','M30','%'].join('\n');
+ const r=E(`(()=>{const P=simParse(${JSON.stringify(prog)});SIM.P=P;simStock(P);simReset();simAdvance(Infinity);return SIM.hits;})()`);
+ ok(r.some(q=>q.kind==='rapid'&&q.li===7),'the rapid on line 8 is found');
+ ok(r.some(q=>q.kind==='spin'&&q.li===10),'the cut on line 11 with the spindle stopped is found');
+ ok(E('SIM.P.R')===20&&Math.abs(E('SIM.P.uF')+50)<1e-9,'stock and part length come from the program');
+ E('simClose()');
+});
+test('CNC simulator: follows the G-code window, notices design changes, hidden for watchers',async({w,E,ok})=>{
+ const D=w.document;E(`loadLib('Kocho');`);
+ D.querySelector('#bGcode').click();E(`$('#gPart').value='sarado';$('#gPart').onchange();$('#gStock').value='70';`);
+ D.querySelector('#gSim').click();await sleep(30);
+ ok(!D.querySelector('#gmodal').classList.contains('show')&&E('SIM.open'),'Simulate in the G-code window opens the simulator');
+ ok(E('SIM.part')==='sarado'&&E('SIM.P.stock')===70,'with the G-code window’s part and stock');
+ ok(D.querySelector('#simStale').style.display==='none','no change notice at first');
+ E(`S.p.sarL+=3;refresh();`);
+ for(let i=0;i<40&&D.querySelector('#simStale').style.display==='none';i++)await sleep(100);
+ ok(D.querySelector('#simStale').style.display!=='none','a design change shows the notice');
+ D.querySelector('#simReload').click();ok(D.querySelector('#simStale').style.display==='none'&&E('SIM.code')===E('withPrim(gcode)'),'Reload takes the new G-code');
+ E('simClose()');
+ D.body.classList.add('col-view');ok(w.getComputedStyle(D.querySelector('#rsSim')).display==='none','watchers do not get the simulator');D.body.classList.remove('col-view');
+});
+test('CNC simulator: Japanese text',async({w,E,ok})=>{
+ E(`loadLib('Kocho');setLang('ja');tr.miss&&tr.miss.clear&&tr.miss.clear();simOpen('ken');simSeek(SIM.P.T*0.5);simUI(true);simBanner(SIM.P.setups[1]);`);await sleep(80);
+ const D=w.document;ok(D.querySelector('#rsSim summary').textContent==='CNC旋盤シミュレーター','the panel heading is in Japanese');
+ E(`simSeek(SIM.P.setups[1].t0-0.001);simUI(true);`);await sleep(40);
+ const miss=E(`[...(tr.miss||[])]`).filter(t=>/[A-Za-z]{3}/.test(t)&&!/^(KOCHO|Kocho|TERRA)$/.test(t.trim()));
+ ok(!miss.length,'no English left: '+miss.slice(0,4).join(' | '));
+ E(`simClose();setLang('en')`);
 });
 
 /* ---------- phone layout ---------- */
