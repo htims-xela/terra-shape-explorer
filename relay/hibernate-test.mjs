@@ -39,5 +39,6 @@ const H=await join();await H.send({t:'hello',id:'h',dev:'dh',name:'H',create:tru
 await H.send({t:'end'});const I=await join();await I.send({t:'hello',id:'i',dev:'di',name:'Ida',create:true,max:2,view:false,chat:true});const KI=I.last('welcome').keys;ok(KI.view===null,'no watch link when watchers are off');
 const J=await join();await J.send({t:'hello',id:'j',dev:'dj',name:'Jo',key:KI.edit});await J.send({t:'chat',id:'m1',text:'hello'});ok(I.last('chat')&&I.last('chat').text==='hello'&&I.last('chat').name==='Jo','a chat message reaches everyone, room asleep in between');
 await I.send({t:'chatdel',id:'m1'});ok(J.last('chatdel')&&J.last('chatdel').id==='m1','the owner takes a chat message away');
+{const w0=store.get('room');await J.send({t:'game',k:'v',i:0,s:1,v:{c:'a'}});const g=I.last('game');ok(g&&g.from==='j'&&g.v.c==='a'&&g.at===NOW&&J.last('game'),'a design-game message reaches everyone, the sender too, with who sent it and when');ok(store.get('room')===w0,'and the room record isn’t written for it');}
 const L=await join();await L.send({t:'hello',id:'l',dev:'dl',name:'Lu',key:KI.edit});ok(L.last('error')&&L.last('error').code==='full','a third collaborator finds the room full');
 console.log(`${checks-fails}/${checks} checks passed, room put to sleep ${sleeps} times`);process.exit(fails?1:0);

@@ -6,12 +6,13 @@
      hello {id, dev, name, key, create, max, view, chat}   first message. create:true starts a new room (you become the owner; max, 2–64, caps how many collaborators — owner and editors, not watchers — can be in it; view:false makes no watch link; chat:true turns the chat on); otherwise key is one of the room's keys.
      name {name}                          change your display name
      op {...}                             a design change: passed to everyone (the sender too) if you may edit
-     chunk {kind:'op'|'state', to?, ...}  one piece of a long message; passed on like the message it is part of
+     chunk {kind:'op'|'state'|'game', to?, ...} one piece of a long message; passed on like the message it is part of
      state {to, data}                     the whole design, sent to someone who just joined
      chat {id, text}                      a chat message (anyone, watchers too, when the chat is on): passed to everyone with from, name, at
      chatdel {id}                         owner only: take a chat message away for everyone
+     game {k, ...}                        the design game (anyone, watchers too): passed to everyone (the sender too) with from and at; the owner's app runs the game and decides whose messages count
      kick {id} · xfer {id} · end · leave  owner only (except leave)
-   The room sends: welcome, roster, need {id}, op, state, chunk, chat, chatdel, keys, owner, kicked, ended, error {code}. */
+   The room sends: welcome, roster, need {id}, op, state, chunk, chat, chatdel, game, keys, owner, kicked, ended, error {code}. */
 (function(root){
 'use strict';
 const ROLES={owner:1,edit:1,view:1};
@@ -32,7 +33,7 @@ class Room{
  msg(conn,text){let o;try{o=JSON.parse(text);}catch(e){return;}if(!o||typeof o!=='object')return;
   const me=this.members.find(m=>m.conn===conn);
   if(!me){if(o.t!=='hello'||conn.said)return;conn.said=true;const fail=code=>{try{conn.send(JSON.stringify({t:'error',code}));}catch(e){}try{conn.close();}catch(e){}};if(this.hello(conn,o,fail))this.changed();return;}
-  this.handle(me,o);if(o.t!=='op'&&o.t!=='chunk'&&o.t!=='state')this.changed();}
+  this.handle(me,o);if(o.t!=='op'&&o.t!=='chunk'&&o.t!=='state'&&o.t!=='game')this.changed();}
  drop(conn){const me=this.members.find(m=>m.conn===conn);if(me){this.gone(me);this.changed();}}
  changed(){if(this.change)try{this.change();}catch(e){}}
  // timers by name, so a host can keep them while it sleeps
@@ -66,8 +67,9 @@ class Room{
    case'name':me.name=clean(o.name,40)||me.name;this.tell();break;
    case'op':if(edit){o.from=me.id;this.all(o);}break;
    case'state':if(to)this.send(to,{t:'state',from:me.id,data:o.data});break;
-   case'chunk':o.from=me.id;if(o.kind==='state'){if(to)this.send(to,o);}else if(o.kind==='op'&&edit)this.all(o);break;
+   case'chunk':o.from=me.id;if(o.kind==='state'){if(to)this.send(to,o);}else if(o.kind==='op'&&edit)this.all(o);else if(o.kind==='game')this.all(o);break;
    case'chat':{if(!this.chat)break;const text=clean(o.text,1000);if(!text)break;this.all({t:'chat',id:clean(o.id,40)||this.rand(10),from:me.id,name:me.name,text,at:Date.now()});break;}
+   case'game':o.from=me.id;o.at=Date.now();this.all(o);break;
    case'chatdel':if(boss&&o.id!=null)this.all({t:'chatdel',id:clean(o.id,40)});break;
    case'kick':{const m=this.members.find(m=>m.id===o.id);if(!boss||!m||m===me)break;if(m.dev)this.banned.add(m.dev);this.send(m,{t:'kicked'});this.members.splice(this.members.indexOf(m),1);try{m.conn.close();}catch(e){}this.tell();break;}
    case'xfer':{const m=this.members.find(m=>m.id===o.id);if(!boss||!m||m===me||m.role!=='edit')break;this.promote(m,me);break;}

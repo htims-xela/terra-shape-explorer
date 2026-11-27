@@ -324,6 +324,84 @@ body.col-view #rsIter .row,body.col-view #snapList button,body.col-view #mnav [d
 body.col-view .vtools [data-t=line],body.col-view .vtools [data-t=plane],body.col-view .vtools [data-t=circle],body.col-view .vtools [data-t=measure],body.col-view .vtools [data-t=pen],body.col-view .vtools [data-a],body.col-view .vtools hr{display:none!important}
 @media (min-width:761px){body.col-view .wrap{grid-template-columns:1fr 310px}body.col-view.r-shut .wrap{grid-template-columns:1fr}body.col-view aside.left{display:none}}
 @media (min-width:761px) and (max-width:1100px){body.col-view .wrap{grid-template-columns:1fr}}
+/* design game: its window (over the whole app), the button at the top, and its setup */
+.modal#gm{z-index:24;padding:0;background:var(--bg);align-items:stretch;justify-content:stretch}
+.gm-win{display:flex;flex-direction:column;width:100%;height:100%;min-height:0}
+.gm-top{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.gm-tt{flex:1;min-width:150px;display:flex;flex-direction:column}.gm-tt b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gm-tt small{color:var(--muted);font-size:11.5px}
+.gm-clock{font:600 15px/1 ui-monospace,"SF Mono",Menlo,monospace;padding:6px 9px;border-radius:7px;background:var(--soft);text-align:center}.gm-clock:empty{display:none}.gm-clock.low{color:var(--lock)}
+.gm-wait{color:var(--warn-ink);background:var(--warn-bg);border-radius:7px;padding:4px 8px;font-size:12px}
+#gmBody{flex:1;overflow:auto;padding:16px 16px 40px;min-height:0}
+.gm-mid{max-width:560px;margin:7vh auto 20px;text-align:center}.gm-mid h2{font-size:26px;margin:0 0 8px}.gm-mid p{color:var(--muted)}
+.gm-info{max-width:900px;margin:0 auto 12px;color:var(--muted);font-size:12.5px;text-align:center}
+.gm-watch{color:var(--warn-ink)}
+.gm-h{margin:0 auto 10px;max-width:1100px;display:flex;align-items:baseline;justify-content:center;gap:10px;flex-wrap:wrap}.gm-h h3{margin:0;font-size:17px}.gm-sub{color:var(--muted);font-size:12.5px}
+.gm-sc{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.gm-sc.act{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 35%,transparent)}
+.gm-sc.yes{border-color:var(--accent)}.gm-sc.no{border-color:var(--lock)}
+.gm-ch{display:flex;align-items:center;gap:6px;font-weight:600;min-width:0}.gm-lab b{font-size:15px}
+.gm-tag{margin-left:auto;font-size:10.5px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+.gm-king{color:#b8860b}.gm-lives{letter-spacing:1px;font-size:12px}
+.gm-cv{width:100%;height:230px;display:block}.gm-cv.big{height:min(46vh,380px)}.gm-cv.sm{height:110px}.gm-cv.xs{height:56px;width:56px}
+.gm-st{display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-size:12px}.gm-st>span{color:var(--muted)}.gm-st>b{font-weight:600;text-align:right;white-space:nowrap}.gm-st i,.gm-mini i{font-style:normal;color:var(--muted);font-weight:400}
+.gm-sc.big .gm-st,.gm-vs .gm-st{grid-template-columns:1fr auto 1fr auto;column-gap:14px}.gm-cv.big{height:min(40vh,360px)}
+.gm-note{grid-column:1/-1;font-size:11px;color:var(--muted)}.gm-kwc{grid-column:1/-1;font-size:11.5px;margin:2px 0 0}.gm-ok{grid-column:1/-1;font-size:12px;color:var(--accent);text-align:center}
+.gm-mini{font-size:11.5px;color:var(--muted)}.gm-mini b{color:var(--ink);font-weight:600}
+.gm-kw{margin-left:6px;padding:0 5px;border-radius:5px;background:var(--warn-bg);color:var(--warn-ink);font-weight:700;font-size:10.5px}
+.gm-desc{margin:0;font-style:italic;font-size:12.5px;overflow-wrap:anywhere}.gm-desc.sm{font-size:11.5px;color:var(--muted)}
+.gm-swipe{max-width:520px;margin:0 auto}.gm-swipe>.gm-sc{touch-action:pan-y;user-select:none;-webkit-user-select:none;transition:transform .22s ease,opacity .22s ease;cursor:grab}
+.gm-prog{display:flex;align-items:center;justify-content:center;gap:4px;color:var(--muted);margin-bottom:8px}.gm-undo{margin-left:12px;font-size:12px}
+.gm-btns{display:flex;gap:10px;justify-content:center;margin:12px 0;flex-wrap:wrap}.gm-btns button{font-size:14px;padding:9px 20px;border-radius:22px}
+.gm-no{color:var(--lock);border-color:var(--lock)}.gm-no.act{background:var(--lock);color:#fff}
+.gm-yes{color:var(--accent);border-color:var(--accent);font-weight:600}.gm-yes.act,.gm-swipe .gm-yes{background:var(--accent);color:var(--accent-ink)}
+.gm-cmp{display:flex;flex-wrap:wrap;gap:5px;align-items:center;justify-content:center;margin:0 0 8px;font-size:12px}.gm-cmp>span{color:var(--muted)}
+.gm-chip{border-radius:14px;padding:3px 9px;font-size:12px}.gm-chip.act{border-color:currentColor;font-weight:700;border-width:2px}.gm-lib{font-size:12px;max-width:150px}
+.gm-vs{display:flex;gap:12px;justify-content:center;align-items:stretch;flex-wrap:wrap;max-width:1100px;margin:0 auto}.gm-vs>.gm-sc{flex:1 1 290px;max-width:470px}
+.gm-vsx{align-self:center;font-weight:800;color:var(--muted);font-size:17px}
+.gm-pick{margin-top:auto;padding:8px}.gm-pick.act{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.gm-in{text-align:center;color:var(--muted);margin:10px 0;font-size:12.5px}
+.gm-warn{max-width:600px;margin:0 auto 10px;text-align:center;background:var(--warn-bg);color:var(--warn-ink);border-radius:8px;padding:6px}
+.gm-last{text-align:center;font-size:12.5px;color:var(--muted)}.gm-last .gm-lab b{font-size:12.5px}.gm-score{color:var(--ink)}
+.gm-bk{max-width:900px;margin:14px auto 0;display:flex;flex-direction:column;gap:6px;font-size:12px}.gm-bk>div{display:flex;flex-wrap:wrap;gap:4px;align-items:center}.gm-bk>div>span:first-child{min-width:130px;color:var(--muted)}
+.gm-c2{display:inline-block;padding:1px 7px;border-radius:10px;background:var(--soft);border:1px solid var(--line);font-weight:600}.gm-c2.out{opacity:.45;text-decoration:line-through}
+.gm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;max-width:1200px;margin:0 auto}.gm-grid.sm{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.gm-th{display:flex;flex-direction:column;align-items:stretch;gap:3px;padding:6px 8px;border-radius:10px;text-align:left;white-space:normal;min-width:0}
+.gm-th.act{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 13%,var(--panel));box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 35%,transparent)}.gm-th:disabled{opacity:.6}
+.gm-rr{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:8px}.gm-rrm{display:grid;grid-template-columns:auto 1fr auto 1fr;gap:8px;align-items:center}.gm-pool{font-size:11px;color:var(--muted);font-weight:700;white-space:nowrap}
+.gm-tabs{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px}.gm-tabs>table{flex:1 1 260px}
+.gm-tab{border-collapse:collapse;font-size:12.5px;width:100%;max-width:1000px;margin:0 auto}.gm-tab th,.gm-tab td{padding:4px 7px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}.gm-tab th{color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.gm-tsh{display:flex;align-items:center;gap:6px}.gm-tab tr.gm-cut td{border-bottom:2px dashed var(--accent)}.gm-tab tr.gm-outr{opacity:.55}.gm-dsc{font-style:italic;color:var(--muted);max-width:340px}
+.gm-bart{width:30%}.gm-bar{height:10px;width:0;background:var(--accent);border-radius:5px;transition:width 1.6s cubic-bezier(.2,.7,.2,1)}.gm-bar.worst{background:var(--lock)}
+.gm-ord{display:grid;grid-template-columns:minmax(270px,400px) 1fr;gap:16px;max-width:1300px;margin:0 auto}
+.gm-list{display:flex;flex-direction:column;gap:5px}.gm-row{display:grid;grid-template-columns:22px 24px 56px 1fr auto;gap:6px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:4px 6px}
+.gm-row.st{grid-template-columns:30px 56px 1fr auto}.gm-row.drag{box-shadow:0 6px 18px rgba(0,0,0,.25);border-color:var(--accent);position:relative;z-index:2}
+.gm-grip{cursor:grab;color:var(--muted);text-align:center;font-size:17px;user-select:none;touch-action:none}.gm-pl{font-weight:700;text-align:center;font-size:14px}.gm-rinfo{min-width:0}.gm-rmv{display:flex;gap:3px}.gm-mv{padding:2px 7px}
+.gm-val{white-space:nowrap}.gm-lun .gm-list,.gm-lun>.gm-ord{max-width:820px;margin-left:auto;margin-right:auto}.gm-row.st .gm-pl{font-size:18px}.gm-mvd{margin-left:6px;font-size:11px;font-weight:700;color:var(--muted)}.gm-mvd.up{color:var(--accent)}.gm-mvd.dn{color:var(--lock)}
+.gm-bwrap{min-width:0}.gm-board{width:100%;height:min(64vh,560px);display:block;background:var(--canvas);border:1px solid var(--line);border-radius:10px;touch-action:none;cursor:grab}
+.gm-two{display:grid;grid-template-columns:minmax(260px,420px) minmax(260px,1fr);gap:16px;max-width:1100px;margin:0 auto;align-items:start}
+.gm-top button{flex:none}.gm-top button.danger{padding:5px 10px}
+.gm-dbox textarea{height:110px;width:100%;font:inherit;font-size:14px;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);resize:vertical}.gm-cnt{color:var(--muted)}
+.gm-tok{text-align:center;font-size:15px;margin:0 0 6px}.gm-tok b{font-size:30px;color:var(--accent)}.gm-auc.worst .gm-tok b{color:var(--lock)}.gm-auc.worst .gm-sc.act{border-color:var(--lock);box-shadow:0 0 0 2px color-mix(in srgb,var(--lock) 35%,transparent)}
+.gm-bid{display:flex;align-items:center;justify-content:center;gap:10px}.gm-bid b{min-width:22px;text-align:center;font-size:16px}.gm-bid button{width:34px;height:30px;font-size:16px;padding:0}
+.gm-awr{max-width:1200px;margin:0 auto 14px}.gm-awr h4{margin:0 0 6px;font-size:14px}
+.gm-aws{display:flex;flex-direction:column;gap:5px;max-width:700px;margin:12px auto}.gm-awi{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.gm-next{text-align:center;margin:16px 0 0;font-size:14px}
+.gm-done h2.gm-dh{text-align:center;font-size:24px;margin:4px 0 14px}.gm-done>h3{text-align:center}
+.gm-pod{display:flex;justify-content:center;align-items:flex-end;gap:12px;flex-wrap:wrap;max-width:1050px;margin:0 auto 18px}.gm-pod>.gm-sc{flex:1 1 250px;max-width:330px}.gm-pod>.p1{order:2;border-color:#d4a017;box-shadow:0 0 0 2px #d4a01755}.gm-pod>.p2{order:1}.gm-pod>.p3{order:3}
+.gm-medal{font-size:20px;margin-left:auto}.gm-by{margin:0;text-align:center;font-size:13px}
+.gm-pdf{max-width:1000px;margin:20px auto 0;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}.gm-pdf h3{margin:0 0 6px;font-size:14px}.gm-pdfo label{display:flex;flex-direction:column;gap:2px;font-size:11.5px;color:var(--muted)}
+#gmPill{position:fixed;top:54px;left:50%;transform:translateX(-50%);z-index:15;background:var(--panel);color:var(--ink);border:1px solid var(--accent);border-radius:18px;padding:5px 12px;display:flex;gap:8px;align-items:center;box-shadow:0 4px 14px rgba(0,0,0,.18);cursor:pointer;font-size:12.5px;white-space:nowrap}
+#gmPill .gm-clock{padding:2px 6px;font-size:13px}#gmPill .gm-open{color:var(--accent);font-weight:700}
+.gm-panel .row{flex-wrap:wrap}.gm-panel textarea{height:70px;width:100%;font:inherit;font-size:12.5px;padding:6px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--ink);resize:vertical}
+.gm-pl2{margin:2px 0 6px;font-size:12.5px}.gm-flowt{font-size:12px;margin:0 0 6px;color:var(--muted)}.gm-flow b{color:var(--ink);font-weight:600}.gm-keep{color:var(--muted)}
+.gm-opt{margin-top:2px}.gm-setup{margin:-4px 0 10px 28px;padding:6px 0 6px 12px;border-left:2px solid var(--line);display:flex;flex-direction:column;gap:5px;font-size:12.5px}
+.gm-sl{display:flex;align-items:center;gap:6px}.gm-sl input[type=number]{width:64px}.gm-sn{color:var(--muted);font-size:11px;margin:-3px 0 2px}
+.modal#gmSet{z-index:27}.gs-card{width:min(780px,100%)}.gs-top{margin-bottom:10px}.gs-top select{flex:1;min-width:0}.gs-n{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)}.gs-n input{width:60px}
+.gs-st{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:0 0 8px;background:var(--soft)}.gs-hd{display:flex;gap:6px;align-items:center}.gs-hd select{flex:1;min-width:0}.gs-st>.gnote{margin:4px 0}
+.gs-f{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:6px;font-size:12px;align-items:center}.gs-f label{display:flex;align-items:center;gap:5px}.gs-f input[type=number]{width:66px}
+.gs-k{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin-top:8px;font-size:12px}.gs-k label{display:flex;align-items:center;gap:5px}.gs-k input{width:60px}.gs-est{margin-left:auto;color:var(--muted)}
+.gs-ev{display:flex;flex-direction:column;gap:4px;flex-basis:100%}.gs-evr{display:flex;gap:5px;align-items:center;flex-wrap:wrap}.gs-evr input[type=number]{width:120px}.gs-ev>button{align-self:flex-start}
+@media (max-width:760px){.gm-ord,.gm-two{grid-template-columns:1fr}.gm-board{height:52vh}.gm-cv.big{height:40vh}.gm-rrm{grid-template-columns:1fr auto 1fr}.gm-rrm>.gm-pool{grid-column:1/-1}#gmBody{padding:12px 12px 40px}.gm-top{padding:8px 12px}#gmPill{top:50px}}
 </style>
 </head>
 <body>
@@ -493,6 +571,14 @@ body.col-view .vtools [data-t=line],body.col-view .vtools [data-t=plane],body.co
 <input type="file" id="fPhoto" accept="image/*" hidden>
 <input type="file" id="fOpen" accept=".json,application/json" hidden>
 <input type="file" id="fCmp" accept=".json,application/json" hidden>
+<div class="modal" id="gm"><div class="gm-win"><div class="gm-top" id="gmTop"></div><div id="gmBody"></div></div></div>
+<div id="gmPill" style="display:none"></div>
+<div class="modal" id="gmSet"><div class="card gs-card">
+  <h1>Game stages</h1>
+  <p>Put the stages in the order they are played. Each stage keeps its top shapes for the next one; the last stage ranks the shapes that are left.</p>
+  <div id="gsBody"></div>
+  <div class="row" style="justify-content:flex-end;margin-top:12px"><button id="gsDone" class="pri">Done</button></div>
+</div></div>
 <div id="toast"></div>
 
 <script>
@@ -3595,7 +3681,7 @@ function colPut(ch,final){
 function colSend(o){
  const ws=COL.ws;if(!ws||ws.readyState!==1)return;const s=typeof o==='string'?o:JSON.stringify(o);
  if(s.length<=COL_PART){ws.send(s);return;}
- const kind=s.startsWith('{"t":"state"')?'state':'op',k=Math.random().toString(36).slice(2,10),n=Math.ceil(s.length/COL_PART),to=kind==='state'?JSON.parse(s).to:undefined; // a long message goes in pieces
+ const kind=s.startsWith('{"t":"state"')?'state':s.startsWith('{"t":"game"')?'game':'op',k=Math.random().toString(36).slice(2,10),n=Math.ceil(s.length/COL_PART),to=kind==='state'?JSON.parse(s).to:undefined; // a long message goes in pieces
  for(let i=0;i<n;i++)ws.send(JSON.stringify({t:'chunk',kind,to,k,i,n,s:s.slice(i*COL_PART,(i+1)*COL_PART)}));}
 function colConnect(room,key,create){
  const url=colRelay();if(!colAvail()){toast('Shared sessions aren’t set up here yet.');return;}
@@ -3627,14 +3713,15 @@ function colRecv(text){
   case'welcome':{const first=!COL.on;COL.on=true;COL.phase='in';COL.emptyTries=0;COL.retry=0;COL.role=o.role;COL.owner=o.owner;COL.roster=o.roster||[];if(o.keys){COL.keys=o.keys;COL.key=o.keys.owner;}
    COL.wasOwner=o.role==='owner';colSave();COL.pend.clear();COL.live.clear();COL.parts.clear();
    if(o.alone&&!gateOk()){colSend({t:'leave'});colReset();colDialog('Shared session closed','No one is in this shared session right now. Try the link again when the owner is back.',null,[['OK',null,'pri']]);break;}
-   if(o.alone){if(!started){let a=null;try{a=JSON.parse(localStorage.getItem('ksd.autosave')||'null');}catch(e){}if(a&&a.app)try{loadProject(a);}catch(e){}if(!started)newDesign('kocho');}COL.waiting=false;if(COL.create&&o.role==='owner'){COL.cfg=COL.cfgNew?Object.assign({},COL.cfgNew):null;if(COL.cfg&&COL.cfg.own)ownSetup();colSave();}else if(COL.cfg&&COL.cfg.own){ownSeats();ownMine();}COL.last=colFlat();colHide('#colWait');}
+   if(o.alone){if(!started){let a=null;try{a=JSON.parse(localStorage.getItem('ksd.autosave')||'null');}catch(e){}if(a&&a.app)try{loadProject(a);}catch(e){}if(!started)newDesign('kocho');}COL.waiting=false;if(COL.create&&o.role==='owner'){COL.cfg=COL.cfgNew?Object.assign({},COL.cfgNew):null;if(COL.cfg&&COL.cfg.own)ownSetup();colSave();gmBegin();}else if(COL.cfg&&COL.cfg.own){ownSeats();ownMine();if(GM.st&&o.role==='owner')gmTake();}COL.last=colFlat();colHide('#colWait');}
    else{COL.waiting=true;COL.buf=[];colShow('#colWait');}
    clearInterval(COL.timer);COL.timer=setInterval(colTick,COL_TICK);colRoleUI();
    if(first){const d=$('#rsCol');if(d&&!d.open){d.open=true;rsSave();}if(o.role==='owner'&&COL.create)toast('Shared session started. Copy an invite link to bring others in.');}
    syncCol();syncMkBox();break;}
   case'roster':{const was=COL.role;COL.roster=o.roster||[];COL.owner=o.owner;const me=COL.roster.find(r=>r.id===COL.id);if(me)COL.role=me.role;
-   if(was!==COL.role){colRoleUI();if(COL.role==='owner'){COL.wasOwner=true;toast('You are now the owner of this shared session.');}colSave();}syncCol();syncMkBox();ownSeats();if(started)render();break;}
-  case'need':colTick();colSend({t:'state',to:o.id,data:{project:projectData(),mk:MK.items,cfg:COL.cfg||null,chat:COL.chat}});break;
+   if(was!==COL.role){colRoleUI();if(COL.role==='owner'){COL.wasOwner=true;toast('You are now the owner of this shared session.');}colSave();}syncCol();syncMkBox();ownSeats();gmRoster();if(started)render();break;}
+  case'need':colTick();colSend({t:'state',to:o.id,data:{project:projectData(),mk:MK.items,cfg:COL.cfg||null,chat:COL.chat,game:gmOut()}});break;
+  case'game':gmRecv(o);break;
   case'chat':chatGot(o);break;
   case'chatdel':{const j=COL.chat.findIndex(m=>m.id===o.id);if(j>=0){COL.chat.splice(j,1);chatSave();chatSync();}break;}
   case'state':if(COL.waiting&&o.data&&o.data.project){try{colLoad(o.data);}catch(e){toast('Could not open the shared design: '+e.message);}}break;
@@ -3650,11 +3737,11 @@ function colLoad(d){
  COL.cfg=d.cfg&&typeof d.cfg==='object'?d.cfg:null;COL.ownAt=null;colSave();ownMine();
  if(Array.isArray(d.chat)){const have=new Set(COL.chat.map(m=>m.id));COL.chat=d.chat.filter(m=>m&&m.id&&!have.has(m.id)).concat(COL.chat).sort((a,b)=>(a.at||0)-(b.at||0));chatSave();}chatSync();
  COL.waiting=false;COL.last=colFlat();const b=COL.buf;COL.buf=[];for(const o of b)colApply(o);
- colHide('#colWait');colHide('#start');syncTools();syncMkBox();render();gateGuestIn();}
+ colHide('#colWait');colHide('#start');syncTools();syncMkBox();render();gateGuestIn();gmIn(d.game);}
 function colSave(){try{sessionStorage.setItem('tse.colSess',JSON.stringify({room:COL.room,key:COL.key,cfg:COL.cfg||null}));}catch(e){}}
 function colReset(){
  COL.bye=true;colDrop();clearInterval(COL.timer);COL.on=false;COL.phase='off';COL.waiting=false;COL.cfg=null;COL.ownAt=null;COL.buf=[];COL.chat=[];COL.unread=0;try{sessionStorage.removeItem('tse.colChat');}catch(e){}COL.roster=[];COL.owner=null;COL.keys=null;COL.pend.clear();COL.live.clear();COL.parts.clear();
- try{sessionStorage.removeItem('tse.colSess');}catch(e){}colHide('#colWait');colRoleUI();syncCol();syncMkBox();if(started)render();gateGuestOut();}
+ try{sessionStorage.removeItem('tse.colSess');}catch(e){}gmReset();colHide('#colWait');colRoleUI();syncCol();syncMkBox();if(started)render();gateGuestOut();}
 // for someone who joined: when the session is over, the shared design goes and the start screen comes back (their own work from before is still under "Pick up where you left off")
 function colClearDesign(){MK.items=[];MK.undo=[];MK.redo=[];MK.sel=-1;COL.mkHide.clear();COL.mkAll=true;syncTools();syncMkBox();showStart(false);}
 function colEnd(why){
@@ -3665,7 +3752,7 @@ function colEnd(why){
  else colDialog('The shared session has ended','The owner ended the shared session.',null,[['OK',null,'pri']]);}
 function colStart(cfg){
  if(!colName()){toast('Type your name first.');const i=$('#colName');if(i)i.focus();return;}
- if(!started)return;cfg=cfg||{};COL.cfgNew={name:String(cfg.name||'').trim().slice(0,60)||'Kendama Design Session',max:cfg.max>=2?Math.min(64,Math.round(cfg.max)):0,own:!!cfg.own,view:cfg.view!==false,chat:cfg.chat!==false};const room=Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>'abcdefghijkmnpqrstuvwxyz23456789'[b%32]).join('');colConnect(room,'',true);}
+ if(!started)return;cfg=cfg||{};COL.cfgNew={name:String(cfg.name||'').trim().slice(0,60)||'Kendama Design Session',max:cfg.max>=2?Math.min(64,Math.round(cfg.max)):0,own:!!cfg.own,view:cfg.view!==false,chat:cfg.chat!==false};if(cfg.own&&cfg.game&&cfg.game.on){const g=gmClean(Object.assign({},cfg.game,{on:true}));if(!COL.cfgNew.view)g.watch=false;COL.cfgNew.game=g;}const room=Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>'abcdefghijkmnpqrstuvwxyz23456789'[b%32]).join('');colConnect(room,'',true);}
 function colLeave(){
  if(!COL.on)return;
  const others=COL.roster.filter(r=>r.id!==COL.id),save=['Save or export…',()=>colSaveMine(colLeave)];
@@ -3683,12 +3770,13 @@ function colLeave(){
 function colSaveMine(back){
  const own=colOwn(),it=own&&ownItems().find(i=>i.id===COL.id);
  const one=fmt=>{if(it)ownSaveOne(it,fmt);else if(fmt==='pdf')$('#bPdf').click();else if(fmt==='dxf')$('#bDxf').click();else $('#bSave').click();if(back)setTimeout(back,0);};
- colDialog('Save or export your work',it?'Your own kendama, as a file in your downloads folder:':'The design, as a file in your downloads folder:',null,[['Back',back],['Spec sheet PDF',()=>one('pdf')],['DXF',()=>one('dxf')],['Project file',()=>one('json'),'pri']]);}
+ const res=GM.st&&GM.st.ph==='done'&&GM.ent.length>1?[['Game results PDF',()=>{download(fileSafe(colSessName())+'-game-results.pdf',gmPdf(),'application/pdf');if(back)setTimeout(back,0);}]]:[];
+ colDialog('Save or export your work',it?'Your own kendama, as a file in your downloads folder:':'The design, as a file in your downloads folder:',null,[['Back',back],...res,['Spec sheet PDF',()=>one('pdf')],['DXF',()=>one('dxf')],['Project file',()=>one('json'),'pri']]);}
 function colKick(id){if(COL.role==='owner'&&id!==COL.id)colSend({t:'kick',id});}
 // starting a session: the owner picks how it works first (it can't be changed once it has started)
 function colSetup(){
  if(!colName()){toast('Type your name first.');const i=$('#colName');if(i)i.focus();return;}
- if(!started)return;const o=colSetup.o=Object.assign({name:'Kendama Design Session',simple:true,lim:false,max:8,own:false,view:true,chat:true},colSetup.o&&{name:colSetup.o.name}),box=el('div',{class:'col-opts',id:'colOpts'});
+ if(!started)return;const o=colSetup.o=Object.assign({name:'Kendama Design Session',simple:true,lim:false,max:8,own:false,view:true,chat:true,game:gmDef()},colSetup.o&&{name:colSetup.o.name,game:colSetup.o.game}),box=el('div',{class:'col-opts',id:'colOpts'});
  const opt=(id,title,text,on,set,more)=>{const cb=el('input',{type:'checkbox',id});cb.checked=on;cb.onchange=()=>set(cb.checked);const d=el('div',{},el('b',{},title),el('small',{},text));if(more)d.append(more);return el('label',{class:'col-opt'},cb,d);};
  const draw=()=>{box.innerHTML='';
   const nm=el('input',{type:'text',id:'coName',maxlength:'60',value:o.name,translate:'no'});nm.oninput=()=>{o.name=nm.value;};
@@ -3699,11 +3787,12 @@ function colSetup(){
    const put=v=>{v=Math.round(+v);if(!(v>=2))v=2;if(v>64)v=64;o.max=v;rg.value=nb.value=String(v);};rg.oninput=()=>put(rg.value);nb.onchange=()=>put(nb.value);
    more=el('div',{class:'col-max'},rg,nb,el('span',{},'collaborators'));}
   box.append(opt('coLim','Limit the number of collaborators','Counts you and everyone who can edit. If someone leaves, their place is free for someone new. Watchers don’t count towards this number.',o.lim,v=>{o.lim=v;draw();},more));
-  box.append(opt('coOwn','Everyone has their own kendama','The current 1° kendama becomes a shared workpiece that everyone can edit, and every collaborator that joins gets a copy of it that only they can edit. Anything else currently in the workspace remains as is, and is only editable by you.',o.own,v=>{o.own=v;}));
-  box.append(opt('coView','Allow watchers','Watchers can observe, but not edit anything in the workspace, save, or export files.',o.view,v=>{o.view=v;}));
+  box.append(opt('coOwn','Everyone has their own kendama','The current 1° kendama becomes a shared workpiece that everyone can edit, and every collaborator that joins gets a copy of it that only they can edit. Anything else currently in the workspace remains as is, and is only editable by you.',o.own,v=>{o.own=v;draw();}));
+  if(o.own)gmSetupOpts(box,o,draw);
+  box.append(opt('coView','Allow watchers','Watchers can observe, but not edit anything in the workspace, save, or export files.',o.view,v=>{o.view=v;draw();}));
   box.append(opt('coChat','Chat','Adds a chat box under Collaborate for everyone in the session, watchers too. You can delete any message.',o.chat,v=>{o.chat=v;}));};
  draw();
- colDialog('Start a shared session','Settings are locked once a shared session begins.',box,[['Cancel',null],['Start session',()=>colStart(o.simple?{name:o.name,chat:true}:{name:o.name,max:o.lim?o.max:0,own:o.own,view:o.view,chat:o.chat}),'pri']]);}
+ colDialog('Start a shared session','Settings are locked once a shared session begins.',box,[['Cancel',null],['Start session',()=>colStart(o.simple?{name:o.name,chat:true}:{name:o.name,max:o.lim?o.max:0,own:o.own,view:o.view,chat:o.chat,game:o.own&&o.game.on?o.game:null}),'pri']]);}
 
 // ---- chat (when the owner turned it on): anyone in the session, watchers too; the owner can delete messages ----
 const colChatOn=()=>COL.on&&!!(COL.cfg&&COL.cfg.chat);
@@ -3901,7 +3990,7 @@ function colBoot(){
  const m=location.hash.match(/^#join=([A-Za-z0-9]{8,40})\.([A-Za-z0-9]{8,40})$/);
  if(m){try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}COL.invite={room:m[1],key:m[2]};const i=$('#cjName');i.value=colName();colShow('#colJoin');setTimeout(()=>{try{i.focus();}catch(e){}},50);return true;}
  let s=null;try{s=JSON.parse(sessionStorage.getItem('tse.colSess')||'null');}catch(e){}
- if(s&&s.room&&s.key&&colAvail()){COL.cfg=s.cfg&&typeof s.cfg==='object'?s.cfg:null;try{const c=JSON.parse(sessionStorage.getItem('tse.colChat')||'null');if(c&&c.room===s.room&&Array.isArray(c.chat))COL.chat=c.chat;}catch(e){}colConnect(s.room,s.key,false);return true;}
+ if(s&&s.room&&s.key&&colAvail()){COL.cfg=s.cfg&&typeof s.cfg==='object'?s.cfg:null;try{const c=JSON.parse(sessionStorage.getItem('tse.colChat')||'null');if(c&&c.room===s.room&&Array.isArray(c.chat))COL.chat=c.chat;}catch(e){}gmBoot(s.room);colConnect(s.room,s.key,false);return true;}
  return false;}
 function colJoinGo(){const n=$('#cjName').value.trim();if(!n){toast('Type your name first.');$('#cjName').focus();return;}colSetName(n);colHide('#colJoin');const v=COL.invite;COL.invite=null;if(v)colConnect(v.room,v.key,false);}
 const colShow=s=>{const e=$(s);if(e)e.classList.add('show');},colHide=s=>{const e=$(s);if(e)e.classList.remove('show');};
@@ -3930,7 +4019,7 @@ function syncCol(){
  const me=COL.roster.find(r=>r.id===COL.id);
  host.append(el('p',{class:'col-me'},el('span',{},'You: '),el('b',{},ROLE_TXT[COL.role]||'')));
  const cf=COL.cfg;if(cf&&cf.name)host.prepend(el('p',{class:'col-sess'},el('b',{translate:'no'},cf.name)));
- if(cf&&(cf.max||cf.own||cf.view===false||cf.chat)){const p=el('p',{class:'col-cfg'}),bits=[];if(cf.max)bits.push([el('span',{},'Up to'),' ',el('b',{},String(cf.max)),' ',el('span',{},'collaborators')]);if(cf.own)bits.push([el('span',{},'Everyone has their own kendama')]);if(cf.view===false)bits.push([el('span',{},'No watchers')]);if(cf.chat)bits.push([el('span',{},'Chat')]);bits.forEach((b,i)=>{if(i)p.append(' · ');p.append(...b);});host.append(p);}
+ if(cf&&(cf.max||cf.own||cf.view===false||cf.chat)){const p=el('p',{class:'col-cfg'}),bits=[];if(cf.max)bits.push([el('span',{},'Up to'),' ',el('b',{},String(cf.max)),' ',el('span',{},'collaborators')]);if(cf.own)bits.push([el('span',{},'Everyone has their own kendama')]);if(cf.view===false)bits.push([el('span',{},'No watchers')]);if(cf.game&&cf.game.on)bits.push([el('span',{},'Design game')]);if(cf.chat)bits.push([el('span',{},'Chat')]);bits.forEach((b,i)=>{if(i)p.append(' · ');p.append(...b);});host.append(p);}
  if(COL.role==='owner'&&COL.keys){
   const inv=(label,tip,k,id)=>el('div',{class:'col-inv'},el('button',{id,title:tip,onclick:()=>colCopy(colLink(k))},label));
   host.append(el('p',{class:'col-h'},'Invite'),inv('Copy link to edit','People who open this link can change the design, like you.',COL.keys.edit,'colInvE'));
@@ -3942,6 +4031,7 @@ function syncCol(){
  host.append(ul);
  if(!COL.owner)host.append(el('p',{class:'col-warn'},'The owner is away. If they don’t come back within a minute, the longest-standing editor takes over.'));
  if(COL.role==='owner'&&colOwn())host.append(el('p',{class:'col-h'},'Kendamas on the table'),ownTools());
+ {const gp=gmPanel();if(gp)host.append(gp);}
  host.append(el('div',{class:'row'},el('button',{id:'colLeave',class:'danger',onclick:colLeave},COL.role==='owner'?'Leave or end the session…':'Leave the session')));
  void me;}
 async function colCopy(s){let ok=false;try{await navigator.clipboard.writeText(s);ok=true;}catch(e){}
@@ -3976,8 +4066,757 @@ function colWire(){
  $('#cjGo').onclick=colJoinGo;$('#cjName').onkeydown=e=>{if(e.key==='Enter')colJoinGo();};
  $('#cjCancel').onclick=()=>{COL.invite=null;colHide('#colJoin');};
  $('#cwCancel').onclick=()=>{colSend({t:'leave'});colReset();colClearDesign();};
- $('#chatGo').onclick=chatSend;$('#chatIn').onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();chatSend();}};$('#rsChat').addEventListener('toggle',()=>{if($('#rsChat').open)chatSync.end=true;chatSync();});
+ $('#gsDone').onclick=gsClose;$('#chatGo').onclick=chatSend;$('#chatIn').onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();chatSend();}};$('#rsChat').addEventListener('toggle',()=>{if($('#rsChat').open)chatSync.end=true;chatSync();});
  syncCol();}
+
+/* ================= design game (own-kendama sessions) =================
+   With the game on, the session opens with a design time. When it is up ("pencils down") everyone's kendama is copied, each designer writes a few words
+   about theirs, and the copies go through a chain of stages in a window of their own; each stage keeps its top N for the next, the last one ranks what is left.
+   The owner's app runs the game (the host): it keeps the state, counts the votes and sends the whole state to everyone after each change ('game' relay messages).
+   Votes go to everyone, but only the host counts them. When the owner changes, everyone sends their vote for the step again, so the new owner carries on.
+   Timers run on the host; the others count down from the time left in the last state they got. With no owner in the room the clock stands still.
+   Shapes go under neutral labels (Shape A, B…); who made each is shown at the end only, if the owner chose so. Nobody votes on their own shape. */
+const GM_RHO=0.705; // every shape's weights are worked out in hard maple, so they compare fairly
+const GM_DESC=160,GM_GAP=15000,GM_LOCK=3000;
+const GM_MODES={
+ swipe:['Swipe','One shape at a time: swipe right if you like it, left if you don’t. Ranked by the share of likes from everyone who saw it.'],
+ bracket:['Elimination bracket','Shapes meet head to head and everyone votes. A shape is out after one, two or three losses.'],
+ rr:['Round robin','Every shape meets every other shape in its pool. Pools can end in a playoff bracket.'],
+ koth:['King of the Hill','One shape holds the hill. Challengers come up one at a time, and the winner stays on.'],
+ rank:['Line them up','Everyone puts all the shapes in their own order, and the orders are added up.'],
+ lunar:['Lunar balance','The shapes are put in order of their big-cup lunar balance. Everyone can nudge the order, then agrees to it.'],
+ auction:['Token auction','Everyone spreads a few tokens over the shapes they like best, or, to knock shapes out, the ones they like least.'],
+ olympics:['Spec Olympics','No voting: the shapes are scored on measured events, with medals for each.'],
+ awards:['Awards','Everyone picks a shape for each award. Nobody is knocked out.']};
+const GM_ORDER=['swipe','bracket','rr','koth','rank','lunar','auction','olympics','awards'];
+const GM_OPT={swipe:{sec:15},bracket:{elim:1,third:true,sec:30,seed:'rand'},rr:{pools:1,adv:1,playoff:true,sec:12,seed:'rand'},koth:{sec:15,laps:1},rank:{per:12},
+ lunar:{t:0,sec:60,rounds:2},auction:{tok:10,cap:3,worst:false,sec:0},olympics:{ev:[{k:'mass',how:'near',t:null},{k:'lunar',how:'near',t:0},{k:'cog',how:'low'},{k:'kwc'}],sec:6},
+ awards:{cats:['Best big cup','Best silhouette','Most original','Most playable','Best tama'],sec:0}};
+const GM_EV={mass:['Total weight','g'],kenM:['Ken + sarado weight','g'],tamaM:['Tama weight','g'],lunar:['Spike below horizontal in big-cup lunar','°'],kenH:['Ken length','mm'],
+ bgD:['Big cup Ø','mm'],smD:['Small cup Ø','mm'],baseD:['Base cup Ø','mm'],cog:['Centre of gravity height','mm'],kwc:['KWC legal','']};
+const GM_PRESETS=[['Quick vote: swipe',[['swipe',0]]],['Swipe, then a double elimination bracket',[['swipe',8],['bracket',0,{elim:2}]]],['Pools, then a playoff',[['rr',0,{pools:4,adv:1,playoff:true}]]],
+ ['Party: Olympics, auction, King of the Hill, awards',[['olympics',0],['auction',6],['koth',0],['awards',0]]],['Swipe, knock-out tokens, then line them up',[['swipe',10],['auction',5,{worst:true}],['rank',0]]]];
+const gmOpt=m=>JSON.parse(JSON.stringify(GM_OPT[m]||{}));
+const gmFlowDef=()=>[{m:'swipe',keep:8,o:gmOpt('swipe')},{m:'bracket',keep:0,o:Object.assign(gmOpt('bracket'),{elim:2})}];
+const gmDef=()=>({on:false,design:30,desc:90,mine:true,left:true,same:false,watch:false,reveal:true,top:3,verb:'std',specs:false,flow:gmFlowDef()});
+const gmN=(v,a,b,d)=>{v=Math.round(+v);return isFinite(v)?Math.min(b,Math.max(a,v)):d;};
+function gmClean(g){
+ const o=Object.assign(gmDef(),JSON.parse(JSON.stringify(g||{})));o.on=!!o.on;o.design=gmN(o.design,0,600,30);o.desc=gmN(o.desc,0,600,90);
+ for(const k of['mine','left','same','watch','reveal','specs'])o[k]=!!o[k];o.top=gmN(o.top,0,64,3);if(!['sum','std','full'].includes(o.verb))o.verb='std';
+ o.flow=(Array.isArray(o.flow)?o.flow:[]).filter(s=>s&&ENG[s.m]).slice(0,10).map(s=>({m:s.m,keep:gmN(s.keep,0,64,0),o:Object.assign(gmOpt(s.m),s.o&&typeof s.o==='object'?s.o:{})}));
+ if(!o.flow.length)o.flow=gmFlowDef();return o;}
+
+// ---- small helpers ----
+const gmShuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const gmHash=s=>{let h=2166136261;for(const ch of String(s)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}return h>>>0;};
+const gmLab=i=>{let s='';i++;while(i>0){const m=(i-1)%26;s=String.fromCharCode(65+m)+s;i=Math.floor((i-1)/26);}return s;}; // A … Z, AA …
+const gmMap=(ids,fn)=>{const o={};for(const id of ids)o[id]=fn(id);return o;};
+const gmCan=(C,u,ids)=>ids.every(id=>C.by[id]!==u);       // u didn't make any of these
+const gmOwn=(C,u)=>C.f.filter(id=>C.by[id]!==u);          // the shapes u may vote on
+// ids in order of their keys (bigger first, key by key), then by their place in the field coming in (its seeding)
+const gmSort=(C,ids,key)=>{const K=new Map(ids.map(id=>[id,key(id)]));return ids.slice().sort((a,b)=>{const x=K.get(a),y=K.get(b);for(let i=0;i<x.length;i++)if(Math.abs(x[i]-y[i])>1e-9)return y[i]-x[i];return C.sd(a)-C.sd(b);});};
+const gmTally=(V,i)=>{let a=0,b=0;for(const u in V){const c=i!=null?V[u]&&V[u][i]:V[u];if(c==='a')a++;else if(c==='b')b++;}return[a,b];};
+const gmShare=log=>{const F={},T={};for(const g of log)for(const[id,v,w]of[[g.a,g.va,g.vb],[g.b,g.vb,g.va]]){F[id]=(F[id]||0)+v;T[id]=(T[id]||0)+v+w;}const o={};for(const id in F)o[id]=T[id]?F[id]/T[id]:.5;return o;};
+// rankings added up: each list gives 1 to its first shape down to 0 for its last; a shape's score is its average over the lists it is in
+function gmBorda(ids,lists){const P={},N={};for(const L of lists){if(!L||L.length<2)continue;L.forEach((id,i)=>{P[id]=(P[id]||0)+1-i/(L.length-1);N[id]=(N[id]||0)+1;});}return gmMap(ids,id=>N[id]?P[id]/N[id]:.5);}
+function gmOrdVote(S,u,v,ids){if(!v||!Array.isArray(v.ord))return false;const set=new Set(ids);if(v.ord.length!==ids.length||new Set(v.ord).size!==ids.length||!v.ord.every(id=>set.has(id)))return false;
+ S.v[u]=v.ord.slice();if(v.d)S.dn[u]=1;else delete S.dn[u];return true;}
+
+// ---- elimination brackets: a shape is out after L losses. Each round pairs the shapes that have the same number of losses (the brackets);
+// when every bracket is down to one shape, the two with the fewest losses meet (the final, played again if the favourite loses it with lives to spare). ----
+const bkPk=(a,b)=>a<b?a+'|'+b:b+'|'+a;
+const bkAlive=B=>B.sd.filter(id=>B.ls[id]<B.L);
+function bkInit(B,ids,L,third){Object.assign(B,{L,sd:ids.slice(),ls:{},bye:{},out:[],oR:{},met:[],q:[],log:[],r:0,th:!!third&&L===1,p3:null,m:null});for(const id of ids){B.ls[id]=0;B.bye[id]=0;}bkNext(B);}
+function bkNext(B){if(!B.q.length&&!bkRound(B)){B.m=null;return false;}B.m=B.q.shift();return true;}
+function bkRound(B){
+ const al=bkAlive(B);if(al.length<2)return false;const q=[],met=new Set(B.met),si=id=>B.sd.indexOf(id);
+ if(al.length===2&&B.th){B.th=false;const semi=B.out.filter(id=>B.oR[id]===B.r);if(semi.length===2)q.push({a:semi[0],b:semi[1],t:'3'});} // the match for 3rd place, before the final
+ B.r++;const tiers=[];for(const id of al)(tiers[B.ls[id]]=tiers[B.ls[id]]||[]).push(id);
+ for(let t=0;t<tiers.length;t++){const a=(tiers[t]||[]).slice();if(a.length<2)continue;
+  if(a.length%2){let k=0;for(let i=1;i<a.length;i++)if(B.bye[a[i]]<B.bye[a[k]])k=i;B.bye[a[k]]++;a.splice(k,1);} // an odd one out sits this round out: the best seed with the fewest byes
+  if(B.r===1&&t===0)for(let i=0;i<a.length/2;i++)q.push({a:a[i],b:a[a.length-1-i],t}); // first round: top seed against bottom seed
+  else while(a.length){const x=a.shift();let j=a.findIndex(y=>!met.has(bkPk(x,y)));if(j<0)j=0;q.push({a:x,b:a.splice(j,1)[0],t});}}
+ if(!q.some(m=>m.t!=='3')){const s=al.slice().sort((x,y)=>B.ls[x]-B.ls[y]||si(x)-si(y));q.push({a:s[0],b:s[1],t:-1});}
+ B.q=q;return true;}
+function bkRes(B,va,vb){const m=B.m,si=id=>B.sd.indexOf(id),w=va>vb?m.a:vb>va?m.b:si(m.a)<si(m.b)?m.a:m.b,l=w===m.a?m.b:m.a; // a tie goes to the better seed
+ B.log.push({a:m.a,b:m.b,va,vb,w,t:m.t,r:B.r,tb:va===vb?1:0,f:m.t!=='3'&&bkAlive(B).length===2?1:0});
+ if(m.t==='3')B.p3=[w,l];else{B.met.push(bkPk(m.a,m.b));if(++B.ls[l]>=B.L){B.out.push(l);B.oR[l]=B.r;}}}
+// one match is over: a tie with votes in is voted on once more, then goes to the better seed
+function bkStep(B,S,sec){const[a,b]=gmTally(S.v);if(a===b&&a>0&&!B.m.re){B.m.re=1;S.v={};return 15000;}bkRes(B,a,b);S.v={};return bkNext(B)?sec*1000:0;}
+function bkRank(B){const sh=gmShare(B.log.filter(g=>g.t!=='3')),si=id=>B.sd.indexOf(id);
+ const al=bkAlive(B).sort((x,y)=>B.ls[x]-B.ls[y]||(sh[y]??.5)-(sh[x]??.5)||si(x)-si(y)),out=B.out.slice().sort((x,y)=>B.oR[y]-B.oR[x]||(sh[y]??.5)-(sh[x]??.5)||si(x)-si(y)),r=[...al,...out];
+ if(B.p3){const i=r.indexOf(B.p3[0]),j=r.indexOf(B.p3[1]);if(i>j&&j>=0){r[i]=B.p3[1];r[j]=B.p3[0];}}
+ const W=gmMap(B.sd,()=>0),Lo=gmMap(B.sd,()=>0);for(const g of B.log)if(g.t!=='3'){W[g.w]++;Lo[g.w===g.a?g.b:g.a]++;}
+ return{r,sc:gmMap(B.sd,id=>`${W[id]}–${Lo[id]}`),h:'Won–lost',x:{log:B.log,L:B.L}};}
+// round robin: the circle method, a round at a time
+function rrSched(ids){const a=ids.slice();if(a.length%2)a.push(null);const n=a.length,R=[];for(let r=0;r<n-1;r++){const rd=[];for(let i=0;i<n/2;i++){const x=a[i],y=a[n-1-i];if(x!=null&&y!=null)rd.push(r%2?[y,x]:[x,y]);}R.push(rd);a.splice(1,0,a.pop());}return R;}
+function rrCur(S){S.cur=[];S.pl.forEach((p,pi)=>{for(const[a,b]of(S.sc[pi][S.r]||[]))S.cur.push({a,b,p:pi});});}
+const rrDur=(S,o)=>Math.max(20,(o.sec||12)*Math.max(1,S.cur.length))*1000;
+const rrSh=t=>t.f+t.a?t.f/(t.f+t.a):.5;
+// a pool's table: points (a win 1, a draw ½), then the match between them, then the share of votes, then the seeding
+function rrTab(S,C,pi){const ids=S.pl[pi],T={};for(const id of ids)T[id]={id,w:0,d:0,l:0,pts:0,f:0,a:0,g:0};
+ for(const m of S.res)if(m.p===pi){const A=T[m.a],B=T[m.b];A.g++;B.g++;A.f+=m.va;A.a+=m.vb;B.f+=m.vb;B.a+=m.va;if(!m.w){A.d++;B.d++;A.pts+=.5;B.pts+=.5;}else{const W=T[m.w],L=m.w===m.a?B:A;W.w++;W.pts++;L.l++;}}
+ const h2h=(x,y)=>{const m=S.res.find(m=>m.p===pi&&((m.a===x&&m.b===y)||(m.a===y&&m.b===x)));return m&&m.w?(m.w===x?-1:1):0;};
+ return ids.map(id=>T[id]).sort((x,y)=>(y.pts-x.pts)||h2h(x.id,y.id)||(rrSh(y)-rrSh(x))||C.sd(x.id)-C.sd(y.id));}
+// every pool's 1st, then every pool's 2nd…, each row by points a match and share of votes
+function rrPlaces(S,C){const tabs=S.pl.map((_,pi)=>rrTab(S,C,pi)),o=[],mx=Math.max(...tabs.map(t=>t.length));
+ for(let k=0;k<mx;k++){const row=tabs.map(t=>t[k]).filter(Boolean).sort((x,y)=>(y.pts/(y.g||1)-x.pts/(x.g||1))||(rrSh(y)-rrSh(x))||C.sd(x.id)-C.sd(y.id));o.push(...row.map(t=>Object.assign({k},t)));}return{tabs,o};}
+const gmEvVal=(s,k)=>!s?0:({mass:s.kM+s.sM+s.tM,kenM:s.kM+s.sM,tamaM:s.tM,lunar:s.lun==null?0:s.lun,kenH:s.kenH,bgD:s.bgD,smD:s.smD,baseD:s.baseD,cog:s.cog,kwc:s.kwc.length?0:1})[k];
+
+/* ---- the stages. Each: init(S,C) → ms for its first step; vote(S,C,who,v) → taken?; need(S,C) → who is still to vote (null: the step only runs on time);
+   step(S,C) → ms for the next step, or 0 when the stage is over; rank(S,C) → {r: ids best first, sc: score per id, h: what the score is, x: the details}.
+   C: {f: the shapes in this stage, in seeded order; o: options; vo: voters in the room; by: who made each shape; sd(id): its seed}. ---- */
+const ENG={
+ swipe:{
+  init:(S,C)=>{S.v={};return Math.max(30,(C.o.sec||15)*Math.max(1,C.f.length-1))*1000;},
+  vote:(S,C,u,v)=>{if(!v||!v.b||typeof v.b!=='object')return false;const o={};for(const id of gmOwn(C,u))if(v.b[id]===0||v.b[id]===1)o[id]=v.b[id];S.v[u]=o;return true;},
+  need:(S,C)=>C.vo.filter(u=>Object.keys(S.v[u]||{}).length<gmOwn(C,u).length),
+  step:()=>0,
+  // the share of likes among those who saw the shape: someone who ran out of time counts only for the shapes they did see. Even shares: more likes, then fewer dislikes
+  rank:(S,C)=>{const L=gmMap(C.f,()=>0),V=gmMap(C.f,()=>0);for(const u in S.v)for(const id in S.v[u])if(id in V){V[id]++;L[id]+=S.v[u][id];}
+   return{r:gmSort(C,C.f,id=>[V[id]?L[id]/V[id]:-1,L[id],L[id]-V[id]]),sc:gmMap(C.f,id=>V[id]?`${L[id]} / ${V[id]} · ${Math.round(100*L[id]/V[id])}%`:'–'),h:'Likes',x:{L,V}};}},
+ bracket:{
+  init:(S,C)=>{S.B={};S.v={};bkInit(S.B,C.o.seed==='rank'?C.f:gmShuf(C.f),Math.min(3,Math.max(1,C.o.elim|0||1)),C.o.third!==false);return S.B.m?(C.o.sec||30)*1000:0;},
+  vote:(S,C,u,v)=>{const m=S.B.m;if(!m||(v.c!=='a'&&v.c!=='b')||!gmCan(C,u,[m.a,m.b]))return false;S.v[u]=v.c;return true;},
+  need:(S,C)=>{const m=S.B.m;return m?C.vo.filter(u=>gmCan(C,u,[m.a,m.b])&&!S.v[u]):[];},
+  step:(S,C)=>bkStep(S.B,S,C.o.sec||30),
+  rank:S=>bkRank(S.B)},
+ rr:{
+  init:(S,C)=>{const o=C.o,n=C.f.length,P=Math.max(1,Math.min(o.pools|0||1,Math.floor(n/2))),f=o.seed==='rank'?C.f:gmShuf(C.f),pl=Array.from({length:P},()=>[]);
+   f.forEach((id,i)=>{const r=Math.floor(i/P),c=r%2?P-1-i%P:i%P;pl[c].push(id);}); // snake seeding into the pools
+   Object.assign(S,{pl,sc:pl.map(rrSched),r:0,res:[],v:{},po:null});S.nr=Math.max(...S.sc.map(s=>s.length));rrCur(S);return rrDur(S,o);},
+  vote:(S,C,u,v)=>{if(S.po){const m=S.po.m;if(!m||(v.c!=='a'&&v.c!=='b')||!gmCan(C,u,[m.a,m.b]))return false;S.v[u]=v.c;return true;}
+   if(!v||!v.m||typeof v.m!=='object')return false;const o={};S.cur.forEach((m,i)=>{const c=v.m[i];if((c==='a'||c==='b')&&gmCan(C,u,[m.a,m.b]))o[i]=c;});S.v[u]=o;return true;},
+  need:(S,C)=>S.po?(S.po.m?C.vo.filter(u=>gmCan(C,u,[S.po.m.a,S.po.m.b])&&!S.v[u]):[]):C.vo.filter(u=>S.cur.some((m,i)=>gmCan(C,u,[m.a,m.b])&&!(S.v[u]&&S.v[u][i]))),
+  step:(S,C)=>{const o=C.o;if(S.po)return bkStep(S.po,S,30);
+   S.cur.forEach((m,i)=>{const[a,b]=gmTally(S.v,i);S.res.push({a:m.a,b:m.b,p:m.p,va:a,vb:b,w:a>b?m.a:b>a?m.b:null,r:S.r});}); // an even vote is a draw
+   S.v={};S.r++;if(S.r<S.nr){rrCur(S);return rrDur(S,o);}
+   if(S.pl.length>1&&o.playoff){const q=rrPlaces(S,C).o.filter(t=>t.k<Math.max(1,o.adv|0)).map(t=>t.id);if(q.length>=2){S.po={};S.cur=[];bkInit(S.po,q,1,false);return S.po.m?30000:0;}}
+   return 0;},
+  rank:(S,C)=>{const{tabs,o}=rrPlaces(S,C),T={};for(const t of tabs)for(const x of t)T[x.id]=x;let r=o.map(t=>t.id);
+   if(S.po&&S.po.log.length){const pr=bkRank(S.po).r;r=[...pr,...r.filter(id=>!pr.includes(id))];}
+   return{r,sc:gmMap(C.f,id=>{const t=T[id];return t?`${t.w}–${t.d}–${t.l}`:'';}),h:'Won–drawn–lost',x:{pl:S.pl,res:S.res,po:S.po?S.po.log:null}};}},
+ koth:{
+  init:(S,C)=>{Object.assign(S,{king:C.f[0],q:C.f.slice(1),lap:1,w:{},log:[],v:{}});S.m={a:S.king,b:S.q.shift()};return(C.o.sec||15)*1000;},
+  vote:(S,C,u,v)=>{const m=S.m;if(!m||(v.c!=='a'&&v.c!=='b')||!gmCan(C,u,[m.a,m.b]))return false;S.v[u]=v.c;return true;},
+  need:(S,C)=>S.m?C.vo.filter(u=>gmCan(C,u,[S.m.a,S.m.b])&&!S.v[u]):[],
+  // the king keeps the hill on an even vote
+  step:(S,C)=>{const m=S.m,[a,b]=gmTally(S.v),w=b>a?m.b:m.a;S.log.push({a:m.a,b:m.b,va:a,vb:b,w,lap:S.lap});S.w[w]=(S.w[w]||0)+1;S.king=w;S.v={};
+   let nx=S.q.shift();if(nx==null&&S.lap<Math.max(1,C.o.laps|0)){S.lap++;S.q=C.f.filter(id=>id!==S.king);nx=S.q.shift();}
+   if(nx==null){S.m=null;return 0;}S.m={a:S.king,b:nx};return(C.o.sec||15)*1000;},
+  rank:(S,C)=>{const sh=gmShare(S.log),rest=gmSort(C,C.f.filter(id=>id!==S.king),id=>[S.w[id]||0,sh[id]??.5]);return{r:[S.king,...rest],sc:gmMap(C.f,id=>String(S.w[id]||0)),h:'Wins',x:{log:S.log}};}},
+ rank:{
+  init:(S,C)=>{S.v={};S.dn={};return Math.max(60,(C.o.per||12)*C.f.length)*1000;},
+  vote:(S,C,u,v)=>gmOrdVote(S,u,v,gmOwn(C,u)),
+  need:(S,C)=>C.vo.filter(u=>!S.dn[u]&&gmOwn(C,u).length>1),
+  step:()=>0,
+  rank:(S,C)=>{const B=gmBorda(C.f,Object.values(S.v));return{r:gmSort(C,C.f,id=>[B[id]]),sc:gmMap(C.f,id=>String(Math.round(B[id]*100))),h:'Score (out of 100)',x:{B}};}},
+ lunar:{
+  init:(S,C)=>{const t=isFinite(+C.o.t)?+C.o.t:0,a=gmMap(C.f,id=>{const s=gmStat(id);return s&&s.lun!=null?s.lun:999;});
+   Object.assign(S,{t,a,ph:'adj',rd:1,v:{},dn:{},ok:{}});S.auto=gmSort(C,C.f,id=>[-Math.abs(a[id]-t)]);S.base=S.auto.slice();return(C.o.sec||60)*1000;},
+  vote:(S,C,u,v)=>{if(S.ph==='adj')return gmOrdVote(S,u,v,C.f);if(v.ok!==0&&v.ok!==1)return false;S.ok[u]=v.ok;return true;},
+  need:(S,C)=>S.ph==='adj'?C.vo.filter(u=>!S.dn[u]):C.vo.filter(u=>!(u in S.ok)),
+  // everyone's order added up (someone who didn't touch it goes with the order they were shown), then a show of hands: more agree than not, and it stands
+  step:(S,C)=>{if(S.ph==='adj'){const ords=C.vo.map(u=>S.v[u]||S.base).concat(Object.keys(S.v).filter(u=>!C.vo.includes(u)).map(u=>S.v[u])),B=gmBorda(C.f,ords);
+    S.comb=gmSort(C,C.f,id=>[B[id],-S.base.indexOf(id)]);S.ph='agr';S.ok={};return 30000;}
+   const y=Object.values(S.ok).filter(x=>x===1).length,n=Object.values(S.ok).filter(x=>x===0).length;S.ay=y;S.an=n;
+   if(y>=n||S.rd>=Math.max(1,C.o.rounds|0)){S.done=1;return 0;}S.rd++;S.base=S.comb.slice();S.ph='adj';S.v={};S.dn={};return(C.o.sec||60)*1000;},
+  rank:(S,C)=>({r:(S.comb||S.base).slice(),sc:gmMap(C.f,id=>S.a[id]===999?'–':f1(S.a[id])+'°'),h:'Spike below horizontal',x:{t:S.t,a:S.a,auto:S.auto,ay:S.ay,an:S.an,rd:S.rd}})},
+ auction:{
+  init:(S,C)=>{S.v={};S.dn={};return(C.o.sec||Math.max(60,20+8*C.f.length))*1000;},
+  vote:(S,C,u,v)=>{if(!v||!v.b||typeof v.b!=='object')return false;const tok=Math.max(1,C.o.tok|0||10),cap=Math.max(1,C.o.cap|0||3),o={};let n=0;
+   for(const id of gmOwn(C,u)){const k=Math.floor(+v.b[id]||0);if(k>0){const q=Math.min(k,cap);o[id]=q;n+=q;}}if(n>tok)return false;S.v[u]=o;if(v.d)S.dn[u]=1;else delete S.dn[u];return true;},
+  need:(S,C)=>C.vo.filter(u=>!S.dn[u]),
+  step:()=>0,
+  rank:(S,C)=>{const T=gmMap(C.f,()=>0),N=gmMap(C.f,()=>0);for(const u in S.v)for(const id in S.v[u])if(id in T){T[id]+=S.v[u][id];N[id]++;}
+   const s=C.o.worst?-1:1;return{r:gmSort(C,C.f,id=>[s*T[id],s*N[id]]),sc:gmMap(C.f,id=>String(T[id])),h:C.o.worst?'Knock-out tokens':'Tokens',x:{T,N,worst:!!C.o.worst}};}},
+ olympics:{
+  init:(S,C)=>{const ev=(C.o.ev||[]).filter(e=>e&&GM_EV[e.k]).slice(0,8),base=gmStat('~base');if(!ev.length)ev.push({k:'mass',how:'near',t:null});
+   S.ev=ev.map(e=>{const how=e.k==='kwc'?'high':['near','low','high'].includes(e.how)?e.how:'near',val=gmMap(C.f,id=>gmEvVal(gmStat(id),e.k)),mid=(()=>{const v=Object.values(val).sort((a,b)=>a-b);return v.length?v[Math.floor(v.length/2)]:0;})(),
+     t=how==='near'?(e.t==null||e.t===''||!isFinite(+e.t)?(base?gmEvVal(base,e.k):mid):+e.t):null;
+    const bad=id=>how==='near'?Math.abs(val[id]-t):how==='low'?val[id]:-val[id],ord=C.f.slice().sort((a,b)=>bad(a)-bad(b)||C.sd(a)-C.sd(b)),pl={};
+    for(let i=0;i<ord.length;){let j=i;while(j+1<ord.length&&Math.abs(bad(ord[j+1])-bad(ord[i]))<1e-6)j++;for(let k=i;k<=j;k++)pl[ord[k]]=i+1;i=j+1;} // ties share the place
+    return{k:e.k,how,t,val,pl,ord};});
+   S.e=0;return Math.max(3,C.o.sec|0||6)*1000;},
+  vote:()=>false,need:()=>null,
+  step:(S,C)=>++S.e<S.ev.length?Math.max(3,C.o.sec|0||6)*1000:0,
+  rank:(S,C)=>{const n=C.f.length,P=gmMap(C.f,()=>0),M=gmMap(C.f,()=>[0,0,0]);for(const e of S.ev)for(const id of C.f){const p=e.pl[id];P[id]+=n-p;if(p<=3)M[id][p-1]++;}
+   return{r:gmSort(C,C.f,id=>[P[id],M[id][0],M[id][1],M[id][2]]),sc:gmMap(C.f,id=>String(P[id])),h:'Points',x:{ev:S.ev,M,P}};}},
+ awards:{
+  init:(S,C)=>{S.c=(C.o.cats||[]).map(c=>String(c||'').trim().slice(0,40)).filter(Boolean).slice(0,8);if(!S.c.length)S.c=['Best shape'];S.v={};S.dn={};return(C.o.sec||30+10*S.c.length)*1000;},
+  vote:(S,C,u,v)=>{if(!v||!v.a||typeof v.a!=='object')return false;const may=new Set(gmOwn(C,u)),o={};S.c.forEach((_,i)=>{const id=v.a[i];if(may.has(id))o[i]=id;});S.v[u]=o;if(v.d)S.dn[u]=1;else delete S.dn[u];return true;},
+  need:(S,C)=>C.vo.filter(u=>!S.dn[u]),
+  step:()=>0,
+  // nobody is knocked out: after another stage the order stays as it came in; as the only stage, the shapes with the most awards come first
+  rank:(S,C)=>{const W=S.c.map(()=>({}));for(const u in S.v)for(const i in S.v[u]){const id=S.v[u][i];if(W[i])W[i][id]=(W[i][id]||0)+1;}
+   const aw=S.c.map((c,i)=>{const mx=Math.max(0,...Object.values(W[i]));return{c,w:mx?Object.keys(W[i]).filter(id=>W[i][id]===mx):[],n:mx};}),won=gmMap(C.f,id=>aw.filter(a=>a.w.includes(id)).length),tot=gmMap(C.f,id=>W.reduce((s,w)=>s+(w[id]||0),0));
+   return{r:C.prev?C.f.slice():gmSort(C,C.f,id=>[won[id],tot[id]]),sc:gmMap(C.f,id=>String(won[id])),h:'Awards',aw,x:{W,c:S.c}};}}
+};
+// a rough playing time in seconds for a stage with n shapes
+function gmEst(m,o,n){o=Object.assign(gmOpt(m),o||{});n=Math.max(2,n);const sec=o.sec||0;
+ switch(m){case'swipe':return Math.max(30,(sec||15)*(n-1));case'bracket':return((o.elim||1)*(n-1)+1)*(sec||30);
+  case'rr':{const P=Math.max(1,Math.min(o.pools||1,Math.floor(n/2))),k=Math.ceil(n/P),rounds=k%2?k:k-1,per=Math.ceil(k/2)*P;return rounds*Math.max(20,(sec||12)*per)+(P>1&&o.playoff?(P*(o.adv||1)-1)*30:0);}
+  case'koth':return(n-1)*(o.laps||1)*(sec||15);case'rank':return Math.max(60,(o.per||12)*n);case'lunar':return((sec||60)+30)*(o.rounds||2);
+  case'auction':return sec||Math.max(60,20+8*n);case'olympics':return(o.ev||[]).length*Math.max(3,sec||6);case'awards':return sec||30+10*(o.cats||[]).length;}return 60;}
+
+// ---- the shapes: frozen copies, drawn and measured like any kendama (weights in maple) ----
+const GM={st:null,ent:[],W:new Map(),my:{},draft:'',loc:{},end:null,rt:0,tick:0,pushAt:0,dirty:false,allAt:0,lastOwner:undefined,open:false,vk:'',upd:null,ph:'',warn:0};
+function gmW(id){let w=GM.W.get(id);if(w)return w;let src=null;
+ if(id==='~base'){const b=COL.cfg&&COL.cfg.base;if(b)src={p:b.p,curves:b.curves};}
+ else if(id.startsWith('lib:')){const e=LIB.find(q=>q.name===id.slice(4));if(e){const d=libDesign(e);src={p:d.p,curves:d.curves};}}
+ else src=GM.ent.find(e=>e.id===id);
+ if(!src)return null;w={id:'gm:'+id,p:wpClone(src.p),curves:wpClone(src.curves||{}),base:{}};sanitize(w.p);GM.W.set(id,w);return w;}
+function gmStat(id){const w=gmW(id);if(!w)return null;if(w._s)return w._s;
+ const p=wpClone(w.p);p.kenRho=p.sarRho=p.tamaRho=GM_RHO;sanitize(p);const G=build(p,wpClone(w.curves)),A=analyze(G);
+ return w._s={kM:A.kM,sM:A.sM,tM:A.tM,bgD:p.bgD,smD:p.smD,baseD:p.baseD,kenH:p.kenH,lun:A.big?-A.big.elev:null,cog:A.cog.y,kwc:G.W.filter(t=>/KWC/.test(t))};}
+function gmGeo(id){const w=gmW(id);if(!w)return null;if(!w._g)w._g=lineupGeo({w});return w._g;}
+
+// ---- the game's state. st (shared): {ph: design|lock|desc|stage|gap|done, left: ms on the clock (null: none), run, dur, i: stage, flow (fixed at pencils down), f: the shapes in play,
+// vo: who votes in this stage, S: the stage's own state (S.k counts its steps), R: each stage's result, aw: awards, desc / dd: each shape's words and whether its designer is done, fin: the final order}.
+// GM.ent: the shapes [{id, by, nm, p, curves}], sent once at pencils down. GM.my: my votes, by stage and step. ----
+const gmCfg=()=>colOwn()&&COL.cfg.game&&COL.cfg.game.on?COL.cfg.game:null;
+const gmHost=()=>COL.on&&COL.role==='owner'&&!!GM.st&&!COL.waiting;
+const gmById=()=>{const o={};for(const e of GM.ent)o[e.id]=e.by;return o;};
+const gmMayVote=r=>r.role==='owner'||r.role==='edit'||(r.role==='view'&&!!(gmCfg()||{}).watch);
+const gmMine=()=>{const e=GM.ent.find(e=>e.by===COL.id);return e?e.id:null;};
+const gmCanV=()=>!!GM.st&&(GM.st.vo||[]).includes(COL.id);
+const gmStg=()=>GM.st&&GM.st.flow&&GM.st.flow[GM.st.i]||null;
+function gmCtx(){const st=GM.st,on=new Set(COL.roster.map(r=>r.id)),f=st.f||[],sd=new Map(f.map((id,i)=>[id,i])),stg=gmStg()||{};
+ return{f,o:Object.assign(gmOpt(stg.m),stg.o||{}),m:stg.m,i:st.i,vo:(st.vo||[]).filter(u=>on.has(u)),by:gmById(),sd:id=>sd.has(id)?sd.get(id):1e9,prev:(st.R||[]).some((r,j)=>j<st.i&&r&&r.m!=='awards')};}
+function gmLeft(){const st=GM.st;if(!st||st.left==null)return null;if(gmHost())return st.run&&GM.end!=null?Math.max(0,GM.end-Date.now()):st.left;return st.run&&COL.owner?Math.max(0,st.left-(Date.now()-GM.rt)):st.left;}
+function gmNeed(){const st=GM.st;if(!st)return null;const on=new Set(COL.roster.map(r=>r.id));
+ if(st.ph==='desc')return GM.ent.filter(e=>on.has(e.by)&&!st.dd[e.id]).map(e=>e.by);
+ if(st.ph==='stage'&&st.S){const E=ENG[gmStg().m];return E.need(st.S,gmCtx());}return null;}
+
+// ---- the host ----
+function gmTimer(ms){const st=GM.st;GM.allAt=0;st.dur=ms;st.left=ms;GM.end=ms!=null&&st.run?Date.now()+ms:null;}
+// the owner, as an own-kendama session with the game starts: the design time begins
+function gmBegin(){const g=gmCfg();if(!g||COL.role!=='owner')return;GM.st={v:1,seq:0,ph:'design',run:true,left:null,dur:null,i:-1,R:[],aw:[],desc:{},dd:{},f:[]};GM.ent=[];GM.W.clear();GM.my={};
+ gmTimer(g.design>0?g.design*60000:null);GM.lastOwner=COL.owner;gmHostOn();gmPush();}
+function gmHostOn(){if(!GM.tick)GM.tick=setInterval(gmTick,250);}
+function gmPush(){const st=GM.st;if(!st||!gmHost())return;st.seq=(st.seq||0)+1;if(st.run&&GM.end!=null)st.left=Math.max(0,GM.end-Date.now());GM.dirty=false;GM.pushAt=Date.now();GM.rt=Date.now();
+ colSend({t:'game',k:'st',st});gmKeep();gmSync();}
+function gmTick(){
+ if(!gmHost()){clearInterval(GM.tick);GM.tick=0;return;}
+ const st=GM.st,now=Date.now();if(st.ph==='done')return;
+ if((st.ph==='stage'||st.ph==='desc')&&GM.end!=null&&!GM.allAt){const n=gmNeed();if(n&&!n.length){GM.allAt=now;GM.end=Math.min(GM.end,now+1200);GM.dirty=true;}} // everyone is in: on to the next step in a moment
+ if(GM.end!=null&&now>=GM.end){gmNext();return;}
+ if((GM.dirty&&now-GM.pushAt>200)||now-GM.pushAt>5000)gmPush();}
+function gmNext(){const st=GM.st,g=gmCfg()||{};GM.allAt=0;
+ if(st.ph==='design'){st.ph='lock';gmTimer(GM_LOCK);}
+ else if(st.ph==='lock'){gmSnap();if(GM.ent.length<2)gmFinish();else if(g.desc>0&&GM.ent.length){st.ph='desc';gmTimer(g.desc*1000);}else gmStage(0);}
+ else if(st.ph==='desc')gmStage(0);
+ else if(st.ph==='stage'){const ms=ENG[gmStg().m].step(st.S,gmCtx());if(ms>0){st.S.k++;gmTimer(ms);}else gmStageEnd();}
+ else if(st.ph==='gap')gmStage(st.i+1);
+ gmPush();}
+// pencils down: a copy of each kendama in the game, under a letter in shuffled order (so the letters don't follow the boxes)
+function gmSnap(){
+ const st=GM.st,g=gmCfg()||gmDef(),c=COL.cfg,b=c.base,E=[];
+ const same=w=>!!b&&JSON.stringify(cleanCurves(w.curves))===JSON.stringify(cleanCurves(b.curves))&&Object.keys(Object.assign({},w.p,b.p)).every(k=>typeof w.p[k]==='number'&&typeof b.p[k]==='number'?Math.abs(w.p[k]-b.p[k])<1e-6:JSON.stringify(w.p[k])===JSON.stringify(b.p[k]));
+ for(const id of Object.keys(c.seats||{}).sort((x,y)=>c.seats[x].cell-c.seats[y].cell)){const s=c.seats[id],w=wpGet(s.wp);if(!w)continue;
+  if(id===COL.id&&!g.mine)continue;if(s.left&&!g.left)continue;if(!g.same&&same(w))continue;
+  E.push({by:id,nm:colWho(id)||s.name||'Guest',p:wpClone(w.p),curves:wpClone(w.curves)});}
+ const sh=gmShuf(E);sh.forEach((e,i)=>e.id=gmLab(i));GM.ent=sh;GM.W.clear();
+ st.flow=JSON.parse(JSON.stringify(g.flow||gmFlowDef()));st.f=gmShuf(sh.map(e=>e.id));st.ne=sh.length;
+ colSend({t:'game',k:'ent',ent:GM.ent});}
+function gmStage(i){const st=GM.st;
+ if(i>=st.flow.length||(st.f||[]).length<2){gmFinish();return;}
+ st.i=i;st.ph='stage';st.vo=COL.roster.filter(gmMayVote).map(r=>r.id); // who joins later votes from the next stage on
+ const S={k:1};st.S=S;const ms=ENG[st.flow[i].m].init(S,gmCtx());
+ if(!(ms>0)){gmStageEnd();return;}gmTimer(ms);}
+function gmResult(cut){const st=GM.st,stg=gmStg(),C=gmCtx(),R=ENG[stg.m].rank(st.S,C);
+ st.R[st.i]=Object.assign({m:stg.m,o:C.o,n:C.f.length,keep:stg.keep|0,f:C.f.slice(),cut:cut?1:0},R);if(R.aw)st.aw.push(...R.aw.map(a=>Object.assign({s:st.i},a)));return R;}
+function gmStageEnd(){const st=GM.st,stg=gmStg(),R=gmResult(),k=stg.m==='awards'?0:stg.keep|0,nf=k>0&&k<R.r.length?R.r.slice(0,k):R.r.slice();
+ if(st.i>=st.flow.length-1||nf.length<2){gmFinish();return;}
+ st.f=nf;st.ph='gap';st.S=null;gmTimer(GM_GAP);}
+// the final order: the last stage's ranking, then those who went out before it, by how they did in the stage they went out in
+function gmFinish(){const st=GM.st;if(st.ph==='stage'&&st.S&&!st.R[st.i])gmResult(true);
+ const fin=[];for(let i=(st.R||[]).length-1;i>=0;i--){const R=st.R[i];if(R)for(const id of R.r)if(!fin.includes(id))fin.push(id);}for(const e of GM.ent)if(!fin.includes(e.id))fin.push(e.id);
+ st.fin=fin;st.ph='done';st.S=null;gmTimer(null);}
+// a message from someone, on the host
+function gmGot(u,o){const st=GM.st;if(!st)return;
+ if(o.k==='d'){const e=GM.ent.find(e=>e.by===u);if(!e||st.ph==='design'||st.ph==='done')return;st.desc[e.id]=String(o.text||'').slice(0,GM_DESC);if(o.done)st.dd[e.id]=1;GM.dirty=true;return;}
+ if(o.k!=='v'||st.ph!=='stage'||!st.S||o.i!==st.i||o.s!==st.S.k||!(st.vo||[]).includes(u))return;
+ if(ENG[gmStg().m].vote(st.S,gmCtx(),u,o.v||{}))GM.dirty=true;}
+// the owner's controls
+function gmPause(){const st=GM.st;if(!gmHost()||st.left==null)return;if(st.run){st.left=gmLeft();st.run=false;GM.end=null;}else{st.run=true;GM.end=Date.now()+st.left;}gmPush();}
+function gmAdd(ms){const st=GM.st;if(!gmHost()||st.left==null)return;if(st.run)GM.end+=ms;else st.left+=ms;st.dur=(st.dur||0)+ms;gmPush();}
+function gmSkip(){const st=GM.st;if(!gmHost()||st.ph==='done')return;if(st.left==null||!st.run){st.run=true;gmNext();return;}GM.end=Date.now();gmTick();}
+function gmEndNow(){if(!gmHost())return;colDialog('End the game','The game stops here. The shapes are ranked on what has been played so far.',null,[['Cancel',null],['End the game',()=>{gmFinish();gmPush();},'danger']]);}
+function gmStartNow(){if(!gmHost()||GM.st.ph!=='design')return;colDialog('Start the game','Pencils down for everyone now? Each kendama goes into the game as it is.',null,[['Not yet',null],['Start the game',()=>{GM.st.run=true;gmNext();},'pri']]);}
+// a new owner picks the game up from the last state: the clock goes on (with at least 15 seconds), and everyone sends their votes again
+function gmTake(){const st=GM.st;if(!st||!gmHost())return;
+ if(st.ph!=='done'&&st.left!=null){if(st.run)st.left=Math.max(15000,st.left-(GM.rt?Date.now()-GM.rt:0));GM.end=st.run?Date.now()+st.left:null;}
+ GM.lastOwner=COL.id;gmHostOn();GM.dirty=true;gmPush();}
+
+// ---- everyone ----
+function gmVote(v){const st=GM.st;if(!st||st.ph!=='stage'||!st.S)return;GM.my[st.i+':'+st.S.k]=v;gmKeep();colSend({t:'game',k:'v',i:st.i,s:st.S.k,v});}
+const gmMy=()=>{const st=GM.st;return st&&st.S?GM.my[st.i+':'+st.S.k]||null:null;};
+function gmDescSend(done){const st=GM.st;if(!st||!gmMine()||st.ph==='design'||st.ph==='done')return;colSend({t:'game',k:'d',text:String(GM.draft||'').slice(0,GM_DESC),done:done?1:0});}
+function gmResend(){const st=GM.st;if(!st)return;const v=gmMy();if(v)colSend({t:'game',k:'v',i:st.i,s:st.S.k,v});if(gmMine()&&st.ph!=='design'&&st.ph!=='done'&&GM.draft)gmDescSend(st.dd&&st.dd[gmMine()]);}
+function gmRecv(o){
+ if(o.k==='st'||o.k==='ent'){if(o.from===COL.id||(COL.owner&&o.from!==COL.owner))return; // the host's own, or someone who isn't the owner (any more)
+  if(o.k==='ent'){GM.ent=Array.isArray(o.ent)?o.ent:[];GM.W.clear();gmKeep();gmSync();return;}
+  if(!o.st||typeof o.st!=='object')return;const was=GM.st;GM.st=o.st;GM.rt=Date.now();if(GM.lastOwner===undefined)GM.lastOwner=COL.owner;gmKeep();gmChanged(was);return;}
+ if(gmHost()){gmGot(o.from,o);gmTick();}}
+// who is the owner changed: a new owner takes the game over; everyone else sends their votes again
+function gmRoster(){if(!GM.st)return;const ow=COL.owner;if(ow===GM.lastOwner)return;GM.lastOwner=ow;if(!ow){gmSync();return;}if(ow===COL.id)gmTake();else gmResend();gmSync();}
+// what goes to someone who has just joined, and what comes in when I join
+function gmOut(){const st=GM.st;if(!st)return null;const s=JSON.parse(JSON.stringify(st));if(s.run&&s.left!=null)s.left=gmLeft();return{st:s,ent:GM.ent};}
+function gmIn(d){if(!d||!d.st)return;const was=GM.st;GM.st=d.st;GM.ent=Array.isArray(d.ent)?d.ent:[];GM.W.clear();GM.rt=Date.now();GM.lastOwner=COL.owner;gmKeep();if(COL.role==='owner')gmTake();gmChanged(was);}
+// kept for this tab, so a reload carries on: my votes and words, and (for the owner) the game itself
+function gmKeep(){try{const o={room:COL.room,my:GM.my,draft:GM.draft};if(COL.role==='owner'&&GM.st){o.st=GM.st;o.ent=GM.ent;}sessionStorage.setItem('tse.colGame',JSON.stringify(o));}catch(e){}}
+function gmBoot(room){try{const o=JSON.parse(sessionStorage.getItem('tse.colGame')||'null');if(o&&o.room===room){GM.my=o.my||{};GM.draft=o.draft||'';if(o.st){GM.st=o.st;GM.ent=o.ent||[];GM.rt=Date.now();}}}catch(e){}}
+function gmReset(){clearInterval(GM.tick);Object.assign(GM,{st:null,ent:[],my:{},draft:'',loc:{},end:null,tick:0,dirty:false,allAt:0,lastOwner:undefined,open:false,vk:'',upd:null,ph:'',warn:0});GM.W.clear();
+ try{sessionStorage.removeItem('tse.colGame');}catch(e){}const d=$('#gm');if(d)d.classList.remove('show');const p=$('#gmPill');if(p)p.style.display='none';}
+// a new state: open the window when the game starts, a new stage begins or it is over; send my words when pencils go down
+function gmChanged(was){const st=GM.st,p0=was&&was.ph,i0=was?was.i:-1;
+ if(st.ph!==p0||st.i!==i0){if(st.i!==i0)GM.loc={cmp:GM.loc.cmp};
+  if(st.ph==='lock'){GM.open=true;toast('Pencils down! The game is about to start.');}
+  if((st.ph==='desc'||(st.ph==='stage'&&p0==='lock'))&&GM.draft)gmDescSend(0);
+  if(st.ph==='desc'||(st.ph==='stage'&&st.i!==i0)||st.ph==='done')GM.open=true;
+  if(st.ph==='done'&&p0&&p0!=='done')toast('The game is over.');}
+ gmSync();}
+
+// ---- drawing a shape: upright, the tama over the spike, to fit its canvas; compare outlines on top, lined up at the base ----
+const GM_OVC=['#3d6fd1','#c0392b','#2a9d8f','#7b4fd6','#d9822b','#5b8c2a'];
+function gmShape(c,T,g,os){const pen=PEN;PEN=false;try{c.lineJoin='round';c.lineWidth=1.1;c.strokeStyle=col('--edge');
+ for(const[poly,f]of[[g.ken,'--wood'],[g.sar,'--sarado'],[g.tama,'--wood']]){pathW(c,T,poly,true);c.fillStyle=col(f);c.fill();c.stroke();}
+ c.globalAlpha=.5;c.lineWidth=.8;for(const l of g.lines){pathW(c,T,l);c.stroke();}c.setLineDash([3,2]);for(const h of g.holes){pathW(c,T,h);c.stroke();}c.setLineDash([]);c.globalAlpha=1;
+ (os||[]).forEach((o,i)=>{c.strokeStyle=GM_OVC[i%GM_OVC.length];c.lineWidth=1.7;c.setLineDash([6,4]);for(const poly of[o.ken,o.sar,o.tama])if(poly){pathW(c,T,poly,true);c.stroke();}c.setLineDash([]);});}finally{PEN=pen;}}
+function gmPaintCv(cv){if(cv._paint){cv._paint();return;}const ov=(cv.dataset.ov||'').split(',').filter(Boolean),[w,h,c]=sizeCanvas(cv);c.clearRect(0,0,w,h);if(w<20||h<20)return;
+ const g=gmGeo(cv.dataset.gm);if(!g)return;const os=ov.map(gmGeo).filter(Boolean),all=[g,...os],x0=Math.min(...all.map(q=>q.x0)),x1=Math.max(...all.map(q=>q.x1)),y0=Math.min(...all.map(q=>q.y0)),y1=Math.max(...all.map(q=>q.y1));
+ const z=Math.min((w-10)/(x1-x0),(h-10)/(y1-y0));gmShape(c,{z,ox:w/2-(x0+x1)/2*z,oy:h/2+(y0+y1)/2*z},g,os);}
+function gmPaint(){for(const c of document.querySelectorAll('#gm canvas.gm-cv,#gm canvas.gm-board'))gmPaintCv(c);}
+function gmCv(id,cls,ov){const c=el('canvas',{class:'gm-cv'+(cls?' '+cls:'')});c.dataset.gm=id;if(ov&&ov.length)c.dataset.ov=ov.join(',');return c;}
+const gmLabEl=id=>el('span',{class:'gm-lab'},el('span',{},'Shape'),' ',el('b',{translate:'no'},id));
+const gmLunEl=v=>v==null||v===999?el('b',{},'–'):el('b',{},f1(Math.abs(v))+'°',el('i',{},' ',v>=0?'below':'above'));
+// the stats: weights in maple, the cups, the ken's length, the spike in big-cup lunar, and any KWC warnings
+function gmStats(id){const s=gmStat(id),b=el('div',{class:'gm-st'});if(!s)return b;
+ const r=(k,v,u)=>b.append(el('span',{},k),el('b',{},v,el('i',{},' '+u)));
+ b.append(el('div',{class:'gm-note'},'Weights in hard maple'));
+ r('Ken',f1(s.kM),'g');r('Sarado',f1(s.sM),'g');r('Tama',f1(s.tM),'g');r('Big cup Ø',fmm(s.bgD),'mm');r('Small cup Ø',fmm(s.smD),'mm');r('Base cup Ø',fmm(s.baseD),'mm');r('Ken length',fmm(s.kenH),'mm');
+ b.append(el('span',{},'Spike in big-cup lunar'),gmLunEl(s.lun));
+ if(s.kwc.length)for(const t of s.kwc)b.append(el('div',{class:'warn gm-kwc'},t));else b.append(el('div',{class:'gm-ok'},'No KWC warnings'));return b;}
+function gmMini(id){const s=gmStat(id);if(!s)return el('div');
+ return el('div',{class:'gm-mini'},el('span',{title:'Ken, sarado and tama, in hard maple'},el('b',{},f1(s.kM+s.sM+s.tM)),' g'),' · ',el('span',{title:'Spike below horizontal in big-cup lunar'},el('b',{},s.lun==null?'–':f1(s.lun)+'°')),' · ',
+  el('span',{title:'Ken length'},el('b',{},fmm(s.kenH)),' mm'),s.kwc.length?el('span',{class:'gm-kw',title:s.kwc.join(' ')},'KWC'):'');}
+function gmCard(id,o={}){const st=GM.st,e=el('div',{class:'gm-sc'+(o.cls?' '+o.cls:'')});e.dataset.id=id;
+ e.append(el('div',{class:'gm-ch'},gmLabEl(id),o.mine?el('span',{class:'gm-tag'},'Your shape'):'',o.tag||''),gmCv(id,o.cv||'',o.ov),o.mini?gmMini(id):gmStats(id));
+ const d=st&&st.desc&&st.desc[id];if(d)e.append(el('p',{class:'gm-desc',translate:'no'},'“'+d+'”'));if(o.foot)e.append(o.foot);return e;}
+function gmThumb(id,o={}){const b=el('button',{class:'gm-th'+(o.act?' act':''),type:'button'});if(o.dis)b.disabled=true;if(o.on)b.onclick=o.on;
+ b.append(el('div',{class:'gm-ch'},gmLabEl(id),id===gmMine()?el('span',{class:'gm-tag'},'Yours'):''),gmCv(id,'sm'),gmMini(id));const d=GM.st.desc&&GM.st.desc[id];if(d&&!o.nod)b.append(el('p',{class:'gm-desc sm',translate:'no'},d));return b;}
+// who is still to vote (or write), kept up to date without drawing the view again
+function gmWaitEl(word){const e=el('p',{class:'gm-in gm-up'});e._up=()=>{const st=GM.st,n=gmNeed();if(n==null){e.textContent='';return;}
+ const tot=st.ph==='desc'?GM.ent.filter(x=>COL.roster.some(r=>r.id===x.by)).length:gmCtx().vo.length;e.textContent=n.length?`${word}: ${n.length} of ${tot}`:'Everyone is in.';};e._up();return e;}
+const gmMid=(h,p,...more)=>el('div',{class:'gm-mid'},el('h2',{},h),p?el('p',{},p):'',...more);
+const gmFmt=ms=>{if(ms==null)return'';const s=Math.ceil(ms/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return(h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0');};
+function gmClock(){const L=gmLeft(),t=gmFmt(L),st0=GM.st;
+ // the host's tab may be in the background, where its timers run late: when my clock runs out, a nudge makes it look
+ if(st0&&COL.on&&COL.owner&&!gmHost()&&st0.run&&L===0&&st0.ph!=='done'&&Date.now()-(GM.nudge||0)>2500){GM.nudge=Date.now();colSend({t:'game',k:'n'});}
+ for(const e of document.querySelectorAll('.gm-clock')){if(e.textContent!==t)e.textContent=t;e.classList.toggle('low',L!=null&&L<10000);}
+ const st=st0;if(st&&st.ph==='design'&&st.run&&L!=null)for(const[ms,msg]of[[300000,'5 minutes of design time left.'],[60000,'1 minute of design time left.']])if(L<=ms&&L>ms-3000&&GM.warn!==ms){GM.warn=ms;toast(msg);}}
+setInterval(gmClock,250);
+
+// ---- the game window ----
+const gmKey=()=>{const st=GM.st,m=gmMine();return[st.ph,st.i,st.S?st.S.k:'',st.S&&st.S.ph||'',GM.ent.length,LANG.cur,gmCanV()?1:0,m||'',st.ph==='desc'&&m&&st.dd&&st.dd[m]?1:0,COL.role].join('|');};
+function gmSync(){const st=GM.st;if(st&&st.ph!==GM.ph){GM.ph=st.ph;syncCol();}else{const p=$('#gmPanel');if(p&&!p.contains(document.activeElement)){const n=gmPanel();if(n)p.replaceWith(n);}}gmPill();gmRender();}
+function gmRender(){const d=$('#gm');if(!d)return;const st=GM.st,show=!!st&&COL.on&&GM.open&&st.ph!=='design';d.classList.toggle('show',show);if(!show){GM.vk='';GM.key=null;return;}
+ gmTop();const k=gmKey();if(k!==GM.vk){GM.vk=k;GM.key=null;const b=$('#gmBody');b.innerHTML='';b.scrollTop=0;b.append(gmView());requestAnimationFrame(gmPaint);}
+ else for(const e of document.querySelectorAll('#gmBody .gm-up'))e._up&&e._up();}
+// after a change of my own: the view again, where I was
+const gmRe=()=>{GM.vk='';const b=$('#gmBody'),y=b?b.scrollTop:0;gmRender();if(b)b.scrollTop=y;};
+function gmTop(){const st=GM.st,t=$('#gmTop'),stg=gmStg(),n=(st.flow||[]).length;t.innerHTML='';
+ const sub=st.ph==='lock'?el('span',{},'Pencils down'):st.ph==='desc'?el('span',{},'Describing the shapes'):st.ph==='stage'&&stg?el('span',{},el('span',{},`Stage ${st.i+1} of ${n}`),' · ',el('span',{},GM_MODES[stg.m][0])):st.ph==='gap'?el('span',{},`Stage ${st.i+1} results`):el('span',{},'Results');
+ t.append(el('div',{class:'gm-tt'},el('b',{translate:'no'},colSessName()),el('small',{},el('span',{},'Design game'),' · ',sub)));
+ if(st.ph!=='done'){if(!COL.owner)t.append(el('span',{class:'gm-wait'},'Waiting for the host…'));else if(!st.run&&st.left!=null)t.append(el('span',{class:'gm-wait'},'Paused'));}
+ t.append(el('span',{class:'gm-clock'}));
+ if(gmHost()&&st.ph!=='done'){if(st.left!=null)t.append(el('button',{id:'gmPause',onclick:gmPause,title:st.run?'Stop the clock for everyone':'Start the clock again'},st.run?'Pause':'Resume'),el('button',{id:'gmMore',onclick:()=>gmAdd(60000),title:'A minute more for this step'},'+1 min'));
+  t.append(el('button',{id:'gmSkip',onclick:gmSkip,title:'End this step now and go on'},'Skip ahead'),el('button',{id:'gmEnd',class:'danger',onclick:gmEndNow},'End the game'));}
+ t.append(el('button',{id:'gmHide',onclick:()=>{GM.open=false;gmSync();},title:'Hide the game window. The game goes on; open it again from the button at the top.'},'Hide'));gmClock();}
+function gmView(){const st=GM.st;switch(st.ph){case'lock':return gmMid('Pencils down!','Everyone’s kendama is being collected for the game.');case'desc':return gmVDesc();case'stage':return gmVStage();case'gap':return gmVGap();case'done':return gmVDone();}return el('div');}
+function gmVDesc(){const st=GM.st,mine=gmMine();
+ if(!mine)return gmMid('A few words from each designer','The designers are writing a few words about their shapes. The game starts in a moment.',gmWaitEl('Still writing'));
+ const ta=el('textarea',{id:'gmDesc',maxlength:String(GM_DESC),rows:'4',placeholder:'What is your shape for? What did you change, and why?'});ta.value=GM.draft||st.desc[mine]||'';
+ const cnt=el('small',{class:'gm-cnt'},String(GM_DESC-ta.value.length)),dn=!!st.dd[mine];
+ ta.oninput=()=>{GM.draft=ta.value;cnt.textContent=String(GM_DESC-ta.value.length);gmKeep();clearTimeout(GM.dt);GM.dt=setTimeout(()=>gmDescSend(0),500);};
+ const go=el('button',{class:'pri',id:'gmDescGo',onclick:()=>{GM.draft=ta.value;gmKeep();gmDescSend(1);}},dn?'Update':'Done');
+ return el('div',{class:'gm-two'},gmCard(mine,{mine:true}),el('div',{class:'gm-dbox'},el('h3',{},'Describe your shape'),el('p',{class:'gnote'},'Shown with your shape all through the game, without your name. Keep it short.'),ta,
+  el('div',{class:'row'},cnt,el('span',{class:'spacer'}),go),dn?el('p',{class:'gm-ok'},'Thanks! Waiting for the others.'):'',gmWaitEl('Still writing')));}
+function gmVStage(){const st=GM.st,stg=gmStg(),C=gmCtx(),w=el('div',{class:'gm-stage'});w.append(el('p',{class:'gm-info'},GM_MODES[stg.m][1]));
+ if(!gmCanV()&&stg.m!=='olympics')w.append(el('p',{class:'gm-info gm-watch'},COL.role==='view'&&!(gmCfg()||{}).watch?'You’re watching. Watchers don’t vote in this game.':'You came in during this stage, so you can vote from the next one.'));
+ w.append(GM_V[stg.m](st.S,C));return w;}
+// everyone else is busy: the shapes in play, and who is still at it
+const gmWatch=(C,msg)=>{const g=el('div',{class:'gm-grid'});for(const id of C.f)g.append(gmThumb(id,{dis:true}));return el('div',{},el('p',{class:'gm-info'},msg),g,gmWaitEl('Still to vote'));};
+function gmDoneBtn(done,set,yes,no){return el('div',{class:'gm-btns'},el('button',{class:done?'':'pri',id:'gmDone',onclick:set},done?no:yes));}
+
+const GM_V={
+ swipe:(S,C)=>{const st=GM.st,w=el('div',{class:'gm-swipe'});if(!gmCanV())return gmWatch(C,'Everyone is going through the shapes.');
+  const deck=gmOwn(C,COL.id).sort((a,b)=>gmHash(COL.id+st.i+a)-gmHash(COL.id+st.i+b)),my=Object.assign({},(gmMy()||{}).b),hist=GM.loc.sw||(GM.loc.sw=[]);
+  const n=deck.filter(id=>id in my).length,nx=deck.find(id=>!(id in my));
+  const back=el('button',{class:'gm-undo',id:'gmBack',title:'Change your last answer',onclick:()=>{let id=hist.pop();if(!id||!(id in my))id=deck.filter(x=>x in my).pop();if(!id)return;delete my[id];gmVote({b:my});gmRe();}},'↶ ','Back one');back.disabled=!n;
+  w.append(el('div',{class:'gm-prog'},el('b',{},String(Math.min(n+1,deck.length))),' / ',el('b',{},String(deck.length)),back));
+  if(!nx){w.append(gmMid('You’ve been through every shape.','Your answers are in. Waiting for the others.',gmWaitEl('Still to vote')));return w;}
+  const cmp=GM.loc.cmp||(GM.loc.cmp=[]),ov=cmp.filter(x=>x!==nx&&gmW(x)),mine=gmMine(),bar=el('div',{class:'gm-cmp'},el('span',{},'Compare with:'));
+  const chip=(id,label)=>{const i=ov.indexOf(id);return el('button',{class:'gm-chip'+(i>=0?' act':''),style:i>=0?'color:'+GM_OVC[i%GM_OVC.length]:'',onclick:()=>{const j=cmp.indexOf(id);if(j>=0)cmp.splice(j,1);else cmp.push(id);gmRe();}},label);};
+  if(mine&&mine!==nx)bar.append(chip(mine,el('span',{},'My shape')));
+  for(const id of C.f)if(id!==nx&&id!==mine)bar.append(chip(id,gmLabEl(id)));
+  for(const id of cmp)if(id.startsWith('lib:'))bar.append(chip(id,el('span',{translate:'no'},id.slice(4))));
+  const ls=el('select',{class:'gm-lib',title:'Add a shape from the library to compare'},el('option',{value:''},'Library shape…'));for(const e of LIB)ls.append(el('option',{value:'lib:'+e.name,translate:'no'},e.name));
+  ls.onchange=()=>{if(ls.value&&!cmp.includes(ls.value))cmp.push(ls.value);gmRe();};bar.append(ls);w.append(bar);
+  const card=gmCard(nx,{ov,cls:'big',cv:'big'});
+  const vote=y=>{if(card._gone)return;card._gone=1;my[nx]=y;hist.push(nx);gmVote({b:my});card.style.transform=`translateX(${y?130:-130}%) rotate(${y?12:-12}deg)`;card.style.opacity='0';setTimeout(gmRe,200);};
+  let x0=null;card.onpointerdown=e=>{if(e.target.closest('button,select'))return;x0=e.clientX;try{card.setPointerCapture(e.pointerId);}catch(_){}card.style.transition='none';};
+  card.onpointermove=e=>{if(x0==null)return;const dx=e.clientX-x0;card.style.transform=`translateX(${dx}px) rotate(${dx/20}deg)`;card.classList.toggle('yes',dx>60);card.classList.toggle('no',dx<-60);};
+  card.onpointerup=card.onpointercancel=e=>{if(x0==null)return;const dx=e.clientX-x0;x0=null;card.style.transition='';if(Math.abs(dx)>90)vote(dx>0?1:0);else{card.style.transform='';card.classList.remove('yes','no');}};
+  w.append(card,el('div',{class:'gm-btns'},el('button',{class:'gm-no',id:'gmNo',onclick:()=>vote(0)},'✕ ','Not for me'),el('button',{class:'gm-yes',id:'gmYes',onclick:()=>vote(1)},'♥ ','Like it')),
+   el('p',{class:'gm-info'},'Swipe the card, or use the arrow keys.'));
+  GM.key=e=>{if(e.key==='ArrowLeft')vote(0);else if(e.key==='ArrowRight')vote(1);};return w;},
+ bracket:(S,C)=>bkView(S.B,C),
+ rr:(S,C)=>{if(S.po)return bkView(S.po,C,'Playoff');
+  const w=el('div',{class:'gm-rr'}),can=gmCanV(),my=Object.assign({},(gmMy()||{}).m),P=S.pl.length;
+  w.append(el('div',{class:'gm-h'},el('h3',{},`Round ${S.r+1} of ${S.nr}`),el('span',{class:'gm-sub'},'Pick the one you like better in each match.')));
+  S.cur.forEach((m,i)=>{const may=can&&gmCan(C,COL.id,[m.a,m.b]),pick=s=>()=>{my[i]=s;gmVote({m:my});gmRe();};
+   w.append(el('div',{class:'gm-rrm'},P>1?el('span',{class:'gm-pool'},`Pool ${m.p+1}`):el('span'),gmThumb(m.a,{act:my[i]==='a',dis:!may,on:may?pick('a'):null,nod:true}),el('span',{class:'gm-vsx'},'vs'),gmThumb(m.b,{act:my[i]==='b',dis:!may,on:may?pick('b'):null,nod:true})));});
+  w.append(gmWaitEl('Still to vote'));const tb=el('div',{class:'gm-tabs'});S.pl.forEach((_,pi)=>tb.append(rrTabEl(S,C,pi)));w.append(tb);return w;},
+ koth:(S,C)=>{const m=S.m;if(!m)return el('div');const tot=(C.f.length-1)*Math.max(1,C.o.laps|0||1);let run=0;for(let i=S.log.length-1;i>=0&&S.log[i].w===S.king;i--)run++;
+  const w=gmMatch(m,`Challenge ${S.log.length+1} of ${tot}`,{tags:{a:el('span',{class:'gm-tag gm-king'},'♛ ','King of the Hill'),b:el('span',{class:'gm-tag'},'Challenger')},last:gmLast(S.log[S.log.length-1]),sub:run?el('span',{class:'gm-sub'},run===1?'Held the hill once':`Held the hill ${run} times in a row`):''});
+  w.append(el('p',{class:'gm-info'},'On an even vote, the king keeps the hill.'));return w;},
+ rank:(S,C)=>{if(!gmCanV())return gmWatch(C,'Everyone is putting the shapes in order.');const ids=gmOwn(C,COL.id),my=gmMy();
+  const ord=my&&my.ord&&my.ord.length===ids.length?my.ord.slice():ids.slice().sort((a,b)=>gmHash(COL.id+'o'+a)-gmHash(COL.id+'o'+b));
+  return gmOrder(ord,{info:gmMini,done:!!(my&&my.d),send:(o,d)=>gmVote({ord:o.slice(),d:d?1:0}),all:C.f,note:'Put the shapes in your order, best first: drag them by the handle, or use the arrows.'});},
+ lunar:(S,C)=>{const w=el('div',{class:'gm-lun'}),rounds=Math.max(1,C.o.rounds|0||2),info=id=>el('div',{class:'gm-mini'},gmLunEl(S.a[id]),' · ',el('span',{},'off target by'),' ',el('b',{},S.a[id]===999?'–':f1(Math.abs(S.a[id]-S.t))+'°'));
+  w.append(el('div',{class:'gm-h'},el('h3',{},S.ph==='adj'?`Round ${S.rd}: nudge the order`:'Do you agree with this order?'),el('span',{class:'gm-sub'},el('span',{},'Target:'),' ',S.t?gmLunEl(S.t):el('b',{},'Level'))));
+  if(S.ph==='adj'){if(!gmCanV()){w.append(gmStatic(S.base,info),gmWaitEl('Still to vote'));return w;}const my=gmMy();
+   w.append(gmOrder(my&&my.ord?my.ord.slice():S.base.slice(),{info,done:!!(my&&my.d),send:(o,d)=>gmVote({ord:o.slice(),d:d?1:0}),all:C.f,note:S.rd>1?'This is everyone’s order from the last round. Move any shapes you think are in the wrong place.':'The shapes are in order of how close their spike comes to the target in big-cup lunar. Move any you think should be higher or lower.'}));return w;}
+  const my=gmMy(),mv=id=>{const d=S.auto.indexOf(id)-S.comb.indexOf(id);return el('span',{class:'gm-mvd'+(d>0?' up':d<0?' dn':'')},d>0?'▲'+d:d<0?'▼'+(-d):'=');};
+  w.append(gmStatic(S.comb,id=>el('div',{},info(id),mv(id))));
+  if(gmCanV())w.append(el('div',{class:'gm-btns'},el('button',{class:'gm-no'+(my&&my.ok===0?' act':''),id:'gmNay',onclick:()=>{gmVote({ok:0});gmRe();}},'Disagree'),el('button',{class:'gm-yes'+(my&&my.ok===1?' act':''),id:'gmAye',onclick:()=>{gmVote({ok:1});gmRe();}},'Agree')));
+  w.append(el('p',{class:'gm-info'},S.rd>=rounds?'This is the last round: the order stands either way.':'If more people disagree than agree, everyone gets another go.'),gmWaitEl('Still to vote'));return w;},
+ auction:(S,C)=>{const o=C.o,tok=Math.max(1,o.tok|0||10),cap=Math.max(1,o.cap|0||3),worst=!!o.worst,w=el('div',{class:'gm-auc'+(worst?' worst':'')});
+  if(!gmCanV())return gmWatch(C,worst?'Everyone is handing out knock-out tokens.':'Everyone is spending their tokens.');
+  const my=gmMy(),b=Object.assign({},my&&my.b),used=Object.values(b).reduce((s,x)=>s+x,0),done=!!(my&&my.d);
+  w.append(el('div',{class:'gm-tok'},el('b',{id:'gmTokLeft'},String(tok-used)),' ',el('span',{},worst?'knock-out tokens left':'tokens left')),
+   el('p',{class:'gm-info'},worst?`Put your tokens on the shapes you like least: the ones with the most tokens are knocked out. Up to ${cap} on one shape.`:`Put your tokens on the shapes you like best. Up to ${cap} on one shape.`));
+  const g=el('div',{class:'gm-grid'});
+  for(const id of C.f){const mine=C.by[id]===COL.id,n=b[id]||0,set=k=>{k=Math.max(0,Math.min(cap,k));if(used-n+k>tok)return;if(k)b[id]=k;else delete b[id];gmVote({b,d:0});gmRe();};
+   let ctl;if(mine)ctl=el('p',{class:'gm-info'},'Your own shape');else{const m=el('button',{class:'gm-mn',onclick:()=>set(n-1)},'−'),p=el('button',{class:'gm-pn',onclick:()=>set(n+1)},'+');m.disabled=!n;p.disabled=n>=cap||used>=tok;ctl=el('div',{class:'gm-bid'},m,el('b',{},String(n)),p);}
+   g.append(gmCard(id,{mini:true,cv:'sm',foot:ctl,cls:n?'act':'',mine}));}
+  w.append(g,gmDoneBtn(done,()=>{gmVote({b,d:done?0:1});gmRe();},'I’m done','Change my tokens'),done?el('p',{class:'gm-ok'},'Your tokens are in. You can still change them until the time is up.'):'',gmWaitEl('Still to vote'));return w;},
+ olympics:(S,C)=>{const e=S.ev[S.e],L=el('div',{class:'gm-list'});
+  for(const id of e.ord){const p=e.pl[id];L.append(el('div',{class:'gm-row st'},el('span',{class:'gm-pl'},p<=3?['🥇','🥈','🥉'][p-1]:String(p)),gmCv(id,'xs'),el('div',{class:'gm-rinfo'},gmLabEl(id),gmMini(id)),el('b',{class:'gm-val'},gmEvTxt(e,id))));}
+  return el('div',{},el('div',{class:'gm-h'},el('h3',{},`Event ${S.e+1} of ${S.ev.length}`),el('span',{class:'gm-sub'},el('b',{},GM_EV[e.k][0]),' · ',gmHowEl(e))),el('div',{class:'gm-two'},L,gmMedals(S.ev.slice(0,S.e+1),C.f)));},
+ awards:(S,C)=>{if(!gmCanV())return gmWatch(C,'Everyone is handing out the awards.');const my=gmMy(),a=Object.assign({},my&&my.a),done=!!(my&&my.d),ids=gmOwn(C,COL.id),w=el('div',{class:'gm-aw'});
+  S.c.forEach((c,i)=>{const g=el('div',{class:'gm-grid sm'});for(const id of ids)g.append(gmThumb(id,{act:a[i]===id,nod:true,on:()=>{if(a[i]===id)delete a[i];else a[i]=id;gmVote({a,d:0});gmRe();}}));w.append(el('div',{class:'gm-awr'},el('h4',{},c),g));});
+  w.append(gmDoneBtn(done,()=>{gmVote({a,d:done?0:1});gmRe();},'I’m done','Change my picks'),done?el('p',{class:'gm-ok'},'Your picks are in. You can still change them until the time is up.'):'',gmWaitEl('Still to vote'));return w;}
+};
+// a match: the two shapes side by side, a button under each
+function gmMatch(m,title,o={}){const C=gmCtx(),can=gmCanV()&&gmCan(C,COL.id,[m.a,m.b]),my=(gmMy()||{}).c,w=el('div',{class:'gm-match'}),pick=s=>{gmVote({c:s});gmRe();};
+ w.append(el('div',{class:'gm-h'},el('h3',{},...[].concat(title)),o.sub||''));if(o.re)w.append(el('p',{class:'gm-warn'},'It was a tie: vote once more.'));
+ const row=el('div',{class:'gm-vs'});
+ for(const s of['a','b']){const id=m[s],btn=can?el('button',{class:'gm-pick'+(my===s?' act':''),id:'gmPick'+s.toUpperCase(),onclick:()=>pick(s)},my===s?'✓ Your pick':'Pick this one'):'';
+  row.append(gmCard(id,{foot:btn,cls:my===s?'act':'',mine:id===gmMine(),tag:o.tags&&o.tags[s]}));if(s==='a')row.append(el('div',{class:'gm-vsx'},'vs'));}
+ w.append(row);if(gmCanV()&&!can)w.append(el('p',{class:'gm-info'},'One of these is your shape, so you sit this one out.'));
+ w.append(gmWaitEl('Still to vote'));if(o.last)w.append(o.last);
+ if(can)GM.key=e=>{if(e.key==='ArrowLeft')pick('a');else if(e.key==='ArrowRight')pick('b');};return w;}
+function gmLast(g){if(!g)return'';const l=g.w===g.a?g.b:g.a,hi=g.w===g.a?g.va:g.vb,lo=g.w===g.a?g.vb:g.va;
+ return el('p',{class:'gm-last'},el('span',{},'Last match:'),' ',gmLabEl(g.w),el('b',{class:'gm-score'},` ${hi}–${lo} `),gmLabEl(l),g.va===g.vb?el('span',{class:'gm-tb'},' (',el('span',{},'an even vote'),')'):'');}
+const gmTier=(B,t)=>B.L===1?'Bracket':t===0?'Winners bracket':B.L===2?'Losers bracket':t===1?'Losers bracket 1':'Losers bracket 2';
+function bkView(B,C,pre){const m=B.m;if(!m)return el('div');const fin=m.t!=='3'&&bkAlive(B).length===2;
+ const t=m.t==='3'?el('span',{},'Match for 3rd place'):fin?el('span',{},B.L>1&&B.ls[m.a]===B.ls[m.b]&&B.ls[m.a]>0?'Final, deciding match':'Final'):el('span',{},el('span',{},gmTier(B,m.t)),' · ',el('span',{},`Round ${B.r}`));
+ const lives=id=>B.L>1?el('span',{class:'gm-tag gm-lives',title:'Lives left'},'●'.repeat(Math.max(0,B.L-B.ls[id]))+'○'.repeat(Math.min(B.L,B.ls[id]))):'';
+ const w=gmMatch(m,pre?[el('span',{},pre),' · ',t]:t,{re:m.re,last:gmLast(B.log[B.log.length-1]),tags:{a:lives(m.a),b:lives(m.b)}});w.append(bkMap(B));return w;}
+function bkMap(B){const w=el('div',{class:'gm-bk'}),al=bkAlive(B);
+ for(let t=0;t<B.L;t++){const ids=al.filter(id=>B.ls[id]===t);if(ids.length)w.append(el('div',{},el('span',{},B.L===1?'Still in':gmTier(B,t)),...ids.map(id=>el('span',{class:'gm-c2',translate:'no'},id))));}
+ if(B.out.length)w.append(el('div',{},el('span',{},'Out'),...B.out.slice().reverse().map(id=>el('span',{class:'gm-c2 out',translate:'no'},id))));return w;}
+function rrTabEl(S,C,pi){const P=S.pl.length,t=el('table',{class:'gm-tab'});t.append(el('tr',{},el('th',{},P>1?`Pool ${pi+1}`:'Table'),el('th',{},'Won'),el('th',{},'Drawn'),el('th',{},'Lost'),el('th',{},'Points')));
+ rrTab(S,C,pi).forEach((x,k)=>t.append(el('tr',{},el('td',{},el('b',{},String(k+1)),' ',gmLabEl(x.id)),el('td',{},String(x.w)),el('td',{},String(x.d)),el('td',{},String(x.l)),el('td',{},String(x.pts)))));return t;}
+const gmEvFmt=(k,v)=>k==='kwc'?'':f1(v)+(GM_EV[k][1]==='°'?'°':' '+GM_EV[k][1]);
+const gmEvTxt=(e,id)=>e.k==='kwc'?(e.val[id]?'Legal':'Not legal'):gmEvFmt(e.k,e.val[id]);
+const gmHowEl=e=>e.k==='kwc'?el('span',{},'every legal shape shares first place'):e.how==='near'?el('span',{},el('span',{},'nearest'),' ',el('b',{},gmEvFmt(e.k,e.t))):el('span',{},e.how==='low'?'lowest wins':'highest wins');
+function gmMedals(evs,ids){const n=ids.length,P=gmMap(ids,()=>0),M=gmMap(ids,()=>[0,0,0]);for(const e of evs)for(const id of ids){const p=e.pl[id];P[id]+=n-p;if(p<=3)M[id][p-1]++;}
+ const t=el('table',{class:'gm-tab gm-med'});t.append(el('tr',{},el('th',{},'Medal table'),el('th',{},'🥇'),el('th',{},'🥈'),el('th',{},'🥉'),el('th',{},'Points')));
+ ids.slice().sort((a,b)=>P[b]-P[a]||M[b][0]-M[a][0]||M[b][1]-M[a][1]).forEach(id=>t.append(el('tr',{},el('td',{},gmLabEl(id)),...M[id].map(x=>el('td',{},String(x))),el('td',{},String(P[id])))));return t;}
+function gmStatic(ids,info){const L=el('div',{class:'gm-list'});ids.forEach((id,i)=>L.append(el('div',{class:'gm-row st'},el('span',{class:'gm-pl'},String(i+1)),gmCv(id,'xs'),el('div',{class:'gm-rinfo'},gmLabEl(id),info(id)))));return L;}
+// a list to put in order (drag by the handle, or the arrows) beside a table to move the shapes about on
+function gmOrder(ord,o){
+ const list=el('div',{class:'gm-list'}),note=el('p',{class:'gm-ok'},'Your order is in. You can still change it until the time is up.');let done=o.done;
+ const btn=el('button',{class:done?'':'pri',id:'gmDone',onclick:()=>{done=!done;o.send(ord,done);gmRe();}},done?'Change my order':'I’m done');note.style.display=done?'':'none';
+ const sent=()=>{if(done){done=false;btn.textContent='I’m done';btn.className='pri';note.style.display='none';}o.send(ord,0);};
+ const rows=()=>{list.innerHTML='';ord.forEach((id,i)=>{const up=el('button',{class:'gm-mv',title:'Move up',onclick:()=>mv(i,i-1)},'↑'),dn=el('button',{class:'gm-mv',title:'Move down',onclick:()=>mv(i,i+1)},'↓');up.disabled=!i;dn.disabled=i===ord.length-1;
+  const r=el('div',{class:'gm-row'},el('span',{class:'gm-grip',title:'Drag to move'},'⠿'),el('span',{class:'gm-pl'},String(i+1)),gmCv(id,'xs'),el('div',{class:'gm-rinfo'},gmLabEl(id),o.info(id)),el('div',{class:'gm-rmv'},up,dn));r.dataset.id=id;list.append(r);});requestAnimationFrame(gmPaint);};
+ const mv=(i,j)=>{if(j<0||j>=ord.length)return;const[x]=ord.splice(i,1);ord.splice(j,0,x);sent();rows();};
+ list.onpointerdown=e=>{const g=e.target.closest('.gm-grip');if(!g)return;const r=g.closest('.gm-row');e.preventDefault();let from=ord.indexOf(r.dataset.id);r.classList.add('drag');try{list.setPointerCapture(e.pointerId);}catch(_){}
+  list.onpointermove=ev=>{const rs=[...list.children];for(let k=0;k<rs.length;k++){const b=rs[k].getBoundingClientRect();if(k!==from&&ev.clientY>=b.top&&ev.clientY<=b.bottom){const[x]=ord.splice(from,1);ord.splice(k,0,x);list.insertBefore(r,k<from?rs[k]:rs[k].nextSibling);from=k;break;}}};
+  list.onpointerup=list.onpointercancel=()=>{list.onpointermove=list.onpointerup=list.onpointercancel=null;r.classList.remove('drag');sent();rows();};};
+ rows();
+ return el('div',{class:'gm-ord'},el('div',{},el('p',{class:'gm-info'},o.note||''),list,el('div',{class:'gm-btns'},btn),note,gmWaitEl('Still to vote')),
+  el('div',{class:'gm-bwrap'},el('p',{class:'gm-info'},'Move the shapes about here to compare them side by side.'),gmBoard(o.all||ord)));}
+// the table to move shapes about on: they start in a grid, each in a cell as big as the biggest shape; drag one to move it
+function gmBoard(ids){const cv=el('canvas',{class:'gm-board'}),P=GM.loc.pos||(GM.loc.pos={}),Z=GM.loc.zo=(GM.loc.zo||[]).filter(id=>ids.includes(id)).concat(ids.filter(id=>!(GM.loc.zo||[]).includes(id)));
+ const G=ids.map(gmGeo).filter(Boolean);if(!G.length)return cv;const W=Math.max(...G.map(g=>g.x1-g.x0))+20,H=Math.max(...G.map(g=>g.y1-g.y0))+30,cols=Math.min(ids.length,6),rows=Math.ceil(ids.length/cols);
+ ids.forEach((id,i)=>{if(!P[id]){const g=gmGeo(id);P[id]=[(i%cols)*W+W/2,-Math.floor(i/cols)*H-H+15-(g?g.y0:0)];}});
+ let T=null,drag=null;
+ cv._paint=()=>{const[w,h,c]=sizeCanvas(cv);c.clearRect(0,0,w,h);if(w<20||h<20)return;const z=Math.min((w-10)/(cols*W),(h-10)/(rows*H));T={z,ox:(w-cols*W*z)/2,oy:(h-rows*H*z)/2};
+  for(const id of Z){const g=gmGeo(id);if(!g||!P[id])continue;const q=P[id],Ts={z,ox:T.ox+q[0]*z,oy:T.oy-q[1]*z};gmShape(c,Ts,g);
+   const lx=Ts.ox,ly=Ts.oy+12;c.fillStyle=col('--accent');c.beginPath();c.arc(lx,ly,9,0,Math.PI*2);c.fill();c.fillStyle=col('--accent-ink');c.font='700 11px -apple-system,Helvetica,sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(id,lx,ly);c.textAlign='left';c.textBaseline='alphabetic';}};
+ const at=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left-T.ox)/T.z,(T.oy-(e.clientY-r.top))/T.z];};
+ cv.onpointerdown=e=>{if(!T)return;const[x,y]=at(e);for(let i=Z.length-1;i>=0;i--){const id=Z[i],g=gmGeo(id),q=P[id];if(g&&q&&x>=q[0]+g.x0&&x<=q[0]+g.x1&&y>=q[1]+g.y0-12/T.z&&y<=q[1]+g.y1){drag={id,x,y};Z.splice(i,1);Z.push(id);try{cv.setPointerCapture(e.pointerId);}catch(_){}cv._paint();break;}}};
+ cv.onpointermove=e=>{if(!drag)return;const[x,y]=at(e),q=P[drag.id];q[0]+=x-drag.x;q[1]+=y-drag.y;drag.x=x;drag.y=y;cv._paint();};
+ cv.onpointerup=cv.onpointercancel=()=>{drag=null;};return cv;}
+
+// between stages: the stage's results, where the cut is, and what comes next
+function gmVGap(){const st=GM.st,R=st.R[st.i],nx=st.flow[st.i+1],keep=R.m!=='awards'&&R.keep>0&&R.keep<R.r.length?R.keep:0;
+ const w=el('div',{class:'gm-gap'},el('div',{class:'gm-h'},el('h3',{},`Stage ${st.i+1} results`),el('span',{class:'gm-sub'},GM_MODES[R.m][0])),gmResTab(R,keep));
+ if(R.aw)w.append(gmAwEl(R.aw));
+ w.append(el('p',{class:'gm-next'},el('span',{},keep?`The top ${keep} go through.`:'Everyone goes through.'),' ',el('span',{},'Next:'),' ',el('b',{},GM_MODES[nx.m][0]),' ',el('span',{class:'gm-clock'})));
+ if(gmHost())w.append(el('div',{class:'gm-btns'},el('button',{class:'pri',id:'gmNextGo',onclick:gmSkip},'Start the next stage now')));return w;}
+// a number for each shape's bar, where the stage has one
+const gmBarV=R=>{const x=R.x||{};if(R.m==='auction')return x.T;if(R.m==='olympics')return x.P;if(R.m==='swipe')return gmMap(R.r,id=>x.V&&x.V[id]?x.L[id]/x.V[id]:0);if(R.m==='rank')return x.B;return null;};
+function gmResTab(R,keep){const t=el('table',{class:'gm-tab gm-res'}),bv=gmBarV(R),mx=bv?Math.max(1e-9,...Object.values(bv)):1;
+ t.append(el('tr',{},el('th',{},'Place'),el('th',{},'Shape'),el('th',{},R.h||''),bv?el('th',{}):''));
+ R.r.forEach((id,i)=>{const bar=bv?el('div',{class:'gm-bar'+(R.m==='auction'&&R.x.worst?' worst':'')}):null;if(bar){bar.dataset.w=String(Math.round(100*(bv[id]||0)/mx));requestAnimationFrame(()=>requestAnimationFrame(()=>{bar.style.width=bar.dataset.w+'%';}));}
+  t.append(el('tr',{class:keep&&i===keep-1?'gm-cut':keep&&i>=keep?'gm-outr':''},el('td',{},String(i+1)),el('td',{class:'gm-tsh'},gmCv(id,'xs'),gmLabEl(id)),el('td',{},R.sc&&R.sc[id]||''),bar?el('td',{class:'gm-bart'},bar):''));});return t;}
+function gmAwEl(aw){const w=el('div',{class:'gm-aws'});for(const a of aw)w.append(el('div',{class:'gm-awi'},el('span',{class:'gm-medal'},'🏆'),el('b',{},a.c),' ',a.w.length?el('span',{},...a.w.flatMap((id,i)=>i?[' · ',gmLabEl(id)]:[gmLabEl(id)])):el('span',{class:'gnote'},'No votes')));return w;}
+const gmNm=id=>(GM.ent.find(e=>e.id===id)||{}).nm||'';
+// which stage a shape went out in (or that it played to the end)
+function gmOutIn(id){const st=GM.st,R=st.R||[];let j=-1;R.forEach((r,i)=>{if(r&&r.f.includes(id))j=i;});if(j<0)return el('span',{},'–');if(j===R.length-1)return el('span',{},'Played to the end');return el('span',{},el('span',{},`Stage ${j+1}`),' · ',el('span',{},GM_MODES[R[j].m][0]));}
+function gmVDone(){const st=GM.st,g=gmCfg()||{},rev=g.reveal!==false,fin=st.fin||[],w=el('div',{class:'gm-done'});
+ if(GM.ent.length<2){w.append(gmMid('Not enough shapes for a game','A game needs at least two kendamas. Nothing was played.'));return w;}
+ w.append(el('h2',{class:'gm-dh'},'The results'));const pod=el('div',{class:'gm-pod'});
+ fin.slice(0,3).forEach((id,i)=>pod.append(gmCard(id,{cls:'p'+(i+1),tag:el('span',{class:'gm-medal'},['🥇','🥈','🥉'][i]),mine:id===gmMine(),foot:rev?el('p',{class:'gm-by'},el('span',{},'Made by'),' ',el('b',{translate:'no'},gmNm(id))):''})));w.append(pod);
+ const t=el('table',{class:'gm-tab gm-fin'});t.append(el('tr',{},el('th',{},'Place'),el('th',{},'Shape'),rev?el('th',{},'Made by'):'',el('th',{},'Went out in'),el('th',{},'In their words')));
+ fin.forEach((id,i)=>t.append(el('tr',{},el('td',{},String(i+1)),el('td',{class:'gm-tsh'},gmCv(id,'xs'),gmLabEl(id)),rev?el('td',{translate:'no'},gmNm(id)):'',el('td',{},gmOutIn(id)),el('td',{class:'gm-dsc',translate:'no'},st.desc&&st.desc[id]||''))));w.append(t);
+ if(st.aw&&st.aw.length)w.append(el('h3',{},'Awards'),gmAwEl(st.aw));
+ if(COL.role!=='view'){const box=el('div',{class:'gm-pdf'}),own=COL.role==='owner'&&!!gmCfg();box.append(el('h3',{},'Results file'));
+  if(own){const c=gmCfg(),sel=(id,label,opts,key)=>{const s=el('select',{id});for(const[v,t]of opts){const op=el('option',{value:String(v)},t);if(String(c[key])===String(v))op.selected=true;s.append(op);}s.onchange=()=>{c[key]=key==='top'?+s.value:s.value;colSave();colTick();};return el('label',{},el('span',{},label),s);};
+   const sp=el('input',{type:'checkbox',id:'gmSpecs'});sp.checked=!!c.specs;sp.onchange=()=>{c.specs=sp.checked;colSave();colTick();};
+   box.append(el('div',{class:'row gm-pdfo'},sel('gmTopN','Winning shapes on the first page',[[1,'1'],[3,'3'],[5,'5'],[10,'10'],[0,'All']],'top'),sel('gmVerb','Detail',[['sum','Summary: the final ranking'],['std','Standard: every stage’s ranking'],['full','Full: every match and vote']],'verb'),el('label',{},sp,el('span',{},'Add the winning shapes’ spec sheets'))));}
+  box.append(el('div',{class:'row'},el('button',{class:'pri',id:'gmPdf',onclick:()=>{download(fileSafe(colSessName())+'-game-results.pdf',gmPdf(),'application/pdf');toast('Saved to your downloads folder.');}},'Results PDF')));w.append(box);}
+ w.append(el('div',{class:'gm-btns'},el('button',{id:'gmClose',onclick:()=>{GM.open=false;gmSync();}},'Close')));return w;}
+
+// ---- the Collaborate panel and the button at the top ----
+function gmPanel(){const g=gmCfg(),st=GM.st;if(!g)return null;const box=el('div',{class:'gm-panel',id:'gmPanel'}),host=COL.role==='owner';box.append(el('p',{class:'col-h'},'Design game'));
+ if(!st){box.append(el('p',{class:'gnote'},'Waiting for the owner…'));return box;}
+ if(st.ph==='design'){
+  box.append(el('p',{class:'gm-pl2'},st.left==null?el('span',{},'The owner starts the game when everyone is ready.'):el('span',{},el('span',{},'Design time left'),' ',el('b',{class:'gm-clock'}),!st.run?el('span',{class:'gm-wait'},' ','Paused'):'')));
+  box.append(el('div',{class:'gm-flowt'},gmFlowEl(g.flow)));
+  const seat=COL.cfg.seats&&COL.cfg.seats[COL.id];if(seat&&!(host&&!g.mine)){const ta=el('textarea',{id:'gmDraft',rows:'3',maxlength:String(GM_DESC),placeholder:'A few words about your shape, shown with it in the game'});ta.value=GM.draft||'';ta.oninput=()=>{GM.draft=ta.value;gmKeep();};
+   box.append(el('label',{class:'col-name'},el('span',{},'Describe your shape'),ta),el('p',{class:'gnote'},'You can also write this when the design time is up.'));}
+  if(host){const r=el('div',{class:'row'});r.append(el('button',{class:'pri',id:'gmStart',onclick:gmStartNow},'Start the game now'));
+   if(st.left!=null)r.append(el('button',{id:'gmPlus',onclick:()=>gmAdd(300000),title:'Five more minutes of design time'},'+5 min'),el('button',{id:'gmHold',onclick:gmPause},st.run?'Pause':'Resume'));
+   r.append(el('button',{id:'gmStages',onclick:()=>gsOpen(g,()=>{colSave();colTick();syncCol();},gmFieldNow())},'Edit the stages…'));box.append(r);}}
+ else{box.append(el('p',{class:'gnote'},st.ph==='done'?'The game is over.':'The game is on.'),el('div',{class:'row'},el('button',{class:'pri',id:'gmOpen',onclick:()=>{GM.open=true;gmSync();}},st.ph==='done'?'See the results':'Open the game window')));
+  if(host&&st.ph!=='done')box.lastChild.append(el('button',{class:'danger',onclick:gmEndNow},'End the game'));}
+ return box;}
+const gmFieldNow=()=>{const c=COL.cfg,g=gmCfg()||{};if(!c||!c.seats)return 8;return Math.max(2,Object.keys(c.seats).filter(id=>!(id===COL.id&&!g.mine)).length);};
+function gmFlowEl(flow){const w=el('span',{class:'gm-flow'});(flow||[]).forEach((s,i)=>{if(i)w.append(' → ');w.append(el('b',{},GM_MODES[s.m][0]));if(i<flow.length-1&&s.m!=='awards'&&s.keep>0)w.append(' ',el('span',{class:'gm-keep'},`(top ${s.keep})`));});return w;}
+function gmPill(){const p=$('#gmPill');if(!p)return;const st=GM.st,show=!!st&&COL.on&&(st.ph==='design'||!GM.open);p.style.display=show?'':'none';if(!show)return;p.innerHTML='';
+ if(st.ph==='design'){p.append(el('span',{},st.left==null?'Design game':'Design time'),el('b',{class:'gm-clock'}));p.title='The design game. Its controls are under Collaborate.';p.onclick=()=>{const d=$('#rsCol');if(d){d.open=true;rsSave();d.scrollIntoView({block:'nearest'});}};}
+ else{p.append(el('span',{},st.ph==='done'?'Game results':'The game is on'),el('b',{class:'gm-clock'}),el('span',{class:'gm-open'},'Open'));p.title='';p.onclick=()=>{GM.open=true;gmSync();};}gmClock();}
+addEventListener('keydown',e=>{const d=$('#gm');if(!d||!d.classList.contains('show')||!GM.key||e.metaKey||e.ctrlKey||/INPUT|TEXTAREA|SELECT/.test(document.activeElement&&document.activeElement.tagName||''))return;if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();GM.key(e);}});
+addEventListener('resize',()=>{if(GM.st&&GM.open)requestAnimationFrame(gmPaint);});
+
+// ---- setting the game up: in the start-session window, and the stages window (the owner can still change the stages until the game starts) ----
+function gmSetupOpts(box,o,draw){const g=o.game;
+ const cb=el('input',{type:'checkbox',id:'coGame'});cb.checked=!!g.on;cb.onchange=()=>{g.on=cb.checked;draw();};
+ box.append(el('label',{class:'col-opt gm-opt'},cb,el('div',{},el('b',{},'Design game'),el('small',{},'When the design time is up, everyone’s kendama goes into a game in a window of its own, stage after stage, until the shapes are ranked.'))));
+ if(!g.on)return;
+ const w=el('div',{class:'gm-setup',id:'coGameOpts'});
+ const num=(id,label,k,a,b,unit,note)=>{const i=el('input',{type:'number',id,min:String(a),max:String(b),step:'1',value:String(g[k])});i.onchange=()=>{g[k]=gmN(i.value,a,b,g[k]);i.value=String(g[k]);};
+  w.append(el('label',{class:'gm-sl'},el('span',{},label),i,el('span',{},unit)),note?el('small',{class:'gm-sn'},note):'');};
+ const chk=(id,label,k,inv)=>{const c=el('input',{type:'checkbox',id});c.checked=inv?!g[k]:!!g[k];c.onchange=()=>{g[k]=inv?!c.checked:c.checked;};w.append(el('label',{class:'gm-sl'},c,el('span',{},label)));};
+ num('coGTime','Design time','design',0,600,'minutes','0: you start the game yourself, from Collaborate.');
+ num('coGDesc','Time to describe each shape','desc',0,600,'seconds','0: no descriptions.');
+ chk('coGMine','Your own kendama plays too','mine');chk('coGLeft','Kendamas of people who left still play','left');chk('coGSame','Leave out kendamas nobody changed','same',true);
+ if(o.view)chk('coGWatch','Watchers can vote','watch');chk('coGReveal','Show who made each shape at the end','reveal');
+ w.append(el('div',{class:'gm-flowt'},el('span',{},'Stages:'),' ',gmFlowEl(g.flow)),el('div',{class:'row'},el('button',{id:'coGStages',onclick:()=>gsOpen(g,draw,o.lim?o.max:8)},'Set up the stages…')));
+ box.append(w);}
+const GS={g:null,after:null,n:8};
+function gsOpen(g,after,n){GS.g=g;GS.after=after;GS.n=gmN(n,2,64,8);gsDraw();colShow('#gmSet');}
+function gsClose(){colHide('#gmSet');const g=GS.g;if(g){const c=gmClean(g);for(const k of Object.keys(g))delete g[k];Object.assign(g,c);}const f=GS.after;GS.g=GS.after=null;if(f)f();}
+function gsNum(o,k,a,b,id){const i=el('input',{type:'number',min:String(a),max:String(b),step:'1',value:String(o[k]??'')});if(id)i.id=id;i.onchange=()=>{const v=gmN(i.value,a,b,o[k]);o[k]=v;i.value=String(v);gsDraw();};return i;}
+function gsDraw(){const g=GS.g,b=$('#gsBody');if(!g||!b)return;const sy=b.closest('.card')?b.closest('.card').scrollTop:0;b.innerHTML='';
+ const pre=el('select',{id:'gsPre'},el('option',{value:''},'Start from a ready-made game…'));GM_PRESETS.forEach((p,i)=>pre.append(el('option',{value:String(i)},p[0])));
+ pre.onchange=()=>{const p=GM_PRESETS[+pre.value];if(!p)return;g.flow=p[1].map(([m,keep,o])=>({m,keep,o:Object.assign(gmOpt(m),o||{})}));gsDraw();};
+ b.append(el('div',{class:'row gs-top'},pre,el('label',{class:'gs-n'},el('span',{},'Shapes expected'),gsNum(GS,'n',2,64,'gsN'))));
+ let n=GS.n,tot=0;
+ g.flow.forEach((s,i)=>{b.append(gsStage(s,i,n));tot+=gmEst(s.m,s.o,n)+GM_GAP/1000;if(i<g.flow.length-1&&s.m!=='awards'&&s.keep>0)n=Math.max(2,Math.min(n,s.keep));});
+ const add=el('button',{id:'gsAdd',onclick:()=>{g.flow.push({m:'bracket',keep:0,o:gmOpt('bracket')});gsDraw();}},'+ ','Add a stage');add.disabled=g.flow.length>=10;
+ b.append(el('div',{class:'row'},add,el('span',{class:'spacer'}),el('span',{class:'gnote'},`About ${Math.max(1,Math.round(tot/60))} min of play in all`)));
+ const f=el('div',{class:'gs-f'}),sel=(id,label,opts,key)=>{const s=el('select',{id});for(const[v,t]of opts){const op=el('option',{value:String(v)},t);if(String(g[key])===String(v))op.selected=true;s.append(op);}s.onchange=()=>{g[key]=key==='top'?+s.value:s.value;};f.append(el('label',{},el('span',{},label),s));};
+ sel('gsTop','Winning shapes on the first page',[[1,'1'],[3,'3'],[5,'5'],[10,'10'],[0,'All']],'top');sel('gsVerb','Detail',[['sum','Summary: the final ranking'],['std','Standard: every stage’s ranking'],['full','Full: every match and vote']],'verb');
+ const sp=el('input',{type:'checkbox',id:'gsSpecs'});sp.checked=!!g.specs;sp.onchange=()=>{g.specs=sp.checked;};f.append(el('label',{},sp,el('span',{},'Add the winning shapes’ spec sheets')));
+ b.append(el('p',{class:'col-h'},'Results file'),f);const cd=b.closest('.card');if(cd)cd.scrollTop=sy;}
+function gsStage(s,i,n){const g=GS.g,last=i===g.flow.length-1,box=el('div',{class:'gs-st'});
+ const sel=el('select',{class:'gs-m'});for(const m of GM_ORDER){const op=el('option',{value:m},GM_MODES[m][0]);if(m===s.m)op.selected=true;sel.append(op);}sel.onchange=()=>{s.m=sel.value;s.o=gmOpt(s.m);gsDraw();};
+ const up=el('button',{title:'Move up',onclick:()=>{g.flow.splice(i-1,0,g.flow.splice(i,1)[0]);gsDraw();}},'↑'),dn=el('button',{title:'Move down',onclick:()=>{g.flow.splice(i+1,0,g.flow.splice(i,1)[0]);gsDraw();}},'↓'),rm=el('button',{title:'Take this stage out',onclick:()=>{g.flow.splice(i,1);gsDraw();}},'✕');
+ up.disabled=!i;dn.disabled=last;rm.disabled=g.flow.length<2;
+ box.append(el('div',{class:'gs-hd'},el('b',{},`Stage ${i+1}`),sel,up,dn,rm),el('p',{class:'gnote'},GM_MODES[s.m][1]));
+ const f=el('div',{class:'gs-f'});gsFields(s,f,i);box.append(f);
+ const k=el('div',{class:'gs-k'});
+ if(s.m==='awards')k.append(el('span',{class:'gnote'},'Nobody is knocked out here.'));
+ else if(last)k.append(el('span',{class:'gnote'},'The last stage ranks the shapes that are left.'));
+ else k.append(el('label',{},el('span',{},'Keep the top'),gsNum(s,'keep',0,64),el('span',{},'for the next stage')),el('span',{class:'gnote'},'0 keeps them all.'));
+ k.append(el('span',{class:'gs-est'},`About ${Math.max(1,Math.round(gmEst(s.m,s.o,n)/60))} min with ${n} shapes`));box.append(k);return box;}
+function gsFields(s,f,i){const o=s.o;
+ const num=(label,k,a,b)=>f.append(el('label',{},el('span',{},label),gsNum(o,k,a,b)));
+ const chk=(label,k)=>{const c=el('input',{type:'checkbox'});c.checked=!!o[k];c.onchange=()=>{o[k]=c.checked;gsDraw();};f.append(el('label',{},c,el('span',{},label)));};
+ const pick=(label,k,opts)=>{const se=el('select');for(const[v,t]of opts){const op=el('option',{value:String(v)},t);if(String(o[k])===String(v))op.selected=true;se.append(op);}se.onchange=()=>{const v=se.value;o[k]=/^-?\d+$/.test(v)?+v:v;gsDraw();};f.append(el('label',{},el('span',{},label),se));};
+ const seed=()=>{if(i>0)pick('Seeding','seed',[['rand','A random draw'],['rank','By the last stage’s results']]);};
+ switch(s.m){
+  case'swipe':num('Seconds per shape','sec',5,120);break;
+  case'bracket':pick('Format','elim',[[1,'Single elimination'],[2,'Double elimination'],[3,'Triple elimination']]);if((o.elim|0)<=1)chk('Match for 3rd place','third');else f.append(el('span',{class:'gnote'},'3rd place comes from the bracket.'));num('Seconds per match','sec',5,300);seed();break;
+  case'rr':num('Pools','pools',1,16);if((o.pools|0)>1){num('Through from each pool','adv',1,8);chk('The shapes through play a playoff bracket','playoff');}num('Seconds per match','sec',5,120);seed();break;
+  case'koth':num('Seconds per challenge','sec',5,120);pick('Rounds','laps',[[1,'Everyone challenges once'],[2,'Everyone challenges twice']]);break;
+  case'rank':num('Seconds per shape','per',5,120);break;
+  case'lunar':num('Target: degrees below horizontal','t',-45,60);num('Seconds to adjust','sec',10,600);pick('Rounds to agree','rounds',[[1,'1'],[2,'2'],[3,'3']]);break;
+  case'auction':num('Tokens each','tok',1,50);num('Most on one shape','cap',1,50);chk('Knock-out tokens: everyone gives them to the shapes they like least','worst');num('Seconds (0: set by the number of shapes)','sec',0,900);break;
+  case'olympics':gsEvents(o,f);num('Seconds per event','sec',3,60);break;
+  case'awards':gsCats(o,f);num('Seconds (0: set by the number of awards)','sec',0,900);break;}}
+function gsEvents(o,f){const L=el('div',{class:'gs-ev'});if(!Array.isArray(o.ev))o.ev=[];
+ o.ev.forEach((e,j)=>{const se=el('select');for(const k in GM_EV){const op=el('option',{value:k},GM_EV[k][0]);if(k===e.k)op.selected=true;se.append(op);}
+  se.onchange=()=>{e.k=se.value;if(e.k==='kwc'){delete e.how;delete e.t;}else{e.how=e.how||'near';e.t=null;}gsDraw();};const row=el('div',{class:'gs-evr'},se);
+  if(e.k!=='kwc'){const hw=el('select');for(const[v,t]of[['near','Nearest'],['low','Lowest'],['high','Highest']]){const op=el('option',{value:v},t);if((e.how||'near')===v)op.selected=true;hw.append(op);}hw.onchange=()=>{e.how=hw.value;gsDraw();};row.append(hw);
+   if((e.how||'near')==='near'){const t=el('input',{type:'number',step:'0.1',value:e.t==null?'':String(e.t),placeholder:'Shared kendama',title:'Leave it empty to aim for the shared kendama the session started from'});t.onchange=()=>{e.t=t.value===''?null:+t.value;};row.append(t,el('span',{},GM_EV[e.k][1]));}}
+  row.append(el('button',{title:'Take this event out',onclick:()=>{o.ev.splice(j,1);gsDraw();}},'✕'));L.append(row);});
+ const add=el('button',{onclick:()=>{o.ev.push({k:'kenH',how:'near',t:null});gsDraw();}},'+ ','Add an event');add.disabled=o.ev.length>=8;L.append(add);f.append(L);}
+function gsCats(o,f){const L=el('div',{class:'gs-ev'});if(!Array.isArray(o.cats))o.cats=[];
+ o.cats.forEach((c,j)=>{const t=el('input',{type:'text',maxlength:'40',value:c});t.onchange=()=>{o.cats[j]=t.value.trim().slice(0,40);};L.append(el('div',{class:'gs-evr'},t,el('button',{title:'Take this award out',onclick:()=>{o.cats.splice(j,1);gsDraw();}},'✕')));});
+ const add=el('button',{onclick:()=>{o.cats.push('');gsDraw();}},'+ ','Add an award');add.disabled=o.cats.length>=8;L.append(add);f.append(L);}
+
+// ---- the results file, laid out like the spec sheet: the winning shapes first, then the results at the chosen detail, then (if chosen) the winners' spec sheets ----
+const gmFit=(D,s,w,size,b)=>{s=String(s==null?'':s);if(D.tw(s,size,b)<=w)return s;while(s.length>1&&D.tw(s+'...',size,b)>w)s=s.slice(0,-1);return s+'...';};
+function gmPdfFrame(D,title){D.style('#000',1);D.poly([[18,18],[774,18],[774,594],[18,594]],true);D.line(18,522,774,522);
+ D.text(colSessName().toUpperCase()+' · DESIGN GAME',30,549,{size:19});D.text(title,30,566,{size:11});D.text(`PREPARED ${today()}`,30,583,{size:11});}
+function gmPdfWin(D,ids,off,rev){const n=ids.length;if(!n)return;
+ const geo=ids.map(gmGeo),L=Math.max(...geo.map(g=>-g.x0)),Rt=Math.max(...geo.map(g=>g.x1)),H=Math.max(...geo.map(g=>g.y1-g.y0));
+ const rows=n>4?2:1,cols=Math.ceil(n/rows),cw=732/cols,ch=488/rows,txt=rows>1?70:96,s=Math.min((cw-14)/(L+Rt),(ch-txt-12)/H,3.2);
+ ids.forEach((id,j)=>{const g=geo[j],st=gmStat(id),c=j%cols,r=Math.floor(j/cols),x0=30+cw*c,cx=x0+cw/2,ax=x0+(cw-(L+Rt)*s)/2+L*s,yb=26+ch*r+ch-txt,T=q=>[ax+q[0]*s,yb-q[1]*s],M=a=>a.map(T);
+  D.fill(M(g.ken),'#ffffff');D.style('#000',.9);D.poly(M(g.ken),true);D.fill(M(g.sar),'#ffffff');D.style('#000',.9);D.poly(M(g.sar),true);D.style('#000',.5);for(const l of g.lines)D.poly(M(l));
+  D.fill(M(g.tama),'#ffffff');D.style('#000',.9);D.poly(M(g.tama),true);D.style('#000',.45,[3,2]);for(const h of g.holes)D.poly(M(h));D.style('#000',.6);
+  const w=cw-10;let y=yb+15;const line=(t,size,b)=>{D.text(gmFit(D,t,w,size,b),cx,y,{align:'center',size,bold:b});y+=size+3;};
+  line(`${off+j+1}. SHAPE ${id}`,11,1);if(rev)line(gmNm(id),8.5,1);
+  if(st){line(`KEN ${f1(st.kM)} G · SARADO ${f1(st.sM)} G · TAMA ${f1(st.tM)} G (MAPLE)`,6.5);line(`CUPS: BIG Ø${fmm(st.bgD)} · SMALL Ø${fmm(st.smD)} · BASE Ø${fmm(st.baseD)}`,6.5);
+   line(`KEN LENGTH ${fmm(st.kenH)} MM · LUNAR: SPIKE ${st.lun==null?'-':f1(Math.abs(st.lun))+'° '+(st.lun>=0?'BELOW':'ABOVE')} HORIZONTAL`,6.5);if(st.kwc.length)line('KWC: '+st.kwc.join(' '),6.5,1);}
+  const d=GM.st.desc&&GM.st.desc[id];if(d)line('"'+d+'"',6.5);});}
+class GmTab{constructor(np){this.np=np;this.D=null;this.y=0;this.hd=null;}
+ need(h){if(!this.D||this.y+h>510){this.D=this.np();this.y=34;if(this.hd&&!this.inh){this.inh=1;this.row(...this.hd);this.inh=0;}}} // a table carried over: its headings again
+ h(t,sub){this.hd=null;this.need(sub?60:46);this.y+=12;this.D.text(t,30,this.y,{size:11,bold:1});if(sub){this.y+=11;this.D.text(sub,30,this.y,{size:7.5});}this.y+=5;this.D.style('#000',.6);this.D.line(30,this.y,762,this.y);this.y+=11;}
+ row(cells,xs,b){if(b&&!this.inh)this.hd=[cells,xs,b];this.need(11);cells.forEach((c,i)=>{const w=(xs[i+1]||762)-xs[i]-6;this.D.text(gmFit(this.D,c,w,7.5,b),xs[i],this.y,{size:7.5,bold:b});});this.y+=10.5;}
+ gap(){this.y+=4;}}
+// mk: a new page to draw on (a PDF page unless told otherwise; given one, the drawn pages come back instead of a PDF)
+function gmPdf(mk){
+ const pg=mk||(()=>new PdfDrawer(612)),st=GM.st,g=gmCfg()||gmDef(),rev=g.reveal!==false,fin=st.fin||[],top=g.top>0?Math.min(g.top,fin.length):fin.length,verb=g.verb||'std',pages=[],spec=[];
+ const win=fin.slice(0,top),per=8;for(let p=0;p<Math.max(1,Math.ceil(win.length/per));p++){const D=pg();gmPdfFrame(D,top===1?'THE WINNING SHAPE':'THE WINNING SHAPES');gmPdfWin(D,win.slice(p*per,p*per+per),p*per,rev);pages.push(D);}
+ const T=new GmTab(()=>{const D=pg();gmPdfFrame(D,'RESULTS');pages.push(D);return D;}),SH=id=>'SHAPE '+id,mn=m=>GM_MODES[m][0].toUpperCase(),R=st.R||[];
+ const outIn=id=>{let j=-1;R.forEach((r,i)=>{if(r&&r.f.includes(id))j=i;});return j<0?'-':j===R.length-1?'PLAYED TO THE END':`STAGE ${j+1} · ${mn(R[j].m)}`;};
+ T.h('FINAL RANKING',`${GM.ent.length} SHAPES · ${R.filter(Boolean).length} STAGES PLAYED · WEIGHTS ARE IN HARD MAPLE FOR EVERY SHAPE`);
+ const fx=rev?[30,62,122,232,372]:[30,62,122,262];T.row(['PLACE','SHAPE',...(rev?['MADE BY']:[]),'WENT OUT IN','IN THEIR WORDS'],fx,1);
+ fin.forEach((id,i)=>T.row([String(i+1),SH(id),...(rev?[gmNm(id)]:[]),outIn(id),st.desc&&st.desc[id]||''],fx));
+ if(verb!=='sum')R.forEach((r,i)=>{if(!r)return;const keep=r.m!=='awards'&&r.keep>0&&r.keep<r.r.length&&i<R.length-1?r.keep:0;
+  T.h(`STAGE ${i+1} · ${mn(r.m)}`,`${r.n} SHAPES${keep?` · THE TOP ${keep} WENT THROUGH`:''}${r.cut?' · ENDED EARLY':''}${gmPdfHow(r)}`);const xs=[30,62,122,260];T.row(['PLACE','SHAPE',String(r.h||'').toUpperCase(),''],xs,1);
+  r.r.forEach((id,k)=>T.row([String(k+1),SH(id),r.sc&&r.sc[id]||'',keep&&k===keep-1?'---- CUT ----':''],xs));
+  if(verb==='full')gmPdfFull(T,r,SH);});
+ if(st.aw&&st.aw.length){T.h('AWARDS');const xs=[30,232,500];T.row(['AWARD','WON BY','VOTES'],xs,1);for(const a of st.aw)T.row([a.c,a.w.length?a.w.map(id=>SH(id)+(rev?' ('+gmNm(id)+')':'')).join(', '):'NO VOTES',a.n?String(a.n):''],xs);}
+ if(g.specs)for(const id of win){const w=gmW(id);if(!w)continue;wpWith(w,()=>{const sv=S.meta;S.meta=Object.assign({},sv,{model:'SHAPE '+id,designer:rev?gmNm(id):''});try{const a=pg(),b=pg();specPage1(a,CUR);specPage2(b,CUR);spec.push(a,b);}finally{S.meta=sv;}});}
+ pages.forEach((D,i)=>D.text(`PAGE ${i+1} OF ${pages.length}`,762,583,{size:11,align:'right'}));
+ if(mk)return[...pages,...spec];return buildPdf([...pages,...spec].map(D=>D.o),792,612);}
+const gmPdfHow=r=>({swipe:' · SCORE: LIKES OUT OF THE PEOPLE WHO SAW THE SHAPE',rank:' · EVERYONE’S ORDER ADDED UP: 100 IS FIRST ON EVERY LIST',auction:r.x&&r.x.worst?' · KNOCK-OUT TOKENS: FEWEST IS BEST':' · TOKENS: MOST IS BEST',bracket:` · ${['SINGLE','DOUBLE','TRIPLE'][((r.x&&r.x.L)||1)-1]} ELIMINATION`,koth:' · THE KING KEEPS THE HILL ON AN EVEN VOTE',lunar:r.x?` · TARGET ${f1(Math.abs(r.x.t))}° ${r.x.t>=0?'BELOW':'ABOVE'} HORIZONTAL`:'',olympics:' · POINTS: ONE FOR EVERY SHAPE BEATEN IN EACH EVENT'})[r.m]||'';
+function gmPdfFull(T,r,SH){const x=r.x||{};T.gap();
+ const ml=(log,xs,lab)=>{T.row(['','MATCH','VOTES','WINNER',''],xs,1);log.forEach((m,k)=>T.row([lab(m,k),SH(m.a)+' V '+SH(m.b),`${m.va}–${m.vb}`,m.w?SH(m.w):'DRAW',m.va===m.vb&&m.w?(r.m==='koth'?'EVEN: THE KING STAYS':'EVEN: BETTER SEED'):''],xs));};
+ const xs=[30,150,300,360,460];
+ if(r.m==='swipe'){T.row(['','SHAPE','LIKES','SEEN',''],xs,1);for(const id of r.r)T.row(['',SH(id),String(x.L[id]),String(x.V[id]),''],xs);}
+ else if(r.m==='bracket')ml(x.log||[],xs,m=>m.t==='3'?'3RD PLACE':m.f?'FINAL':`ROUND ${m.r}${x.L>1?' · '+(m.t===-1?'FINAL':['WINNERS','LOSERS'+(x.L>2?' 1':''),'LOSERS 2'][m.t]||''):''}`);
+ else if(r.m==='rr'){ml((x.res||[]).map(m=>Object.assign({},m,{w:m.w})),xs,m=>`${x.pl&&x.pl.length>1?'POOL '+(m.p+1)+' · ':''}ROUND ${m.r+1}`);if(x.po&&x.po.length){T.gap();ml(x.po,xs,m=>m.f?'PLAYOFF FINAL':`PLAYOFF ROUND ${m.r}`);}}
+ else if(r.m==='koth')ml(x.log||[],xs,(m,k)=>`CHALLENGE ${k+1}`);
+ else if(r.m==='auction'){T.row(['','SHAPE','TOKENS','BACKERS',''],xs,1);for(const id of r.r)T.row(['',SH(id),String(x.T[id]),String(x.N[id]),''],xs);}
+ else if(r.m==='rank'){T.row(['','SHAPE','SCORE','',''],xs,1);for(const id of r.r)T.row(['',SH(id),String(Math.round(100*x.B[id])),'',''],xs);}
+ else if(r.m==='lunar'){T.row(['','SHAPE','SPIKE','IN ORDER OF ANGLE','AGREED ORDER'],xs,1);for(const id of r.r)T.row(['',SH(id),x.a[id]===999?'-':f1(x.a[id])+'°',String(x.auto.indexOf(id)+1),String(r.r.indexOf(id)+1)],xs);
+  T.row(['',`${x.rd} ROUND${x.rd>1?'S':''} · LAST SHOW OF HANDS: ${x.ay||0} AGREED, ${x.an||0} DID NOT`,'','',''],[30,150,700,710,720]);}
+ else if(r.m==='olympics')for(const e of x.ev||[]){T.row(['',GM_EV[e.k][0].toUpperCase()+(e.k==='kwc'?'':e.how==='near'?' · NEAREST '+gmEvFmt(e.k,e.t):e.how==='low'?' · LOWEST WINS':' · HIGHEST WINS'),'','',''],[30,150,700,710,720],1);
+  for(const id of e.ord)T.row([String(e.pl[id]),SH(id),e.k==='kwc'?(e.val[id]?'LEGAL':'NOT LEGAL'):gmEvFmt(e.k,e.val[id]),`${r.n-e.pl[id]} PTS`,''],xs);T.gap();}
+ else if(r.m==='awards')(x.c||[]).forEach((c,i)=>{const W=x.W[i]||{};T.row(['',c.toUpperCase(),'','',''],[30,150,700,710,720],1);const ids=Object.keys(W).sort((a,b)=>W[b]-W[a]);if(!ids.length)T.row(['','NO VOTES','','',''],xs);for(const id of ids)T.row(['',SH(id),`${W[id]} VOTE${W[id]>1?'S':''}`,'',''],xs);});
+ T.gap();}
+// the design game in Japanese (added to JA without changing what is there already)
+{const G={
+"Design game":"デザインゲーム","Shape":"形状","Swipe":"スワイプ","Elimination bracket":"勝ち抜きトーナメント","Round robin":"総当たり戦","King of the Hill":"キング・オブ・ザ・ヒル","Line them up":"順位づけ",
+"Lunar balance":"ルナバランス","Token auction":"トークンオークション","Spec Olympics":"スペック・オリンピック","Awards":"アワード",
+"One shape at a time: swipe right if you like it, left if you don’t. Ranked by the share of likes from everyone who saw it.":"形状を一つずつ見て、気に入ったら右へ、そうでなければ左へスワイプします。見た人のうち「いいね」をした割合で順位が決まります。",
+"Shapes meet head to head and everyone votes. A shape is out after one, two or three losses.":"形状どうしが一対一で対戦し、全員が投票します。1敗・2敗・3敗のいずれかで敗退します。",
+"Every shape meets every other shape in its pool. Pools can end in a playoff bracket.":"プール内のすべての形状と一回ずつ対戦します。プールの後にプレーオフのトーナメントを行えます。",
+"One shape holds the hill. Challengers come up one at a time, and the winner stays on.":"一つの形状が王座を守り、挑戦者が一つずつ挑みます。勝った方が王座に残ります。",
+"Everyone puts all the shapes in their own order, and the orders are added up.":"全員がすべての形状を自分の好きな順に並べ、その順位を合計します。",
+"The shapes are put in order of their big-cup lunar balance. Everyone can nudge the order, then agrees to it.":"大皿ルナのバランス順に並べます。全員が順番を少しずつ入れ替えてから、その順位に同意します。",
+"Everyone spreads a few tokens over the shapes they like best, or, to knock shapes out, the ones they like least.":"全員が数枚のトークンを、いちばん好きな形状（または脱落させたい、いちばん好きでない形状）に配ります。",
+"No voting: the shapes are scored on measured events, with medals for each.":"投票はありません。測定値の種目ごとに採点し、メダルを与えます。",
+"Everyone picks a shape for each award. Nobody is knocked out.":"全員が各賞に一つずつ形状を選びます。誰も脱落しません。",
+"Best big cup":"ベスト大皿賞","Best silhouette":"ベストシルエット賞","Most original":"いちばん独創的","Most playable":"いちばん遊びやすそう","Best tama":"ベスト玉賞","Best shape":"ベスト形状",
+"Total weight":"総重量","Ken + sarado weight":"けん＋皿胴の重さ","Tama weight":"玉の重さ","Spike below horizontal in big-cup lunar":"大皿ルナでのけん先の水平からの下向き角度","Ken length":"けんの長さ",
+"Centre of gravity height":"重心の高さ","KWC legal":"KWC規格内",
+"Quick vote: swipe":"かんたん投票：スワイプ","Swipe, then a double elimination bracket":"スワイプの後にダブルエリミネーション","Pools, then a playoff":"プール戦の後にプレーオフ",
+"Party: Olympics, auction, King of the Hill, awards":"パーティー：オリンピック、オークション、キング・オブ・ザ・ヒル、アワード","Swipe, knock-out tokens, then line them up":"スワイプ、脱落トークン、最後に順位づけ",
+"Weights in hard maple":"重さはハードメープルで計算","Spike in big-cup lunar":"大皿ルナでのけん先","below":"下向き","above":"上向き","No KWC warnings":"KWCの警告なし",
+"Ken, sarado and tama, in hard maple":"けん・皿胴・玉の合計（ハードメープル）","Spike below horizontal in big-cup lunar":"大皿ルナでのけん先の水平からの下向き角度",
+"Your shape":"あなたの形状","Yours":"あなたの","Still to vote: # of #":"未投票：#/# 人","Still writing: # of #":"記入中：#/# 人","Everyone is in.":"全員そろいました。",
+"5 minutes of design time left.":"デザイン時間は残り5分です。","1 minute of design time left.":"デザイン時間は残り1分です。",
+"Pencils down":"そこまで","Describing the shapes":"形状の説明","Stage # of #":"ステージ #/#","Stage # results":"ステージ # の結果","Results":"結果","Waiting for the host…":"ホストを待っています…","Paused":"一時停止中",
+"Stop the clock for everyone":"全員の時計を止める","Start the clock again":"時計を再開する","Pause":"一時停止","Resume":"再開","A minute more for this step":"このステップを1分延長","+1 min":"+1分",
+"End this step now and go on":"このステップを今すぐ終えて次へ","Skip ahead":"次へ進む","End the game":"ゲームを終了",
+"Hide the game window. The game goes on; open it again from the button at the top.":"ゲーム画面を隠します。ゲームは続きます。上のボタンからまた開けます。",
+"Pencils down!":"そこまで！","Everyone’s kendama is being collected for the game.":"ゲームのために全員のけん玉を集めています。",
+"A few words from each designer":"デザイナーからひとこと","The designers are writing a few words about their shapes. The game starts in a moment.":"デザイナーが自分の形状についてひとこと書いています。まもなくゲームが始まります。",
+"What is your shape for? What did you change, and why?":"どんな用途の形状ですか？ 何を、なぜ変えましたか？","Update":"更新","Describe your shape":"あなたの形状の説明",
+"Shown with your shape all through the game, without your name. Keep it short.":"ゲームの間ずっと、名前なしで形状と一緒に表示されます。短めにどうぞ。","Thanks! Waiting for the others.":"ありがとう！ ほかの人を待っています。",
+"You’re watching. Watchers don’t vote in this game.":"観覧中です。このゲームでは観覧者は投票しません。","You came in during this stage, so you can vote from the next one.":"このステージの途中で参加したので、次のステージから投票できます。",
+"Everyone is going through the shapes.":"全員が形状を見ています。","Change your last answer":"直前の答えを変える","Back one":"一つ戻る",
+"You’ve been through every shape.":"すべての形状を見終わりました。","Your answers are in. Waiting for the others.":"回答を送りました。ほかの人を待っています。","Compare with:":"比べる形状：","My shape":"自分の形状",
+"Add a shape from the library to compare":"比べるためにライブラリの形状を追加","Library shape…":"ライブラリの形状…","Not for me":"好みじゃない","Like it":"いいね","Swipe the card, or use the arrow keys.":"カードをスワイプするか、矢印キーを使ってください。",
+"Playoff":"プレーオフ","Round # of #":"ラウンド #/#","Pick the one you like better in each match.":"各対戦で好きな方を選んでください。","Pool #":"プール #","vs":"対",
+"Challenge # of #":"挑戦 #/#","Challenger":"挑戦者","Held the hill # times in a row":"# 回連続で王座を防衛中","Held the hill once":"王座を1回防衛","Game results PDF":"ゲーム結果PDF","Level":"水平","On an even vote, the king keeps the hill.":"同票のときは王者が王座を守ります。",
+"Everyone is putting the shapes in order.":"全員が形状を並べています。","Put the shapes in your order, best first: drag them by the handle, or use the arrows.":"いちばん良いものを先頭に、自分の順に並べてください。つまみをドラッグするか、矢印を使います。",
+"off target by":"目標との差","Round #: nudge the order":"ラウンド #：順番を調整","Do you agree with this order?":"この順位に同意しますか？","Target:":"目標：",
+"This is everyone’s order from the last round. Move any shapes you think are in the wrong place.":"前のラウンドの全員の順位です。違うと思う形状を動かしてください。",
+"The shapes are in order of how close their spike comes to the target in big-cup lunar. Move any you think should be higher or lower.":"大皿ルナでけん先が目標の角度にどれだけ近いかの順に並んでいます。もっと上・下にすべきだと思う形状を動かしてください。",
+"Disagree":"同意しない","Agree":"同意する","This is the last round: the order stands either way.":"最後のラウンドです。結果にかかわらずこの順位で決まります。","If more people disagree than agree, everyone gets another go.":"同意しない人の方が多ければ、もう一度やり直します。",
+"Everyone is handing out knock-out tokens.":"全員が脱落トークンを配っています。","Everyone is spending their tokens.":"全員がトークンを使っています。","knock-out tokens left":"脱落トークンの残り","tokens left":"トークンの残り",
+"Put your tokens on the shapes you like least: the ones with the most tokens are knocked out. Up to # on one shape.":"いちばん好きでない形状にトークンを置いてください。トークンの多い形状が脱落します。一つの形状に最大 # 枚までです。",
+"Put your tokens on the shapes you like best. Up to # on one shape.":"いちばん好きな形状にトークンを置いてください。一つの形状に最大 # 枚までです。","Your own shape":"自分の形状",
+"I’m done":"完了","Change my tokens":"トークンを変える","Your tokens are in. You can still change them until the time is up.":"トークンを送りました。時間内なら変更できます。",
+"Event # of #":"種目 #/#","Everyone is handing out the awards.":"全員が賞を選んでいます。","Change my picks":"選び直す","Your picks are in. You can still change them until the time is up.":"選んだものを送りました。時間内なら変更できます。",
+"It was a tie: vote once more.":"同票でした。もう一度投票してください。","✓ Your pick":"✓ あなたの選択","Pick this one":"これを選ぶ","One of these is your shape, so you sit this one out.":"どちらかがあなたの形状なので、この対戦は投票しません。",
+"Last match:":"前の対戦：","an even vote":"同票","Bracket":"トーナメント","Winners bracket":"勝者側","Losers bracket":"敗者側","Losers bracket 1":"敗者側 1","Losers bracket 2":"敗者側 2",
+"Match for 3rd place":"3位決定戦","Final, deciding match":"決勝・最終戦","Final":"決勝","Round #":"ラウンド #","Lives left":"残りの命","Still in":"勝ち残り","Out":"敗退",
+"Table":"順位表","Won":"勝","Drawn":"分","Lost":"敗","Legal":"規格内","Not legal":"規格外","every legal shape shares first place":"規格内の形状はすべて1位","nearest":"いちばん近い","lowest wins":"低いほど勝ち","highest wins":"高いほど勝ち",
+"Medal table":"メダル表","Move up":"上へ","Move down":"下へ","Drag to move":"ドラッグして移動","Your order is in. You can still change it until the time is up.":"順位を送りました。時間内なら変更できます。","Change my order":"順位を変える",
+"Move the shapes about here to compare them side by side.":"ここで形状を動かして並べて比べられます。","The top # go through.":"上位 # 位までが勝ち進みます。","Everyone goes through.":"全員が勝ち進みます。","Next:":"次：",
+"Start the next stage now":"次のステージを今すぐ始める","Place":"順位","No votes":"投票なし","Played to the end":"最後まで残った","Not enough shapes for a game":"ゲームをするには形状が足りません",
+"A game needs at least two kendamas. Nothing was played.":"ゲームには少なくとも2つのけん玉が必要です。何も行われませんでした。","The results":"結果","Made by":"デザイン","Went out in":"敗退したステージ","In their words":"本人のひとこと",
+"Results file":"結果ファイル","Winning shapes on the first page":"1ページ目の上位の形状","Detail":"詳しさ","Summary: the final ranking":"概要：最終順位","Standard: every stage’s ranking":"標準：各ステージの順位","Full: every match and vote":"詳細：すべての対戦と投票",
+"Add the winning shapes’ spec sheets":"上位の形状の仕様書を付ける","Results PDF":"結果PDF",
+"Waiting for the owner…":"オーナーを待っています…","The owner starts the game when everyone is ready.":"全員の準備ができたらオーナーがゲームを始めます。","Design time left":"デザイン時間の残り",
+"A few words about your shape, shown with it in the game":"ゲームで形状と一緒に表示される、あなたの形状についてのひとこと","You can also write this when the design time is up.":"デザイン時間が終わったときに書くこともできます。",
+"Start the game now":"今すぐゲームを始める","Five more minutes of design time":"デザイン時間を5分延長","+5 min":"+5分","Edit the stages…":"ステージを編集…","The game is over.":"ゲームが終わりました。","The game is on.":"ゲーム中です。",
+"See the results":"結果を見る","Open the game window":"ゲーム画面を開く","(top #)":"（上位 #）","Design time":"デザイン時間","The design game. Its controls are under Collaborate.":"デザインゲームです。操作は「共同作業」にあります。","Game results":"ゲームの結果","The game is on":"ゲーム中",
+"When the design time is up, everyone’s kendama goes into a game in a window of its own, stage after stage, until the shapes are ranked.":"デザイン時間が終わると、全員のけん玉が専用の画面でゲームに進み、ステージを重ねて順位が決まります。",
+"minutes":"分","seconds":"秒","0: you start the game yourself, from Collaborate.":"0：「共同作業」から自分でゲームを始めます。","Time to describe each shape":"形状の説明を書く時間","0: no descriptions.":"0：説明なし。",
+"Your own kendama plays too":"自分のけん玉も参加する","Kendamas of people who left still play":"退出した人のけん玉も参加する","Leave out kendamas nobody changed":"誰も変更していないけん玉は除く","Watchers can vote":"観覧者も投票できる",
+"Show who made each shape at the end":"最後に各形状のデザイナーを表示する","Stages:":"ステージ：","Set up the stages…":"ステージを設定…","Game stages":"ゲームのステージ",
+"Put the stages in the order they are played. Each stage keeps its top shapes for the next one; the last stage ranks the shapes that are left.":"ステージを行う順に並べてください。各ステージは上位の形状を次へ残し、最後のステージで残った形状の順位を決めます。",
+"Start from a ready-made game…":"用意されたゲームから始める…","Shapes expected":"見込みの形状数","Add a stage":"ステージを追加","About # min of play in all":"全体で約 # 分","Stage #":"ステージ #",
+"Take this stage out":"このステージを外す","Nobody is knocked out here.":"ここでは誰も脱落しません。","The last stage ranks the shapes that are left.":"最後のステージで残った形状の順位を決めます。","Keep the top":"上位","for the next stage":"位までを次のステージへ",
+"0 keeps them all.":"0 ならすべて残します。","About # min with # shapes":"約 # 分（形状 # 個）","Seeding":"組み合わせ","A random draw":"ランダムな抽選","By the last stage’s results":"前のステージの結果順",
+"Seconds per shape":"1形状あたりの秒数","Format":"方式","Single elimination":"シングルエリミネーション","Double elimination":"ダブルエリミネーション","Triple elimination":"トリプルエリミネーション","3rd place comes from the bracket.":"3位はトーナメントの結果で決まります。",
+"Seconds per match":"1対戦あたりの秒数","Pools":"プール数","Through from each pool":"各プールから勝ち進む数","The shapes through play a playoff bracket":"勝ち進んだ形状でプレーオフを行う","Seconds per challenge":"1挑戦あたりの秒数","Rounds":"周回",
+"Everyone challenges once":"全員が1回挑戦","Everyone challenges twice":"全員が2回挑戦","Target: degrees below horizontal":"目標：水平から下向きの角度","Seconds to adjust":"調整の秒数","Rounds to agree":"同意のラウンド数","Tokens each":"1人あたりのトークン",
+"Most on one shape":"一つの形状への上限","Knock-out tokens: everyone gives them to the shapes they like least":"脱落トークン：全員がいちばん好きでない形状に配る","Seconds (0: set by the number of shapes)":"秒数（0：形状の数で決める）","Seconds per event":"1種目あたりの秒数",
+"Seconds (0: set by the number of awards)":"秒数（0：賞の数で決める）","Nearest":"いちばん近い","Lowest":"いちばん低い","Highest":"いちばん高い","Shared kendama":"共有けん玉","Leave it empty to aim for the shared kendama the session started from":"空欄にすると、セッション開始時の共有けん玉を目標にします",
+"Take this event out":"この種目を外す","Add an event":"種目を追加","Take this award out":"この賞を外す","Add an award":"賞を追加",
+"Pencils down! The game is about to start.":"そこまで！ まもなくゲームが始まります。","The game stops here. The shapes are ranked on what has been played so far.":"ここでゲームを終えます。ここまでの結果で順位を決めます。",
+"Start the game":"ゲームを始める","Pencils down for everyone now? Each kendama goes into the game as it is.":"全員の作業を今すぐ終えますか？ 各けん玉は今の形のままゲームに進みます。","Not yet":"まだ",
+"Likes":"いいね","Won–lost":"勝–敗","Won–drawn–lost":"勝–分–敗","Wins":"勝ち数","Score (out of 100)":"スコア（100点満点）","Spike below horizontal":"けん先の水平からの下向き角度","Tokens":"トークン","Knock-out tokens":"脱落トークン",
+"Results PDF saved":"結果PDFを保存しました"};
+ for(const k in G)if(!(k in JA))JA[k]=G[k];}
 
 /* ================= password screen =================
    A simple lock for the public site: the app opens only after the password. Only a salted PBKDF2 fingerprint of it is here; a device that has

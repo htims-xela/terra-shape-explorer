@@ -131,6 +131,12 @@ class Room:
                     self.send(to, o)
             elif o.get('kind') == 'op' and edit:
                 self.all(o)
+            elif o.get('kind') == 'game':
+                self.all(o)
+        elif t == 'game':
+            o['from'] = me.id
+            o['at'] = int(time.time() * 1000)
+            self.all(o)
         elif t == 'chat':
             text = clean(o.get('text'), 1000)
             if self.chat and text:
